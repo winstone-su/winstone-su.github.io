@@ -8,7 +8,7 @@
       <link href="/2023/03/09/2023-03-08-Hexo%20-%20%E9%83%A8%E7%BD%B2%E5%88%B0Github/"/>
       <url>/2023/03/09/2023-03-08-Hexo%20-%20%E9%83%A8%E7%BD%B2%E5%88%B0Github/</url>
       
-        <content type="html"><![CDATA[<h2 id="连接到Github"><a href="#连接到Github" class="headerlink" title="连接到Github"></a>连接到Github</h2><h3 id="配置git用户名和密码"><a href="#配置git用户名和密码" class="headerlink" title="配置git用户名和密码"></a>配置git用户名和密码</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git config --global user.name &quot;用户名&quot;</span><br><span class="line">git config --global user.email &quot;邮箱&quot;</span><br></pre></td></tr></table></figure><h3 id="生成SSH-Key"><a href="#生成SSH-Key" class="headerlink" title="生成SSH Key"></a>生成SSH Key</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa -C &quot;邮箱&quot;</span><br></pre></td></tr></table></figure><p>SSH Key的位置:</p><blockquote><p>Windows下： C&#x2F;Users&#x2F;Administrator&#x2F;.ssh&#x2F;id_ras.pub</p><p>MacOS:   ~&#x2F;.ssh&#x2F;id_ras.pub</p></blockquote><h3 id="在Github添加SSH"><a href="#在Github添加SSH" class="headerlink" title="在Github添加SSH"></a>在Github添加SSH</h3><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://raw.githubusercontent.com/winstone-su/imageHosting/main/image/202303081429408.png" alt="image-20230308142938324"></p><h3 id="验证SSH配置是否成功"><a href="#验证SSH配置是否成功" class="headerlink" title="验证SSH配置是否成功"></a>验证SSH配置是否成功</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh -T git@github.com</span><br></pre></td></tr></table></figure><p>如果成功会提示:</p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Hi XXX! You&#x27;ve successfully authenticated, but GitHub does not provide shell access.</span><br></pre></td></tr></table></figure><h2 id="Github创建同名仓库"><a href="#Github创建同名仓库" class="headerlink" title="Github创建同名仓库"></a>Github创建同名仓库</h2><p>在github上创建一个和用户名相同的仓库，以<code>.github.io</code>结尾，<code>&lt;用户名&gt;.github.io</code></p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://raw.githubusercontent.com/winstone-su/imageHosting/main/image/202303081434716.png" alt="image-20230308143413677"></p><h2 id="Hexo配置"><a href="#Hexo配置" class="headerlink" title="Hexo配置"></a>Hexo配置</h2><h3 id="添加依赖"><a href="#添加依赖" class="headerlink" title="添加依赖"></a>添加依赖</h3><p>为了正常部署到github仓库，需要先安装<code>hexo-deployer-git</code>插件。在Hexo根目录输入</p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure><p>如果没有安装的话会报错</p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">INFO Validating config</span><br><span class="line">ERROR Deployer not found: git</span><br></pre></td></tr></table></figure><h3 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h3><p>修改Hexo根目录的<code>_config.xml</code>文件，修改<code>deploy</code>的内容：</p><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="comment"># 这里填写自己的github的名称即可</span></span><br><span class="line">  <span class="attr">repository:</span> <span class="string">ssh://git@github.com/用户名/用户名.github.io.git</span></span><br><span class="line">  <span class="comment"># 注意这里，检查github的默认分支是 main 还是 master</span></span><br><span class="line">  <span class="attr">brandh:</span> <span class="string">main</span></span><br><span class="line">  <span class="attr">messge:</span></span><br></pre></td></tr></table></figure><h2 id="部署到远程仓库"><a href="#部署到远程仓库" class="headerlink" title="部署到远程仓库"></a>部署到远程仓库</h2><p>每次重新开一个新的终端都要重新连接git：</p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh -T git@github.com</span><br></pre></td></tr></table></figure><p>执行下面的命令，然后再次进入Pages的链接<code>https://用户名.github.io</code>就可以看到你的博客了。</p><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">hexo generate</span><br><span class="line">hexo deploy</span><br></pre></td></tr></table></figure><p>效果如下：</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://raw.githubusercontent.com/winstone-su/imageHosting/main/image/202303081443490.png" alt="image-20230308144300442"></p><h2 id="错误处理"><a href="#错误处理" class="headerlink" title="错误处理"></a>错误处理</h2><ol><li><h3 id="remote-rejected-HEAD-gt-master-protected-branch-hook-declined"><a href="#remote-rejected-HEAD-gt-master-protected-branch-hook-declined" class="headerlink" title="[remote rejected] HEAD -&gt; master (protected branch hook declined)"></a>[remote rejected] HEAD -&gt; master (protected branch hook declined)</h3></li></ol><p>错误信息:</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/09/jUIPqda9EAwKJWT.png" alt="deploy error"></p><p>出现这种问题的原因是，github仓库的branch添加了<code>protection rules</code>，在当前仓库的<code>Settings</code> –&gt; <code>Branches</code> 删除 <code>Branch protection rules</code></p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/09/lxzegs7rG8yfYoU.png" alt="Delte Branch protection Rules"></p>]]></content>
+        <content type="html"><![CDATA[<h2 id="连接到Github"><a href="#连接到Github" class="headerlink" title="连接到Github"></a>连接到Github</h2><h3 id="配置git用户名和密码"><a href="#配置git用户名和密码" class="headerlink" title="配置git用户名和密码"></a>配置git用户名和密码</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git config --global user.name &quot;用户名&quot;</span><br><span class="line">git config --global user.email &quot;邮箱&quot;</span><br></pre></td></tr></table></figure><h3 id="生成SSH-Key"><a href="#生成SSH-Key" class="headerlink" title="生成SSH Key"></a>生成SSH Key</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa -C &quot;邮箱&quot;</span><br></pre></td></tr></table></figure><p>SSH Key的位置:</p><blockquote><p>Windows下： C&#x2F;Users&#x2F;Administrator&#x2F;.ssh&#x2F;id_ras.pub</p><p>MacOS:   ~&#x2F;.ssh&#x2F;id_ras.pub</p></blockquote><h3 id="在Github添加SSH"><a href="#在Github添加SSH" class="headerlink" title="在Github添加SSH"></a>在Github添加SSH</h3><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/09/sC5cmX9hygEIS7M.png"></p><h3 id="验证SSH配置是否成功"><a href="#验证SSH配置是否成功" class="headerlink" title="验证SSH配置是否成功"></a>验证SSH配置是否成功</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh -T git@github.com</span><br></pre></td></tr></table></figure><p>如果成功会提示:</p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Hi XXX! You&#x27;ve successfully authenticated, but GitHub does not provide shell access.</span><br></pre></td></tr></table></figure><h2 id="Github创建同名仓库"><a href="#Github创建同名仓库" class="headerlink" title="Github创建同名仓库"></a>Github创建同名仓库</h2><p>在github上创建一个和用户名相同的仓库，以<code>.github.io</code>结尾，<code>&lt;用户名&gt;.github.io</code></p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/09/tPRhNoIZYDuLFnW.png" alt="仓库"></p><h2 id="Hexo配置"><a href="#Hexo配置" class="headerlink" title="Hexo配置"></a>Hexo配置</h2><h3 id="添加依赖"><a href="#添加依赖" class="headerlink" title="添加依赖"></a>添加依赖</h3><p>为了正常部署到github仓库，需要先安装<code>hexo-deployer-git</code>插件。在Hexo根目录输入</p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure><p>如果没有安装的话会报错</p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">INFO Validating config</span><br><span class="line">ERROR Deployer not found: git</span><br></pre></td></tr></table></figure><h3 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h3><p>修改Hexo根目录的<code>_config.xml</code>文件，修改<code>deploy</code>的内容：</p><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="comment"># 这里填写自己的github的名称即可</span></span><br><span class="line">  <span class="attr">repository:</span> <span class="string">ssh://git@github.com/用户名/用户名.github.io.git</span></span><br><span class="line">  <span class="comment"># 注意这里，检查github的默认分支是 main 还是 master</span></span><br><span class="line">  <span class="attr">brandh:</span> <span class="string">main</span></span><br><span class="line">  <span class="attr">messge:</span></span><br></pre></td></tr></table></figure><h2 id="部署到远程仓库"><a href="#部署到远程仓库" class="headerlink" title="部署到远程仓库"></a>部署到远程仓库</h2><p>每次重新开一个新的终端都要重新连接git：</p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh -T git@github.com</span><br></pre></td></tr></table></figure><p>执行下面的命令，然后再次进入Pages的链接<code>https://用户名.github.io</code>就可以看到你的博客了。</p><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">hexo generate</span><br><span class="line">hexo deploy</span><br></pre></td></tr></table></figure><p>效果如下：</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/09/fmQJkUOg9s4xK3W.png" alt="winstone.su"></p><h2 id="错误处理"><a href="#错误处理" class="headerlink" title="错误处理"></a>错误处理</h2><ol><li><h3 id="remote-rejected-HEAD-gt-master-protected-branch-hook-declined"><a href="#remote-rejected-HEAD-gt-master-protected-branch-hook-declined" class="headerlink" title="[remote rejected] HEAD -&gt; master (protected branch hook declined)"></a>[remote rejected] HEAD -&gt; master (protected branch hook declined)</h3></li></ol><p>错误信息:</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/09/omSGCYTfMb54cpJ.png" alt="deploy error"></p><p>出现这种问题的原因是，github仓库的branch添加了<code>protection rules</code>，在当前仓库的<code>Settings</code> –&gt; <code>Branches</code> 删除 <code>Branch protection rules</code></p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/09/lxzegs7rG8yfYoU.png" alt="Delte Branch protection Rules"></p>]]></content>
       
       
       <categories>
@@ -104,6 +104,75 @@
     
     
     <entry>
+      <title>iOS 控件遮盖问题</title>
+      <link href="/2022/08/05/2020-06-22-iOS%20%E6%8E%A7%E4%BB%B6%E9%81%AE%E7%9B%96%E9%97%AE%E9%A2%98/"/>
+      <url>/2022/08/05/2020-06-22-iOS%20%E6%8E%A7%E4%BB%B6%E9%81%AE%E7%9B%96%E9%97%AE%E9%A2%98/</url>
+      
+        <content type="html"><![CDATA[<p>​ 在已经设置好布局的StoryBoard上面，添加一些新的空间，然后点击某个按钮弹窗的时候，发现新添加的空间还是显示在最上层</p><p>解决办法： 在Storyboard的列表中，越往下的控件，在屏幕显示就会越在上面，只需要把新加的控件拖动到上面即可</p><p>![截屏2020-06-22 上午10.34.37](&#x2F;assets&#x2F;images&#x2F;20200622-1.png)</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> iOS </category>
+          
+      </categories>
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>iOS中使用MJExtension处理OC里的id关键字</title>
+      <link href="/2020/05/27/2020-5-27-iOS%E4%B8%AD%E4%BD%BF%E7%94%A8%20MJExtension%E5%A4%84%E7%90%86OC%E9%87%8C%E7%9A%84id%E5%85%B3%E9%94%AE%E5%AD%97/"/>
+      <url>/2020/05/27/2020-5-27-iOS%E4%B8%AD%E4%BD%BF%E7%94%A8%20MJExtension%E5%A4%84%E7%90%86OC%E9%87%8C%E7%9A%84id%E5%85%B3%E9%94%AE%E5%AD%97/</url>
+      
+        <content type="html"><![CDATA[<p>利用<code>MJExtension</code> 解析json -&gt; model 遇到OC关键字<code>id</code>,处理方法:</p><p>在 Model 中使用方法:</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">+(NSDictionary *)mj_replacedKeyFromPropertyName</span><br><span class="line">&#123;</span><br><span class="line">    return @&#123;@&quot;ID&quot;:@&quot;id&quot;&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>或者写个统一的类处理相同的请求:</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[Xxx mj_setupReplacedKeyFromPropertyName:^NSDictionary *&#123;</span><br><span class="line">       return @&#123;</span><br><span class="line">                  @&quot;ID&quot; : @&quot;id&quot;,</span><br><span class="line">              &#125;;</span><br><span class="line">   &#125;];</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      <categories>
+          
+          <category> iOS </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> iOS </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Mac下显示隐藏文件</title>
+      <link href="/2020/05/15/2020-5-15-Mac%E4%B8%8B%E6%98%BE%E7%A4%BA%E9%9A%90%E8%97%8F%E6%96%87%E4%BB%B6/"/>
+      <url>/2020/05/15/2020-5-15-Mac%E4%B8%8B%E6%98%BE%E7%A4%BA%E9%9A%90%E8%97%8F%E6%96%87%E4%BB%B6/</url>
+      
+        <content type="html"><![CDATA[<p> Mac OS X 10.9 Mavericks版本之后:</p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">defaults write com.apple.finder AppleShowAllFiles Yes &amp;&amp; killall Finder //显示隐藏文件</span><br></pre></td></tr></table></figure><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">defaults write com.apple.finder AppleShowAllFiles No &amp;&amp; killall Finder //不显示隐藏文件</span><br></pre></td></tr></table></figure><p>快捷键:</p><p>在 macOS Sierra及以上版本，可以使用快捷键<code>⌘⇧.(Command + Shift + .)</code> 来快速（在<code> Finder</code> 中）显示和隐藏文件了</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> MacOS </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> iOS </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Mac终端走代理的方法</title>
       <link href="/2020/05/11/2020-5-11-Mac%E7%BB%88%E7%AB%AF%E8%B5%B0%E4%BB%A3%E7%90%86%E7%9A%84%E6%96%B9%E6%B3%95/"/>
       <url>/2020/05/11/2020-5-11-Mac%E7%BB%88%E7%AB%AF%E8%B5%B0%E4%BB%A3%E7%90%86%E7%9A%84%E6%96%B9%E6%B3%95/</url>
@@ -121,6 +190,31 @@
         <tags>
             
             <tag> MacOS </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>Xcode导出IPA包四个选项的含义</title>
+      <link href="/2016/12/14/2016-12-14-Xcode%E5%AF%BC%E5%87%BAIPA/"/>
+      <url>/2016/12/14/2016-12-14-Xcode%E5%AF%BC%E5%87%BAIPA/</url>
+      
+        <content type="html"><![CDATA[<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/09/opZQNR3MPDmClbr.png" alt="img" title="ipa"></p><h3 id="1-Save-for-iOS-App-Store-Deployment"><a href="#1-Save-for-iOS-App-Store-Deployment" class="headerlink" title="1.Save for iOS App Store Deployment"></a>1.Save for iOS App Store Deployment</h3><p>保存到本地 准备上传App Store 或者在越狱的iOS设备上使用</p><h3 id="2-Save-for-Ad-Hoc-Deployment"><a href="#2-Save-for-Ad-Hoc-Deployment" class="headerlink" title="2.Save for Ad Hoc Deployment"></a>2.Save for Ad Hoc Deployment</h3><p>保存到本地 准备在账号添加的可使用设备上使用（具体为在开发者账户下添加可用设备的udid），该app包是发布证书编译的（The app will be code signed with the distribution certificate.）</p><h3 id="3-Save-for-Enterprise-Deployment"><a href="#3-Save-for-Enterprise-Deployment" class="headerlink" title="3.Save for Enterprise Deployment"></a>3.Save for Enterprise Deployment</h3><p>企业级分发</p><h3 id="4-Save-for-Development-Deployment"><a href="#4-Save-for-Development-Deployment" class="headerlink" title="4. Save for Development Deployment"></a>4. Save for Development Deployment</h3><p>针对内部测试使用，主要给开发者的设备(具体也为在开发者账户下添加可用设备的udid)。该app包是开发证书编译的（The app will be code signed with your development certificate）</p><p><strong>2与4的区别就在于，一个是用发布证书打包，一个是用开发证书打包</strong></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> iOS </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> iOS </tag>
             
         </tags>
       
@@ -154,11 +248,61 @@
     
     
     <entry>
+      <title>百度iOS面试题</title>
+      <link href="/2016/12/06/2016-12-06-%E7%99%BE%E5%BA%A6iOS%E9%9D%A2%E8%AF%95%E9%A2%98/"/>
+      <url>/2016/12/06/2016-12-06-%E7%99%BE%E5%BA%A6iOS%E9%9D%A2%E8%AF%95%E9%A2%98/</url>
+      
+        <content type="html"><![CDATA[<p>1.请解释一下KVO、KVC的含义.</p><p>2.怎么实现多重继承 </p><p>3.GCD死锁产生以解决方案？ </p><p>4.iOS事件传递机制 </p><p>5.UITableView重用机制 </p><p>6.NSString用copy是深拷贝还是浅拷贝？ </p><p>7.UIViewController声明周期 </p><p>8.loadView和viewDidload的区别 </p><p>9.iOS App的几种状态，双击Home键是什么状态，可以相应用户输入吗？ </p><p>10.viewDidUnLoad这个方法还在使用吗？ </p><p>11.frame和bounds的区别</p><p>大概就记得这么多。。。 </p><p>8、10 题答案参考 </p><p><a href="http://blog.csdn.net/q199109106q/article/details/8614044">http://blog.csdn.net/q199109106q/article/details/8614044 </a></p><p>2参考   <a href="http://ios.jobbole.com/82622/">http://ios.jobbole.com/82622/</a></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> iOS </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> iOS </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>iOS WebView不响应input标签</title>
       <link href="/2016/10/18/2016-10-18-iOS-WebView%E4%B8%8D%E5%93%8D%E5%BA%94input%E6%A0%87%E7%AD%BE/"/>
       <url>/2016/10/18/2016-10-18-iOS-WebView%E4%B8%8D%E5%93%8D%E5%BA%94input%E6%A0%87%E7%AD%BE/</url>
       
         <content type="html"><![CDATA[<p>遇到一个超级坑的问题，一个普通的HTML里面有一个上传图片的功能，用了这个标签，点击标签可以弹出选择图片的actionsheet.</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/09/TvEDebL9fJoPNgu.jpg" alt="ActionSheet" title="Photo Library"></p><p>但是点了选项只有没有任何反应，还会关闭当前的webview </p><p>在点了标签后，调试会报出以下错误</p><pre><code>Passed in type public.item doesn&#39;t conform to either public.content or public.data. If you are exporting a new type, please ensure that it conforms to an appropriate parent type.the behavior of the UICollectionViewFlowLayout is not defined because:the item width must be less than the width of the UICollectionView minus the section insets left and right values, minus the content insets left and right values.The relevant UICollectionViewFlowLayout instance is &lt;_UIAlertControllerCollectionViewFlowLayout: 0x7fd0585c9fb0&gt;, and it is attached to &lt;UICollectionView: 0x7fd058837800; frame = (0 44; 10 0); clipsToBounds = YES; gestureRecognizers = &lt;NSArray: 0x7fd0585cacf0&gt;; animations = &#123; bounds.origin=&lt;CASpringAnimation: 0x7fd05a83daf0&gt;; bounds.size=&lt;CASpringAnimation: 0x7fd05a83e2c0&gt;; position=&lt;CASpringAnimation: 0x7fd05a83e450&gt;; &#125;; layer = &lt;CALayer: 0x7fd0585ca830&gt;; contentOffset: &#123;0, 0&#125;; contentSize: &#123;0, 0&#125;&gt; collection view layout: &lt;_UIAlertControllerCollectionViewFlowLayout: 0x7fd0585c9fb0&gt;.Make a symbolic breakpoint at UICollectionViewFlowLayoutBreakForInvalidSizes to catch this in the debugger.</code></pre><p>然后各种查看这个错误，发现我的这个webviewController是present进来的，然后把进入方式改成pushviewController就可以了</p><p>参考链接: <a href="http://stackoverflow.com/questions/25942676/ios-8-sdk-modal-uiwebview-and-camera-image-picker">http://stackoverflow.com/questions/25942676/ios-8-sdk-modal-uiwebview-and-camera-image-picker</a></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> iOS </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> iOS </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>利用github作iOS企业分发App</title>
+      <link href="/2014/11/12/2014-11-12-github%E5%88%86%E5%8F%91iOS%E4%BC%81%E4%B8%9A%E7%BA%A7APP/"/>
+      <url>/2014/11/12/2014-11-12-github%E5%88%86%E5%8F%91iOS%E4%BC%81%E4%B8%9A%E7%BA%A7APP/</url>
+      
+        <content type="html"><![CDATA[<p>iOS7.0以后安装企业分发App需要HTTPS证书，如果网站没有CA受信用的HTTPS证书,可以利用github来实现。</p><p>首先在Github上面新建一个Repository,然后把已经制作好的Plist文件上传上去,点开plist找到Raw</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/09/n3d5Bg1H6rUZsA9.jpg" alt="img" title="carl"></p><p>看到别人用七牛(<a href="http://www.qiniu.com/">http://www.qiniu.com</a>)也可以实现企业分发,不过这个网站需要上传身份证正反照片,手上暂时没有,下次再做测试。</p>]]></content>
       
       
       <categories>
