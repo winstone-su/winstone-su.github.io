@@ -1100,8 +1100,6 @@
             
             <tag> Android </tag>
             
-            <tag> BaseQuickAdapter </tag>
-            
         </tags>
       
     </entry>
@@ -1572,9 +1570,7 @@
       
         <tags>
             
-            <tag> ImageLiteral </tag>
-            
-            <tag> ColorLiteral </tag>
+            <tag> iOS </tag>
             
         </tags>
       
@@ -1701,9 +1697,7 @@
       
         <tags>
             
-            <tag> kotlin </tag>
-            
-            <tag> jetpack </tag>
+            <tag> Jetpack </tag>
             
         </tags>
       
@@ -2000,7 +1994,7 @@
       
         <tags>
             
-            <tag> Arcgis for Android </tag>
+            <tag> arcgis </tag>
             
         </tags>
       
@@ -3766,7 +3760,7 @@
       
         <tags>
             
-            <tag> Animation </tag>
+            <tag> iOS </tag>
             
         </tags>
       
@@ -3820,9 +3814,9 @@
       
         <tags>
             
-            <tag> jetpack </tag>
+            <tag> Jetpack </tag>
             
-            <tag> viewmodel </tag>
+            <tag> ViewModel </tag>
             
         </tags>
       
