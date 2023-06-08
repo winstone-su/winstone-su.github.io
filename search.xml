@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>2023-06-08-Charles-雷电模拟器抓包</title>
+      <link href="/posts/881e8cd6/"/>
+      <url>/posts/881e8cd6/</url>
+      
+        <content type="html"><![CDATA[<h2 id="系统环境"><a href="#系统环境" class="headerlink" title="系统环境"></a>系统环境</h2><ul><li><p>Charles  (<a href="https://www.charlesproxy.com/download/">V4.6.4</a>)</p></li><li><p>雷电模拟器 (<a href="https://www.ldmnq.com/">V9.X</a>)</p></li></ul><h2 id="Charles设置"><a href="#Charles设置" class="headerlink" title="Charles设置"></a>Charles设置</h2><h3 id="电脑证书安装"><a href="#电脑证书安装" class="headerlink" title="电脑证书安装"></a>电脑证书安装</h3><p>按照以下步骤安装证书</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/X3IOyvN5K4Yg67M.png" alt="install certificate"></p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/Q5go7zSethkWvy8.png" alt="cer"></p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/tKeNrPWcsVBgDqk.png" alt="install "><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/RUhYEyvVoqOgJrf.png" alt="image-20230608161000858"></p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/lngPzcLN6raQdsh.png" alt="image-20230608161042434"></p><h3 id="保存根证书到本地磁盘"><a href="#保存根证书到本地磁盘" class="headerlink" title="保存根证书到本地磁盘"></a>保存根证书到本地磁盘</h3><blockquote><p>雷电模拟器需要先开启Root设置</p></blockquote><ol><li>导出根证书</li></ol><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/QvnSDpWVh8jAIH7.png" alt="import root cer"><br>导出到本地计算机，<strong>选择cer格式</strong></p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/j2H7mTsZOyaREWk.png" alt="local cer"></p><h3 id="代理端口和SSL设置"><a href="#代理端口和SSL设置" class="headerlink" title="代理端口和SSL设置"></a>代理端口和SSL设置</h3><ol><li>允许SSL</li></ol><p>Proxy –&gt; SSL Proxying Settings</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/qkz6AVa3B8JwHj9.png" alt="image-20230608164046839"></p><p>添加代理</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20230608164121813.png" alt="SSL Proxying Settings"></p><p>配置所有的IP和端口都走代理</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/ncM35aIZrRzjb47.png" alt="image-20230608164236059"></p><ol start="2"><li>端口设置</li></ol><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/FiGrAenztcZxSa7.png" alt="Proxy Settings"></p><p>开启<code>Enable SOCKS proxy</code></p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/YmgDpRJEBZoxU1C.png" alt="Enable SOCKS proxy"></p><h2 id="雷电模拟器设置"><a href="#雷电模拟器设置" class="headerlink" title="雷电模拟器设置"></a>雷电模拟器设置</h2><h3 id="导入根证书"><a href="#导入根证书" class="headerlink" title="导入根证书"></a>导入根证书</h3><p>将上面目录保存到<code>.cer</code>证书，直接拖到雷电模拟器的运行窗口。</p><p>打开雷电模拟器 设置 –&gt; 网络和互联网 –&gt; WLAN</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/9Lk6I2RCtTZayh1.png" alt="WLAN"></p><p>打开WLAN偏好设置</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/oJvtl2FBwEpY7eG.png" alt="image-20230608165403602"></p><p>打开<code>高级</code></p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/wRW1iPDa4kdUryf.png" alt="image-20230608165631844"></p><p>点击<code>安装证书</code></p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/JzBvQImcY4upZjO.png" alt="image-20230608165656044"></p><p>选择刚才导入的<code>cer</code>文件</p><blockquote><p>我的目录是在 Pictures目录 下</p></blockquote><p>随便输入一个名字</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/lwVgxXqEPIAo4SU.png" alt="image-20230608165841872"></p><p>如果弹出了以下弹框，先设置一个锁屏密码</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/C8ctuLrSXNowB3z.png" alt="image-20230608165942037"></p><h3 id="设置雷电模拟器代理"><a href="#设置雷电模拟器代理" class="headerlink" title="设置雷电模拟器代理"></a>设置雷电模拟器代理</h3><p>在网络连接里面设置连接网络的代理，代理服务器主机名就是本机电脑的IP，端口默认是：<code>8888</code></p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/VozpWIeNqwfUOui.png" alt="image-20230608170216717"></p><h2 id="测试连接"><a href="#测试连接" class="headerlink" title="测试连接"></a>测试连接</h2><p>在第一次使用代理进行网络请求的时候，Charles会弹出以下选择框，这里选择<code>Allow</code></p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/zITKMNJxbS8BEhO.png" alt="connection confirm"></p><p>在Charles里面可以看到获取到的网络请求了</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/06/08/YQhIx1rcNsZa6GA.png" alt="image-20230608170853069"></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> tools </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> tools </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>2023-05-12-Hilt的使用</title>
       <link href="/posts/935bce3/"/>
       <url>/posts/935bce3/</url>
@@ -1227,7 +1252,7 @@
       <link href="/posts/7d641008/"/>
       <url>/posts/7d641008/</url>
       
-        <content type="html"><![CDATA[<h1 id="Kotlin-in和out"><a href="#Kotlin-in和out" class="headerlink" title="Kotlin - in和out"></a>Kotlin - in和out</h1><p>子类泛型对象可以赋值给父类泛型对象，用out</p><p>父类泛型独享可以赋值给子类泛型对象，用in</p>]]></content>
+        <content type="html"><![CDATA[<h1 id="Kotlin-in和out"><a href="#Kotlin-in和out" class="headerlink" title="Kotlin - in和out"></a>Kotlin - in和out</h1><p>子类泛型对象可以赋值给父类泛型对象，用out</p><p>父类泛型对象可以赋值给子类泛型对象，用in</p>]]></content>
       
       
       <categories>
