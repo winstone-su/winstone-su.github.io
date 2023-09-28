@@ -4,6 +4,69 @@
   
     
     <entry>
+      <title>2023-08-28-Mac下安装LabelImg</title>
+      <link href="/posts/48460f42/"/>
+      <url>/posts/48460f42/</url>
+      
+        <content type="html"><![CDATA[<p>官方地址： <a href="https://github.com/HumanSignal/labelImg">https://github.com/HumanSignal/labelImg</a></p><p>官方推荐方法</p><p>Virtualenv can avoid a lot of the QT &#x2F; Python version issues</p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">brew install python3</span><br><span class="line">pip3 install pipenv</span><br><span class="line">pipenv run pip install pyqt5==5.15.2 lxml</span><br><span class="line">pipenv run make qt5py3</span><br><span class="line">pipenv run python3 labelImg.py</span><br><span class="line">[Optional] rm -rf build dist; pipenv run python setup.py py2app -A;mv &quot;dist/labelImg.app&quot; /Applications</span><br></pre></td></tr></table></figure><p>因为官方推荐的是使用<code>pipenv</code>,而我是使用<code>conda</code></p><p>所以修改一下改为使用支持<code>conda</code>的方法</p><p>首先下载<code>labelimg的代码</code></p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/HumanSignal/labelImg.git</span><br></pre></td></tr></table></figure><p>然后进入labelimg的目录</p><p>然后激活自己的<code>conda</code>环境</p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">conda install pyqt5==5.15.2 lxml</span><br><span class="line">make qt5py3</span><br><span class="line">python/python3  labelImg.py</span><br></pre></td></tr></table></figure><p>如果在<code>make qt5py3</code>的时候报错</p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">pyrcc5 -o libs/resources.py resources.qrc</span><br><span class="line">make: pyrcc5: No such file or directory</span><br><span class="line">make: *** [qt5py3] Error 1</span><br></pre></td></tr></table></figure><p>可能是qt的环境安装有问题,建议卸载<code>pyqt5</code>、<code>qt</code></p><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">conda uninstall pyqt5</span><br><span class="line">conda uninstall qt</span><br></pre></td></tr></table></figure><p>重新安装即可。</p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>2023-08-25-一键激活下载利器IDM,支持官网最新版</title>
+      <link href="/posts/a62f12dd/"/>
+      <url>/posts/a62f12dd/</url>
+      
+        <content type="html"><![CDATA[<blockquote><p>转载: <a href="https://cxapk.com/20338.html">https://cxapk.com/20338.html</a></p></blockquote><p>缺点就是试用到期后需要手动重置试用！不过重点是安全！</p><p>本文介绍另一种方法，直接将软件注册激活。目测还支持软件更新升级！重点是代码全部开源!</p><h2 id="试用到期"><a href="#试用到期" class="headerlink" title="试用到期"></a>试用到期</h2><p><code>Internet Download Manager</code> <strong>被用了 30 天，但仍未注册。试用期已满 IDM 正在退出.</strong>..</p><p>请注意，根据 IDM 的用户许可协议（您在安装 IDM 时已经阅读过），现在您必须卸载 IDM 或购买使用许可。</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/08/25/wdG1el8ixCbsLv5.png" alt="一键激活下载利器IDM"></p><p>以上是试用到期弹框，无法启动软件！</p><h2 id="开源仓库"><a href="#开源仓库" class="headerlink" title="开源仓库"></a>开源仓库</h2><p>Github地址：<a href="https://cxapk.com/?golink=aHR0cHM6Ly9naXRodWIuY29tL2xzdHByamN0L0lETS1BY3RpdmF0aW9uLVNjcmlwdA==">https://github.com/lstprjct/IDM-Activation-Script</a></p><h2 id="简要操作"><a href="#简要操作" class="headerlink" title="简要操作"></a>简要操作</h2><p>1，下载官网最新版IDM：<a href="https://cxapk.com/?golink=aHR0cHM6Ly93d3cuaW50ZXJuZXRkb3dubG9hZG1hbmFnZXIuY29t">https://www.internetdownloadmanager.com</a></p><p>2，安装IDM软件</p><p>3，运行注册脚本【IAS_0.8.cmd】，选择【1】完成激活</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/08/25/rvfAqKsi8F3m2MX.png" alt="image-20230825095552975"></p><p>4，软件激活成功！</p>]]></content>
+      
+      
+      <categories>
+          
+          <category> tools </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> IDM </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>2023-08-15-Mac下MonoProxy代理问题-Android Studio篇</title>
+      <link href="/posts/9520e2f6/"/>
+      <url>/posts/9520e2f6/</url>
+      
+        <content type="html"><![CDATA[<h2 id="Mac下开启了MonoProxy，怎么在Android-Studio中配置代理"><a href="#Mac下开启了MonoProxy，怎么在Android-Studio中配置代理" class="headerlink" title="Mac下开启了MonoProxy，怎么在Android Studio中配置代理"></a>Mac下开启了MonoProxy，怎么在Android Studio中配置代理</h2><p>MonoProxy设置</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/08/15/7gpIoJPFVLv1XaA.png" alt="Global Proxy"></p><p>Android Studio设置</p><p>在<code>Http Proxy</code>中设置</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/08/15/3bKw172qGfurk6W.png" alt="image-20230815155949644"></p><p>同时修改全局的<code>.gradle.properties</code>文件（路径在：<code>/Users/xxx/.gradle/.gradle.properties</code>）</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/08/15/huv9B3LsMZIJw6K.png" alt="image-20230815160119359"></p><p>如果Android Studio 弹出了提示，那么可以直接在这里设置，不需要上一步手动修改<code>.gradle.properties</code>了</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/08/15/zlFTuSdjsHpbMnO.png" alt="image-20230815160619739"></p>]]></content>
+      
+      
+      <categories>
+          
+          <category> 网络代理 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> MonoProxy </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>2023-08-10-Windows下MonoProxy代理问题-idea篇</title>
       <link href="/posts/e4dee0d5/"/>
       <url>/posts/e4dee0d5/</url>
