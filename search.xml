@@ -4,6 +4,46 @@
   
     
     <entry>
+      <title>2024-05-21-Mapbox for Android - 去除水印Logo</title>
+      <link href="/posts/2618ccec/"/>
+      <url>/posts/2618ccec/</url>
+      
+        <content type="html"><![CDATA[<p>使用Mapbox样式地图，左下角有一个Logo和Attribution</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2024/05/21/pEIDKQoAF5OvUPs.png" alt="image-20240521151850335"></p><p>那么怎么去除这个水印呢</p><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">val</span> mapView <span class="keyword">by</span> lazy &#123;</span><br><span class="line">    binding.mapView</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//去除mapbox的Logo</span></span><br><span class="line">mapView.logo.enabled = <span class="literal">false</span></span><br><span class="line"><span class="comment">//去除Attribution</span></span><br><span class="line">mapView.attribution.enabled = <span class="literal">false</span></span><br></pre></td></tr></table></figure><p>最终效果如图</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2024/05/21/CIO5huYs2RDVq9P.png" alt="image-20240521152133339"></p>]]></content>
+      
+      
+      
+    </entry>
+    
+    
+    
+    <entry>
+      <title>2024-05-21-Mapbox for Android - 本地化地图</title>
+      <link href="/posts/7c600644/"/>
+      <url>/posts/7c600644/</url>
+      
+        <content type="html"><![CDATA[<h2 id="加载地图"><a href="#加载地图" class="headerlink" title="加载地图"></a>加载地图</h2><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">val</span> mapboxMap <span class="keyword">by</span> lazy &#123;</span><br><span class="line">mapView.mapboxMap</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line">mapboxMap.apply &#123;</span><br><span class="line">    loadStyle(Style.MAPBOX_STREETS)</span><br><span class="line">    setCamera(</span><br><span class="line">        CameraOptions.Builder()</span><br><span class="line">        .center(Point.fromLngLat(LONGITUDE, LATITUDE))</span><br><span class="line">        .zoom(<span class="number">15.0</span>)</span><br><span class="line">        .build()</span><br><span class="line">    )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>可以看到地图的效果是</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2024/05/21/4rACiafbQyuOWId.png" alt="image-20240521094238076"></p><p>如何将这些注记用中文展示，需要修改mapboxMap的<code>style</code></p><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">lateinit</span> <span class="keyword">var</span> locale: Locale</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">locale = resources.configuration.locales.<span class="keyword">get</span>(<span class="number">0</span>)</span><br><span class="line">mapboxMap.apply &#123;</span><br><span class="line">    loadStyle(Style.MAPBOX_STREETS)&#123;</span><br><span class="line">        <span class="comment">//或者这里的local 也可以直接使用Locale.CHINA</span></span><br><span class="line">        it.localizeLabels(locale)</span><br><span class="line">    &#125;</span><br><span class="line">    setCamera(</span><br><span class="line">        CameraOptions.Builder()</span><br><span class="line">        .center(Point.fromLngLat(LONGITUDE, LATITUDE))</span><br><span class="line">        .zoom(<span class="number">15.0</span>)</span><br><span class="line">        .build()</span><br><span class="line">    )</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>修改后的效果如下:</p><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2024/05/21/dVBIKclLENq3Grj.png" alt="image-20240521095609486"></p><p>需要注意的是，这里并不是所有的注记都成了中文</p><p>更多可以参考：<a href="https://github.com/mapbox/mapbox-maps-android/tree/v11.3.1/extension-localization">https://github.com/mapbox/mapbox-maps-android/tree/v11.3.1/extension-localization</a></p><p>在这里它添加了</p><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">implementation(<span class="string">&quot;com.mapbox.extension:maps-localization:11.3.1&quot;</span>)</span><br></pre></td></tr></table></figure><p>这个依赖，但是我们在直接使用Mapbox的依赖里面，已经包涵了上面的依赖</p><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">implementation(<span class="string">&quot;com.mapbox.maps:android:11.3.1&quot;</span>)</span><br></pre></td></tr></table></figure>]]></content>
+      
+      
+      <categories>
+          
+          <category> Mapbox </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> Android </tag>
+            
+            <tag> mapbox </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>2023-12-19-Arcgis Android WmsLayer添加cql_filter查询</title>
       <link href="/posts/2d07bdaa/"/>
       <url>/posts/2d07bdaa/</url>
@@ -416,7 +456,7 @@
       <link href="/posts/edc3b74f/"/>
       <url>/posts/edc3b74f/</url>
       
-        <content type="html"><![CDATA[<h2 id="Koodo-Reader"><a href="#Koodo-Reader" class="headerlink" title="Koodo Reader"></a>Koodo Reader</h2><p><strong>一个跨平台的电子书阅读器</strong></p><blockquote><p><a href="https://github.com/troyeguo/koodo-reader">https://github.com/troyeguo/koodo-reader</a></p></blockquote><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/04/28/lxVOmJavC9T8Edq.png" alt="img"></p><p><strong>特色</strong></p><ul><li>支持阅读格式：<ul><li>EPUB (<strong>.epub</strong>)</li><li>扫描文档 (<strong>.pdf</strong>, <strong>.djvu</strong>)</li><li>Kindle (<strong>.azw3</strong>, <strong>.mobi</strong>, <strong>.azw</strong>)</li><li>纯文本 (<strong>.txt</strong>)</li><li>漫画 (<strong>.cbr</strong>, <strong>.cbz</strong>, <strong>.cbt</strong>, <strong>.cb7</strong>)</li><li>富文本 (<strong>.md</strong>, <strong>.docx</strong>, <strong>.rtf</strong>)</li><li>FB2 (<strong>.fb2</strong>)</li><li>超文本 (<strong>.html</strong>, <strong>.xml</strong>, <strong>.xhtml</strong>, <strong>.mhtml</strong>, <strong>.htm</strong>, <strong>.htm</strong>)</li></ul></li><li>支持 <strong>Windows</strong>，<strong>macOS</strong>，<strong>Linux</strong> 和 <strong>网页版</strong></li><li>备份数据到 <strong>Dropbox</strong> 和 <strong>Webdav</strong></li><li>自定义源文件夹，利用 OneDrive、百度网盘、iCloud、Dropbox 等进行多设备同步</li><li>双页模式，单页模式，滚动模式</li><li>听书功能，翻译功能，触控屏支持，批量导入图书</li><li>支持目录，书签，笔记，高亮，书架，标签</li><li>自定义字体，字体大小，行间距，段落间距，阅读背景色，文字颜色，屏幕亮度，文字下划线、斜体、文字阴影、字体粗细</li><li>黑夜模式和主题色设置</li></ul>]]></content>
+        <content type="html"><![CDATA[<h2 id="Koodo-Reader"><a href="#Koodo-Reader" class="headerlink" title="Koodo Reader"></a>Koodo Reader</h2><p><strong>一个跨平台的电子书阅读器</strong></p><blockquote><p><a href="https://github.com/troyeguo/koodo-reader">https://github.com/troyeguo/koodo-reader</a></p></blockquote><p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/04/28/lxVOmJavC9T8Edq.png" alt="img"></p><p><strong>特色</strong></p><ul><li>支持阅读格式：<ul><li>EPUB (<strong>.epub</strong>)</li><li>扫描文档 (<strong>.pdf</strong>, <strong>.djvu</strong>)</li><li>Kindle (<strong>.azw3</strong>, <strong>.mobi</strong>, <strong>.azw</strong>)</li><li>纯文本 (<strong>.txt</strong>)</li><li>漫画 (<strong>.cbr</strong>, <strong>.cbz</strong>, <strong>.cbt</strong>, <strong>.cb7</strong>)</li><li>富文本 (<strong>.md</strong>, <strong>.docx</strong>, <strong>.rtf</strong>)</li><li>FB2 (<strong>.fb2</strong>)</li><li>超文本 (<strong>.html</strong>, <strong>.xml</strong>, <strong>.xhtml</strong>, <strong>.mhtml</strong>, <strong>.htm</strong>, <strong>.htm</strong>)</li></ul></li><li>支持 <strong>Windows</strong>，<strong>macOS</strong>，<strong>Linux</strong> 和 <strong>网页版</strong></li><li>备份数据到 <strong>Dropbox</strong> 和 <strong>Webdav</strong></li><li>自定义源文件夹，利用 OneDrive、百度网盘、iCloud、Dropbox 等进行多设备同步</li><li>双页模式，单页模式，滚动模式</li><li>听书功能，翻译功能，触控屏支持，批量导入图书</li><li>支持目录，书签，笔记，高亮，书架，标签</li><li>自定义字体，字体大小，行间距，段落间距，阅读背景色，文字颜色，屏幕亮度，文字下划线、斜体、文字阴影、字体粗细</li><li>黑夜模式和主题色设置</li></ul><h2 id="RustScan"><a href="#RustScan" class="headerlink" title="RustScan"></a>RustScan</h2><p>The Modern Port Scanner. <strong>Find ports quickly (3 seconds at its fastest)</strong>. Run scripts through our scripting engine (Python, Lua, Shell supported).</p><blockquote><p><a href="https://github.com/RustScan/RustScan">https://github.com/RustScan/RustScan</a></p></blockquote>]]></content>
       
       
       
