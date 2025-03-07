@@ -1,0 +1,516 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Kotlin编程第一课--(基础篇)08  实战：用Kotlin写一个英语词频统计程序 | 码行</title><meta name="author" content="Carl Su"><meta name="copyright" content="Carl Su"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="前面几节课，我们学了一些 Kotlin 独有的特性，包括扩展、高阶函数等等。虽然我在前面的几节课当中都分别介绍了这些特性的实际应用场景，但那终归不够过瘾。因此，这节课我们来尝试将这些知识点串联起来，一起来写一个“单词词频统计程序”。 英语单词的频率统计，有很多实际应用场景，比如高考、研究生考试、雅思考试，都有对应的“高频词清单”，考生优先突破这些高频词，可以大大提升备考效率。那么这个高频词是如何统">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin编程第一课--(基础篇)08  实战：用Kotlin写一个英语词频统计程序">
+<meta property="og:url" content="https://devsu.top/posts/90cef85a/index.html">
+<meta property="og:site_name" content="码行">
+<meta property="og:description" content="前面几节课，我们学了一些 Kotlin 独有的特性，包括扩展、高阶函数等等。虽然我在前面的几节课当中都分别介绍了这些特性的实际应用场景，但那终归不够过瘾。因此，这节课我们来尝试将这些知识点串联起来，一起来写一个“单词词频统计程序”。 英语单词的频率统计，有很多实际应用场景，比如高考、研究生考试、雅思考试，都有对应的“高频词清单”，考生优先突破这些高频词，可以大大提升备考效率。那么这个高频词是如何统">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://static001.geekbang.org/resource/image/d7/f1/d79a634178bd8f34e54cyya7cfd8c8f1.jpg">
+<meta property="article:published_time" content="2022-05-08T09:12:20.000Z">
+<meta property="article:modified_time" content="2025-03-07T02:49:14.886Z">
+<meta property="article:author" content="Carl Su">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://static001.geekbang.org/resource/image/d7/f1/d79a634178bd8f34e54cyya7cfd8c8f1.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Kotlin编程第一课--(基础篇)08  实战：用Kotlin写一个英语词频统计程序",
+  "url": "https://devsu.top/posts/90cef85a/",
+  "image": "https://static001.geekbang.org/resource/image/d7/f1/d79a634178bd8f34e54cyya7cfd8c8f1.jpg",
+  "datePublished": "2022-05-08T09:12:20.000Z",
+  "dateModified": "2025-03-07T02:49:14.886Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Carl Su",
+      "url": "https://devsu.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png"><link rel="canonical" href="https://devsu.top/posts/90cef85a/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const hour = new Date().getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (theme === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else theme === 'light' ? activateLightMode() : activateDarkMode()
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6243425e2ecb037931274c4ca1db3132";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Carl Su","link":"链接: ","source":"来源: 码行","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Kotlin编程第一课--(基础篇)08  实战：用Kotlin写一个英语词频统计程序',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">193</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">41</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://static001.geekbang.org/resource/image/d7/f1/d79a634178bd8f34e54cyya7cfd8c8f1.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png" alt="Logo"><span class="site-name">码行</span></a><a class="nav-page-title" href="/"><span class="site-name">Kotlin编程第一课--(基础篇)08  实战：用Kotlin写一个英语词频统计程序</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Kotlin编程第一课--(基础篇)08  实战：用Kotlin写一个英语词频统计程序</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-05-08T09:12:20.000Z" title="发表于 2022-05-08 17:12:20">2022-05-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-07T02:49:14.886Z" title="更新于 2025-03-07 10:49:14">2025-03-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/">Android</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/">Kotlin</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/Kotlin%E7%BC%96%E7%A8%8B%E7%AC%AC%E4%B8%80%E8%AF%BE/">Kotlin编程第一课</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>22分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>前面几节课，我们学了一些 Kotlin 独有的特性，包括扩展、高阶函数等等。虽然我在前面的几节课当中都分别介绍了这些特性的实际应用场景，但那终归不够过瘾。因此，这节课我们来尝试将这些知识点串联起来，一起来写一个“单词词频统计程序”。</p>
+<p>英语单词的频率统计，有很多实际应用场景，比如高考、研究生考试、雅思考试，都有对应的“高频词清单”，考生优先突破这些高频词，可以大大提升备考效率。那么这个高频词是如何统计出来的呢？当然是通过计算机统计出来的。只是，我们的操作系统并没有提供这样的程序，想要用这样的功能，我们必须自己动手写。</p>
+<p>而这节课，我将带你用 Kotlin 写一个单词频率统计程序。为了让你更容易理解，我们的程序同样会分为三个版本。</p>
+<ul>
+<li><strong>1.0 版本</strong>：实现频率统计基本功能，使用“命令式风格”的代码。</li>
+<li><strong>2.0 版本</strong>：利用扩展函数、高阶函数来优化代码，实现“函数式风格”的代码。</li>
+<li><strong>3.0 版本</strong>：使用 inline 进一步提升软件的性能，并分析高阶函数的实现原理，以及 inline 到底能带来多大的性能提升。</li>
+</ul>
+<p>在正式开始学习之前，我也建议你去 clone 我 GitHub 上面的 TextProcessor 工程：<a target="_blank" rel="noopener" href="https://github.com/chaxiu/TextProcessor.git%EF%BC%8C%E7%84%B6%E5%90%8E%E7%94%A8">https://github.com/chaxiu/TextProcessor.git，然后用</a> IntelliJ 打开，并切换到 start 分支跟着课程一步步敲代码。</p>
+<h2 id="1-0-版本：命令式风格"><a href="#1-0-版本：命令式风格" class="headerlink" title="1.0 版本：命令式风格"></a>1.0 版本：命令式风格</h2><p>在正式开始写代码之前，我们先看看程序运行之后是什么样的，一起来分析一下整体的编程思路：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/57/66/5757bb50b199c4e3faafd8ba8791e866.gif?wh=2182x1362" alt="img"></p>
+<p>首先，我们的词频统计程序是一个类，“TextProcessorV1”，这是第一个版本的类名称。text 是需要被统计的一段测试文本。</p>
+<p>所以，我们很容易就能写出这样的代码结构：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TextProcessorV1</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">processText</span><span class="params">(text: <span class="type">String</span>)</span></span>: List&lt;WordFreq&gt; &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">WordFreq</span>(<span class="keyword">val</span> word: String, <span class="keyword">val</span> frequency: <span class="built_in">Int</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这段代码中，我们定义了一个方法 processText，它接收的参数类型是 String，返回值类型是 List。与此同时，我们还定义了一个数据类 WordFreq，它里面有两个属性，分别是 word 和对应的频率 frequency。</p>
+<p>所以，这个程序最关键的逻辑都在 <strong>processText</strong> 这个方法当中。</p>
+<p>接下来我们以一段简短的英语作为例子，看看整体的统计步骤是怎样的。我用一张图来表示：</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/95/0c/950672a2d7629a47b313aa77636afd0c.jpg?wh=900x1212" alt="img" style="zoom:50%;" />
+
+<p>上面的流程图一共分为 4 个步骤：</p>
+<ul>
+<li>步骤 1，<strong>文本清洗</strong>。正常的英语文本当中是会有很多标点符号的，比如“.”“！”，而标点符号是不需要被统计进来的。所以，在进行词频统计之前，我们还需要对文本数据进行清洗。这里的做法是将标点符号替换成空格。</li>
+<li>步骤 2，<strong>文本分割</strong>。有了步骤 1 作为基础，我们的英语文本当中除了单词之外，就都是空格了。所以，为了分割出一个个单词，我们只需要以空格作为分隔符，对整个文本进行分割即可。在这个过程中，我们的文本数据就会变成一个个单词组成的列表，也就是 List 类型。</li>
+<li>步骤 3，<strong>统计单词频率</strong>。在上个步骤中，我们已经得到了单词组成的 List，但这个数据结构并不适合做频率统计。为了统计单词频率，我们要借助 Map 这个数据结构。我们可以通过遍历 List 的方式，将所有单词都统计一遍，并将“单词”与“频率”以成对的方式存储在 Map 当中。</li>
+<li>步骤 4，<strong>词频排序</strong>。在步骤 3 中，我们得到的词频数据是无序的，但实际场景中，频率越高的单词越重要，因此我们希望高频词可以放在前面，低频词则放在后面。</li>
+</ul>
+<p>经过以上分析，我们就能进一步完善 processText() 方法当中的结构了。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TextProcessorV1</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">processText</span><span class="params">(text: <span class="type">String</span>)</span></span>: List&lt;WordFreq&gt; &#123;</span><br><span class="line">        <span class="comment">// 步骤1</span></span><br><span class="line">        <span class="keyword">val</span> cleaned = clean(text)</span><br><span class="line">        <span class="comment">// 步骤2</span></span><br><span class="line">        <span class="keyword">val</span> words = cleaned.split(<span class="string">&quot; &quot;</span>)</span><br><span class="line">        <span class="comment">// 步骤3</span></span><br><span class="line">        <span class="keyword">val</span> map = getWordCount(words)</span><br><span class="line">        <span class="comment">// 步骤4</span></span><br><span class="line">        <span class="keyword">val</span> list = sortByFrequency(map)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> list</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中，步骤 2 的逻辑很简单，我们直接使用 Kotlin 标准库提供的 <strong>split()</strong> 就可以实现空格分割。其余的几个步骤 1、3、4，则是由单独的函数来实现。所以下面，我们就来分析下 clean()、getWordCount()、sortByFrequency() 这几个方法该如何实现。</p>
+<h3 id="文本清洗"><a href="#文本清洗" class="headerlink" title="文本清洗"></a>文本清洗</h3><p>首先，是文本清洗的方法 clean() 方法。</p>
+<p>经过分析，现在我们知道针对一段文本数据，我们需要将其中的标点符号替换成空格：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//                            标点            标点</span></span><br><span class="line"><span class="comment">// 清洗前                       ↓              ↓</span></span><br><span class="line"><span class="string">&quot;Kotlin is my favorite language. I love Kotlin!&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//                            空格            空格</span></span><br><span class="line"><span class="comment">// 清洗后                       ↓              ↓</span></span><br><span class="line"><span class="string">&quot;Kotlin is my favorite language  I love Kotlin &quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>那么对于这样的逻辑，我们很容易就能写出以下代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">clean</span><span class="params">(text: <span class="type">String</span>)</span></span>: String &#123;</span><br><span class="line">    <span class="keyword">return</span> text.replace(<span class="string">&quot;.&quot;</span>, <span class="string">&quot; &quot;</span>)</span><br><span class="line">        .replace(<span class="string">&quot;!&quot;</span>, <span class="string">&quot; &quot;</span>)</span><br><span class="line">        .trim()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样的代码对于前面这种简单文本是没问题的，但这样的方式存在几个明显的问题。</p>
+<p>第一个问题是<strong>普适性差</strong>。在复杂的文本当中，标点符号的类型很多，比如“,”“?”等标点符号。为了应对这样的问题，我们不得不尝试去枚举所有的标点符号：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">clean</span><span class="params">(text: <span class="type">String</span>)</span></span>: String &#123;</span><br><span class="line">    <span class="keyword">return</span> text.replace(<span class="string">&quot;.&quot;</span>, <span class="string">&quot; &quot;</span>)</span><br><span class="line">        .replace(<span class="string">&quot;!&quot;</span>, <span class="string">&quot; &quot;</span>)</span><br><span class="line">        .replace(<span class="string">&quot;,&quot;</span>, <span class="string">&quot; &quot;</span>)</span><br><span class="line">        .replace(<span class="string">&quot;?&quot;</span>, <span class="string">&quot; &quot;</span>)</span><br><span class="line">        .replace(<span class="string">&quot;&#x27;&quot;</span>, <span class="string">&quot; &quot;</span>)</span><br><span class="line">        .replace(<span class="string">&quot;*&quot;</span>, <span class="string">&quot; &quot;</span>)</span><br><span class="line">        .replace(<span class="string">&quot;#&quot;</span>, <span class="string">&quot; &quot;</span>)</span><br><span class="line">        .replace(<span class="string">&quot;@&quot;</span>, <span class="string">&quot; &quot;</span>)</span><br><span class="line">        .trim()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么随之而来的第二个问题，就是<strong>很容易出错</strong>，因为我们可能会遗漏枚举的标点符号。第三个问题则是<strong>性能差</strong>，随着枚举情况的增加，replace 执行的次数也会增多。</p>
+<p>因此这个时候，我们必须要换一种思路，正则表达式就是一个不错的选择：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">clean</span><span class="params">(text: <span class="type">String</span>)</span></span>: String &#123;</span><br><span class="line">    <span class="keyword">return</span> text.replace(<span class="string">&quot;[^A-Za-z]&quot;</span>.toRegex(), <span class="string">&quot; &quot;</span>)</span><br><span class="line">        .trim()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的正则表达式的含义就是，<strong>将所有不是英文字母的字符都统一替换成空格</strong>（为了不偏离主题，这里我们不去深究正则表达式的细节）。</p>
+<p>这样，数据清洗的功能完成以后，我们就可以对文本进行切割了，这个步骤通过 split() 就能实现。在经过分割以后，我们就得到了单词的列表。接下来，我们就需要进行词频统计 getWordCount() 了。</p>
+<h3 id="词频统计"><a href="#词频统计" class="headerlink" title="词频统计"></a>词频统计</h3><p>在 getWordCount() 这个方法当中，我们需要用到 Map 这个数据结构。如果你不了解这个数据结构也不必紧张，我制作了一张动图，描述 getWordCount() 的工作流程。</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/43/46/43598fd9f2d476f9ffa717dba38cd846.gif?wh=720x405" alt="img"></p>
+<p>看过上面的 Gif 动图以后，相信你对词频统计的实现流程已经心中有数了。其实它就是跟我们生活中做统计一样，遇到一个单词，就把这个单词的频率加一就行。只是我们生活中是用本子和笔来统计，而这里，我们用程序来做统计。</p>
+<p>那么，根据这个流程，我们就可以写出以下这样的频率统计的代码了，这里面主要用了一个 Map 来存储单词和它对应频率：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">getWordCount</span><span class="params">(list: <span class="type">List</span>&lt;<span class="type">String</span>&gt;)</span></span>: Map&lt;String, <span class="built_in">Int</span>&gt; &#123;</span><br><span class="line">    <span class="keyword">val</span> map = hashMapOf&lt;String, <span class="built_in">Int</span>&gt;()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (word <span class="keyword">in</span> list) &#123;</span><br><span class="line">        <span class="comment">// ①</span></span><br><span class="line">        <span class="keyword">if</span> (word == <span class="string">&quot;&quot;</span>) <span class="keyword">continue</span></span><br><span class="line">        <span class="keyword">val</span> trim = word.trim()</span><br><span class="line">        <span class="comment">// ②</span></span><br><span class="line">        <span class="keyword">val</span> count = map.getOrDefault(trim, <span class="number">0</span>)</span><br><span class="line">        map[trim] = count + <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> map</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码一共有两处需要注意，我们一个个看：</p>
+<ul>
+<li>注释①，当我们将标点符号替换成空格以后，两个连续的空格进行分割后会出现空字符””，这是脏数据，我们需要将其过滤掉。</li>
+<li>注释②，map.getOrDefault 是 Map 提供的一个方法，如果当前 map 中没有对应的 Key，则返回一个默认值。这里我们设置的默认值为 0，方便后面的代码计数。</li>
+</ul>
+<p>这样，通过 Map 这个数据结构，我们的词频统计就实现了。而因为 Map 是无序的，所以我们还需要对统计结果进行排序。</p>
+<h2 id="词频排序"><a href="#词频排序" class="headerlink" title="词频排序"></a>词频排序</h2><p>那么到这里，我们就又要将无序的数据结构换成有序的。这里我们选择 List，因为 List 是有序的集合。但由于 List 每次只能存储单个元素，为了同时存储“单词”与“频率”这两个数据，我们需要用上前面定义的<strong>数据类 WordFreq</strong>：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">sortByFrequency</span><span class="params">(map: <span class="type">Map</span>&lt;<span class="type">String</span>, <span class="built_in">Int</span>&gt;)</span></span>: MutableList&lt;WordFreq&gt; &#123;</span><br><span class="line">    <span class="keyword">val</span> list = mutableListOf&lt;WordFreq&gt;()</span><br><span class="line">    <span class="keyword">for</span> (entry <span class="keyword">in</span> map) &#123;</span><br><span class="line">        <span class="keyword">if</span> (entry.key == <span class="string">&quot;&quot;</span>) <span class="keyword">continue</span></span><br><span class="line">        <span class="keyword">val</span> freq = WordFreq(entry.key, entry.value)</span><br><span class="line">        <span class="comment">// ①</span></span><br><span class="line">        list.add(freq)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ②</span></span><br><span class="line">    list.sortByDescending &#123;</span><br><span class="line">        it.frequency</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> list</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这部分的排序代码其实思路很简单：</p>
+<ul>
+<li>注释①处，我们将 Map 当中的词频数据，封装到 WordFreq 数据类当中，并且添加到了 List 当中，这样就将所有的信息都放到了一个有序的集合当中来了；</li>
+<li>注释②处，我们调用了 Kotlin 标准库提供的排序方法“sortByDescending”，它代表了以词频降序排序。</li>
+</ul>
+<p>到这里，我们的 1.0 版本就算是完成了，按照惯例，我们可以写一个单元测试来看看代码运行结果是否符合预期。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/a4/yy/a4d2e9c146517e984bf17a6dfbc403yy.gif?wh=2182x1362" alt="img" style="zoom: 50%;" />
+
+<p>由于我们的测试文本很简单，我们一眼就能分析出正确的结果。其中单词“Kotlin”出现的频率最高，是 2 次，它会排在 result 的第一位。所以，我们可以通过断言来编写以上的测试代码。最终单元测试的结果，也显示我们的代码运行结果符合预期。</p>
+<p>这时候，你也许会想：测试的文本数据太短了，<strong>如果数据量再大一些，程序是否还能正常运行呢</strong>？</p>
+<p>其实，我们可以让程序支持统计文件当中的单词词频，要实现这个功能也非常简单，就是利用我们在第 6 讲学过的扩展方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">processFile</span><span class="params">(file: <span class="type">File</span>)</span></span>: List&lt;WordFreq&gt; &#123;</span><br><span class="line">    <span class="keyword">val</span> text = file.readText(Charsets.UTF_8)</span><br><span class="line">    <span class="keyword">return</span> processText(text)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从代码中我们可以看到，readText() 就是 Kotlin 标准库里提供的一个扩展函数，它可以让我们非常方便地从文件里读取文本。增加这样一行代码，我们的程序就能够统计文件当中的单词频率了。</p>
+<h2 id="2-0-版本：函数式风格"><a href="#2-0-版本：函数式风格" class="headerlink" title="2.0 版本：函数式风格"></a>2.0 版本：函数式风格</h2><p>好，下面我们就一起来实现下第二个版本的词频统计程序。这里，我想先带你回过头来看看咱们 1.0 版本当中的代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TextProcessorV1</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">processText</span><span class="params">(text: <span class="type">String</span>)</span></span>: List&lt;WordFreq&gt; &#123;</span><br><span class="line">        <span class="keyword">val</span> cleaned = clean(text)</span><br><span class="line">        <span class="keyword">val</span> words = cleaned.split(<span class="string">&quot; &quot;</span>)</span><br><span class="line">        <span class="keyword">val</span> map = getWordCount(words)</span><br><span class="line">        <span class="keyword">val</span> list = sortByFrequency(map)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> list</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>是不是觉得咱们的代码实在太整齐了？甚至整齐得有点怪怪的？而且，我们定义的临时变量 cleaned、words、map、list 都只会被用到一次。</p>
+<p>其实上面的代码，就是很明显地在用 Java 思维写 Kotlin 代码。这种情况下，我们甚至可以省略掉中间所有的临时变量，将代码缩减成这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">processText</span><span class="params">(text: <span class="type">String</span>)</span></span>: List&lt;WordFreq&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> sortByFrequency(getWordCount(clean(text).split(<span class="string">&quot; &quot;</span>)))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不过，很明显的是，以上代码的可读性并不好。在开篇词当中，我曾提到过，Kotlin 既有<strong>命令式</strong>的一面，也有函数式的一面，它们有着各自擅长的领域。而在这里，我们就完全可以借助<a target="_blank" rel="noopener" href="https://zh.wikipedia.org/zh/%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BC%96%E7%A8%8B">函数式编程</a>的思想来优化代码，就像下面这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">processText</span><span class="params">(text: <span class="type">String</span>)</span></span>: List&lt;WordFreq&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> text</span><br><span class="line">        .clean()</span><br><span class="line">        .split(<span class="string">&quot; &quot;</span>)</span><br><span class="line">        .getWordCount()</span><br><span class="line">        .sortByFrequency &#123; WordFreq(it.key, it.value) &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以发现，这段代码从上读到下，可读性非常高，它也非常接近我们说话的习惯：我们拿到参数 text，接着对它进行清洗 clean()，然后对单词频率进行统计，最后根据词频进行排序。</p>
+<p>那么，我们要如何修改 1.0 版本的代码，才能实现这样的代码风格呢？<strong>问题的关键还是在于 clean()、getWordCount()、sortByFrequency() 这几个方法。</strong></p>
+<p>我们一个个来分析。首先是 text.clean()，为了让 String 能够直接调用 clean() 方法，我们必须将 clean() 定义成<strong>扩展函数</strong>：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 原函数</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">clean</span><span class="params">(text: <span class="type">String</span>)</span></span>: String &#123;</span><br><span class="line">    <span class="keyword">return</span> text.replace(<span class="string">&quot;[^A-Za-z]&quot;</span>.toRegex(), <span class="string">&quot; &quot;</span>)</span><br><span class="line">        .trim()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 转换成扩展函数</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> String.<span class="title">clean</span><span class="params">()</span></span>: String &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.replace(<span class="string">&quot;[^A-Za-z]&quot;</span>.toRegex(), <span class="string">&quot; &quot;</span>)</span><br><span class="line">        .trim()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码中，我们可以清晰地看到普通函数转换为扩展函数之间的差异：</p>
+<ul>
+<li>原本的参数类型 String，在转换成扩展函数后，就变成了“接收者类型”；</li>
+<li>原本的参数 text，变成了扩展函数的 this。</li>
+</ul>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/d2/59/d27f98fe4234c10a14bd18c7770b8f59.gif?wh=720x405" alt="img"></p>
+<p>对应的，我们的 getWordCount() 方法也同样可以修改成扩展函数的形式。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> List<span class="type">&lt;String&gt;</span>.<span class="title">getWordCount</span><span class="params">()</span></span>: Map&lt;String, <span class="built_in">Int</span>&gt; &#123;</span><br><span class="line">    <span class="keyword">val</span> map = HashMap&lt;String, <span class="built_in">Int</span>&gt;()</span><br><span class="line">    <span class="keyword">for</span> (element <span class="keyword">in</span> <span class="keyword">this</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (element == <span class="string">&quot;&quot;</span>) <span class="keyword">continue</span></span><br><span class="line">        <span class="keyword">val</span> trim = element.trim()</span><br><span class="line">        <span class="keyword">val</span> count = map.getOrDefault(trim, <span class="number">0</span>)</span><br><span class="line">        map[trim] = count + <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> map</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>你能看到，原本是作为参数的 List，现在同样变成了接收者类型，原本的参数 list 集合变成了 this。</p>
+<p>最后是 sortByFrequency()，我们很容易就能写出类似下面的代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> Map<span class="type">&lt;String, Int&gt;</span>.<span class="title">sortByFrequency</span><span class="params">()</span></span>: MutableList&lt;WordFreq&gt; &#123;</span><br><span class="line">    <span class="keyword">val</span> list = mutableListOf&lt;WordFreq&gt;()</span><br><span class="line">    <span class="keyword">for</span> (entry <span class="keyword">in</span> <span class="keyword">this</span>) &#123;</span><br><span class="line">        <span class="keyword">val</span> freq = WordFreq(entry.key, entry.value)</span><br><span class="line">        list.add(freq)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    list.sortByDescending &#123;</span><br><span class="line">        it.frequency</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> list</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>同样的步骤，将参数类型变成“接收者类型”，将参数变成 this。不过，这里的做法并不符合函数式编程的习惯，因为这个方法明显包含两个功能：</p>
+<ul>
+<li>功能 1，将 Map 转换成 List；</li>
+<li>功能 2，使用 sort 对 List 进行排序。</li>
+</ul>
+<p>因此针对这样的情况，我们应该再对这个方法进行拆分：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> Map<span class="type">&lt;String, Int&gt;</span>.<span class="title">mapToList</span><span class="params">(transform: (<span class="type">Map</span>.<span class="type">Entry</span>&lt;<span class="type">String</span>, <span class="type">Int</span>&gt;) -&gt; <span class="type">T</span>)</span></span>: MutableList&lt;T&gt; &#123;</span><br><span class="line">    <span class="keyword">val</span> list = mutableListOf&lt;T&gt;()</span><br><span class="line">    <span class="keyword">for</span> (entry <span class="keyword">in</span> <span class="keyword">this</span>) &#123;</span><br><span class="line">        <span class="keyword">val</span> freq = transform(entry)</span><br><span class="line">        list.add(freq)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> list</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上面的代码当中，为了让 Map 到 List 的转换更加得灵活，我们引入了高阶函数，它的参数 transform 是函数类型的参数。那么相应的，我们的调用处代码也需要做出改变，也就是传入一个 Lambda 表达式：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">processText</span><span class="params">(text: <span class="type">String</span>)</span></span>: List&lt;WordFreq&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> text</span><br><span class="line">        .clean()</span><br><span class="line">        .split(<span class="string">&quot; &quot;</span>)</span><br><span class="line">        .getWordCount()</span><br><span class="line">        .mapToList &#123; WordFreq(it.key, it.value) &#125;</span><br><span class="line">        .sortedByDescending &#123; it.frequency &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看着上面的代码，我们几乎可以像读普通的英语文本一般地阅读上面的代码：首先是对 text 进行清理；然后使用 split 以空格形式进行分割；接着计算出单词的频率，然后再将无序的 Map 转换成 List；最后对 List 进行排序，排序的依据就是词频降序。</p>
+<p>至此，我们的 2.0 版本就算完成了。让我们再次执行一次单元测试，看看我们的代码逻辑是否正确：</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/7c/y3/7cb66e38089f63b82a136316233a3yy3.gif?wh=2182x1362" alt="img" style="zoom: 50%;" />
+
+<p>单元测试的结果告诉我们，代码运行结果符合预期。接下来，我们就可以进行 3.0 版本的开发工作了。</p>
+<h2 id="3-0-版本：inline-优化"><a href="#3-0-版本：inline-优化" class="headerlink" title="3.0 版本：inline 优化"></a>3.0 版本：inline 优化</h2><p>在上一个版本当中，我们的 mapToList 被改造成了一个高阶函数。那到了这个版本，我们实际的代码量其实很少，只需要为 mapToList 这个高阶函数增加一个 inline 关键字即可。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//  增加inline关键字</span></span><br><span class="line"><span class="comment">//        ↓</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> Map<span class="type">&lt;String, Int&gt;</span>.<span class="title">mapToList</span><span class="params">(transform: (<span class="type">Map</span>.<span class="type">Entry</span>&lt;<span class="type">String</span>, <span class="type">Int</span>&gt;) -&gt; <span class="type">T</span>)</span></span>: MutableList&lt;T&gt; &#123;</span><br><span class="line">    <span class="keyword">val</span> list = mutableListOf&lt;T&gt;()</span><br><span class="line">    <span class="keyword">for</span> (entry <span class="keyword">in</span> <span class="keyword">this</span>) &#123;</span><br><span class="line">        <span class="keyword">val</span> freq = transform(entry)</span><br><span class="line">        list.add(freq)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> list</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>到这里，我们 3.0 版本的开发工作其实就完成了。</p>
+<p>但是你要清楚，虽然我们只花几秒钟就能增加这个 inline 关键字，可我们这么做的原因却比较复杂。这涉及到 <strong>inline 关键字的实现原理</strong>。</p>
+<p>不过，在正式研究 inline 之前，我们要先来了解下高阶函数的实现原理。由于 Kotlin 兼容 Java 1.6，因此 JVM 是不懂什么是高阶函数的，我们的高阶函数最终一定会被编译器转换成 JVM 能够理解的格式。</p>
+<p>而又因为，我们的词频统计代码略微有些复杂，所以为了更好地研究高阶函数的原理，这里我们可以先写一个简单的高阶函数，然后看看它反编译后的代码长什么样。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// HigherOrderExample.kt</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">foo</span><span class="params">(block: () -&gt; <span class="type">Unit</span>)</span></span> &#123;</span><br><span class="line">    block()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">    foo&#123;</span><br><span class="line">        i++</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上代码经过反编译成 Java 后，会变成这样：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">HigherOrderExampleKt</span> &#123;</span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">foo</span><span class="params">(Function0 block)</span> &#123;</span><br><span class="line">      block.invoke();</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">()</span> &#123;</span><br><span class="line">      <span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span></span><br><span class="line">      foo((Function0)(<span class="keyword">new</span> <span class="title class_">Function0</span>() &#123;</span><br><span class="line">         <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> <span class="title function_">invoke</span><span class="params">()</span> &#123;</span><br><span class="line">            i++;</span><br><span class="line">         &#125;</span><br><span class="line">      &#125;));</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，Kotlin 高阶函数当中的函数类型参数，变成了 Function0，而 main() 函数当中的高阶函数调用，也变成了“匿名内部类”的调用方式。那么，Function0 又是个什么东西？</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Function0</span>&lt;<span class="type">out R</span>&gt; : <span class="type">Function</span>&lt;<span class="type">R</span>&gt; &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">invoke</span><span class="params">()</span></span>: R</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Function0 其实是 Kotlin 标准库当中定义的接口，它代表没有参数的函数类型。在<a target="_blank" rel="noopener" href="https://github.com/JetBrains/kotlin/blob/master/libraries/stdlib/jvm/runtime/kotlin/jvm/functions/Functions.kt">Functions.kt</a>这个文件当中，Kotlin 一共定义了 23 个类似的接口，从 Function0 一直到 Function22，分别代表了“无参数的函数类型”到“22 个参数的函数类型”。</p>
+<p>好，现在，我们已经知道 Kotlin 高阶函数是如何实现的了，接下来我们看看使用 inline 优化过的高阶函数会是什么样的：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// HigherOrderInlineExample.kt</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">多了一个关键字</span></span><br><span class="line"><span class="comment">   ↓                                    */</span></span><br><span class="line"><span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="title">fooInline</span><span class="params">(block: () -&gt; <span class="type">Unit</span>)</span></span> &#123;</span><br><span class="line">    block()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">    fooInline&#123;</span><br><span class="line">        i++</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>和前面的例子唯一的不同点在于，我们在 foo() 函数的定义处增加了一个 inline 关键字，同时，为了区分，我们也改了一下函数的名称。这个时候，我们再来看看它反编译后的 Java 长什么样：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">HigherOrderInlineExampleKt</span> &#123;</span><br><span class="line">   <span class="comment">// 没有变化</span></span><br><span class="line">   <span class="keyword">public</span> static <span class="keyword">final</span> void fooInline(Function0 block) &#123;</span><br><span class="line">      block.invoke();</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="keyword">public</span> static <span class="keyword">final</span> void main() &#123;</span><br><span class="line">      <span class="comment">// 差别在这里</span></span><br><span class="line">      int i = <span class="number">0</span>;</span><br><span class="line">      int i = i + <span class="number">1</span>;</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为了看得更加清晰，我们将有无 inline 的 main() 放到一起来对比下：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/de/c8/de4c7c3ee9b93c60ca93ab4074db78c8.png?wh=1920x1080" alt="img"></p>
+<p>所以你能发现，<strong>inline 的作用其实就是将 inline 函数当中的代码拷贝到调用处</strong>。</p>
+<p>而是否使用 inline，main() 函数会有以下两个区别：</p>
+<ul>
+<li>在不使用 inline 的情况下，我们的 main() 方法当中，需要调用 foo() 这个函数，这里多了一次函数调用的开销。</li>
+<li>在不使用 inline 的情况下，调用 foo() 函数时，还创建了“Function0”的匿名内部类对象，这也是额外的开销。</li>
+</ul>
+<p>为了验证这一猜测，我们可以使用<a target="_blank" rel="noopener" href="https://github.com/openjdk/jmh">JMH</a>（Java Microbenchmark Harness）对这两组代码进行性能测试。JMH 这个框架可以最大程度地排除外界因素的干扰（比如内存抖动、虚拟机预热），从而判断出我们这两组代码执行效率的差异。它的结果不一定非常精确，但足以说明一些问题。</p>
+<p>不过，为了不偏离本节课的主题，在这里我们不去深究 JMH 的使用技巧，而是只以两组测试代码为例，来探究下 inline 到底能为我们带来多少性能上的提升：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 不用inline的高阶函数</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">foo</span><span class="params">(block: () -&gt; <span class="type">Unit</span>)</span></span> &#123; </span><br><span class="line">    block()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用inline的高阶函数</span></span><br><span class="line"><span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="title">fooInline</span><span class="params">(block: () -&gt; <span class="type">Unit</span>)</span></span> &#123; </span><br><span class="line">    block()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试无inline的代码</span></span><br><span class="line"><span class="meta">@Benchmark</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">testNonInlined</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">    foo &#123;</span><br><span class="line">        i++</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 测试无inline的代码</span></span><br><span class="line"><span class="meta">@Benchmark</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">testInlined</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">    fooInline &#123;</span><br><span class="line">        i++</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终的测试结果如下，分数越高性能越好：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">Benchmark       Mode         Score       Error   Units</span><br><span class="line">testInlined     thrpt   <span class="number">3272062.466</span> ± <span class="number">67403.033</span>  ops/ms</span><br><span class="line">testNonInlined  thrpt    <span class="number">355450.945</span> ± <span class="number">12647.220</span>  ops/ms</span><br></pre></td></tr></table></figure>
+
+<p>从上面的测试结果我们能看出来，是否使用 inline，它们之间的效率几乎相差 10 倍。而这还仅仅只是最简单的情况，如果在一些复杂的代码场景下，多个高阶函数嵌套执行，它们之间的执行效率会相差上百倍。</p>
+<p>为了模拟复杂的代码结构，我们可以简单地将这两个函数分别嵌套 10 个层级，然后看看它们之间的性能差异：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 模拟复杂的代码结构，这是错误示范，请不要在其他地方写这样的代码。</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@Benchmark</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">testNonInlined</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">    foo &#123;</span><br><span class="line">        foo &#123;</span><br><span class="line">            foo &#123;</span><br><span class="line">                foo &#123;</span><br><span class="line">                    foo &#123;</span><br><span class="line">                        foo &#123;</span><br><span class="line">                            foo &#123;</span><br><span class="line">                                foo &#123;</span><br><span class="line">                                    foo &#123;</span><br><span class="line">                                        foo &#123;</span><br><span class="line">                                            i++</span><br><span class="line">                                        &#125;</span><br><span class="line">                                    &#125;</span><br><span class="line">                                &#125;</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Benchmark</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">testInlined</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">    fooInline &#123;</span><br><span class="line">        fooInline &#123;</span><br><span class="line">            fooInline &#123;</span><br><span class="line">                fooInline &#123;</span><br><span class="line">                    fooInline &#123;</span><br><span class="line">                        fooInline &#123;</span><br><span class="line">                            fooInline &#123;</span><br><span class="line">                                fooInline &#123;</span><br><span class="line">                                    fooInline &#123;</span><br><span class="line">                                        fooInline &#123;</span><br><span class="line">                                            i++</span><br><span class="line">                                        &#125;</span><br><span class="line">                                    &#125;</span><br><span class="line">                                &#125;</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意：以上的代码仅仅只是为了做测试，请不要在其他地方写类似这样的代码。</strong></p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">Benchmark        Mode         Score       Error   Units</span><br><span class="line">testInlined     thrpt   <span class="number">3266143.092</span> ± <span class="number">85861.453</span>  ops/ms</span><br><span class="line">testNonInlined  thrpt     <span class="number">31404.262</span> ±   <span class="number">804.615</span>  ops/ms</span><br></pre></td></tr></table></figure>
+
+<p>从上面的性能测试数据我们可以看到，在嵌套了 10 个层级以后，我们 testInlined 的性能几乎没有什么变化；而当 testNonInlined 嵌套了 10 层以后，性能也比 1 层嵌套差了 10 倍。</p>
+<p>在这种情况下，testInlined() 与 testNonInlined() 之间的性能差异就达到了 100 倍，那么随着代码复杂度的进一步上升，它们之间的性能差异会更大。</p>
+<p>我在下面这张 Gif 动图里展示了它们反编译成 Java 的代码：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/f7/a1/f7b342a7ecf56c100ec6b2bb488yyaa1.gif?wh=480x253" alt="img"></p>
+<p>我们能看到，对于 testNonInlined()，由于 foo() 嵌套了 10 层，它反编译后的代码也嵌套了 10 层函数调用，中间还伴随了 10 次匿名内部类的创建。而 testInlined() 则只有简单的两行代码，完全没有任何嵌套的痕迹。难怪它们之间的性能相差 100 倍！</p>
+<p><strong>inline 的局限性</strong></p>
+<p>看到这，你也许会有这样的想法：<strong>既然 inline 这么神奇，那我们是不是可以将“词频统计程序”里的所有函数都用 inline 来修饰？</strong></p>
+<p>答案当然是<strong>否定</strong>的。事实上，Kotlin 官方只建议我们将 inline 用于<strong>修饰高阶函数</strong>。对于普通的 Kotlin 函数，如果我们用 inline 去修饰它，IntelliJ 会对我们发出警告。而且，也不是所有高阶函数都可以用 inline，它在使用上有一些局限性。</p>
+<p>举个例子，如果我们在 processText() 的前面增加 inline 关键字，IntelliJ 会提示一个警告：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/ba/ff/ba3175a460470887c852cfd14778f0ff.png?wh=1624x672" alt="img"></p>
+<p>这个警告的意思是：“对于普通的函数，inline 带来的性能提升并不显著，inline 用在高阶函数上的时候，才会有显著的性能提升”。</p>
+<p>另外，在 processText() 方法的内部，getWordCount() 和 mapToList() 这两个方法还会报错：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/31/4c/3113667bb87e2fe9929a704a0a14a24c.png?wh=1708x736" alt="img"></p>
+<p>出现这个报错的原因是：getWordCount() 和 mapToList() 这两个函数是私有的，无法 inline。为什么呢？</p>
+<p>前面我们提到过：<strong>inline 的作用其实就是将 inline 函数当中的代码拷贝到调用处</strong>。由于 processText() 是公开的，因此它会从外部被调用，这意味着它的代码会被拷贝到外部去执行，而 getWordCount() 和 mapToList() 这两个函数却无法在外部被访问。这就是导致编译器报错的原因。</p>
+<p>所以，inline 虽然可以为我们带来极大的性能提升，但我们不能滥用。在使用 inline 的时候，我们还需要时刻注意它的实现机制，有时候，稍有不慎就会引发问题。</p>
+<p>除此之外，在第 3 讲中我们曾提到：Kotlin 编译器一直在幕后帮忙做着翻译的好事，那它有没有可能“好心办坏事”？</p>
+<p>这个问题，现在我们就能够回答了：K<strong>otlin 编译器是有可能好心办坏事的。如果我们不够了解 Kotlin 的底层细节，不够了解 Kotlin 的语法实现原理，我们就可能会用错某些 Kotlin 语法，比如 inline，当我们用错这些语法后，Kotlin 在背后做的这些好事，就可能变成一件坏事。</strong></p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>最后，让我们来做个简单的总结。</p>
+<ul>
+<li>通过 1.0 版本的开发，我们初步实现了单词频率统计的功能，同时也使用了面向对象的思想，也使用了单元测试；</li>
+<li>在 2.0 版本的开发中，我们初步尝试了函数式编程的风格，在这个过程中，我们灵活运用了我们前面学习的扩展、高阶函数知识。</li>
+<li>在 3.0 版本中，我们使用 inline 优化了高阶函数。随后我们着重研究了高阶函数的原理，以及 inline 背后的细节。在这个过程中，我们发现 inline 可以为高阶函数带来超过 100 倍的性能提升，同时我们也了解到 inline 并不是万能的，它也存在一定的局限性。</li>
+</ul>
+<p>经过这节课的实战演练之后，相信你一定感受到了 Kotlin 函数式风格的魅力。在日后不断地学习、实操中，我也希望，你可以把 Kotlin 函数式的代码应用到自己的开发工作当中，并且充分发挥出 Kotlin 简洁、优雅、可读性强的优势。</p>
+<h2 id="思考题"><a href="#思考题" class="headerlink" title="思考题"></a>思考题</h2><p>咱们的词频统计程序其实还有很多可以优化和提升的地方，请问你能想到哪些改进之处？欢迎你在评论区分享你的思路，我们下节课再见。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://devsu.top">Carl Su</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://devsu.top/posts/90cef85a/">https://devsu.top/posts/90cef85a/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://devsu.top" target="_blank">码行</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Kotlin/">Kotlin</a></div><div class="post-share"><div class="social-share" data-image="https://static001.geekbang.org/resource/image/d7/f1/d79a634178bd8f34e54cyya7cfd8c8f1.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/15c1fa4b/" title="Kotlin编程第一课--(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？"><img class="cover" src="https://static001.geekbang.org/resource/image/33/01/3324223f0e7c380dcd9939dc12986701.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Kotlin编程第一课--(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？</div></div><div class="info-2"><div class="info-item-1">高阶函数在 Kotlin 里有着举足轻重的地位。它是 Kotlin 函数式编程的基石，是各种框架的关键元素。高阶函数掌握好了，我们理解协程的 launch、async 函数就会轻松一些，阅读协程的源代码也会不那么吃力；高阶函数理解透彻了，我们学习 Jetpack Compose 也会得心应手，在特定业务场景下，我们甚至可以用它来实现自己的 DSL（Domain Specific Language）。 不过，如果你没有函数式编程的相关经验，在初次接触高阶函数的时候，很可能会被绕晕。因为它是一个全新的概念，你很难从经典的 C&#x2F;Java 里找到同等的概念迁移过来（Java 从 1.8 开始才引入相关概念）。然而，对于高阶函数这么重要的概念，Kotlin 官方文档又惜字如金。 文档里只是突兀地介绍了高阶函数、函数类型、Lambda 表达式的简单用法，接着就丢出一段复杂的代码案例，然后丢出一个更复杂的概念，“带接收者的函数类型”（Function Types With Receiver），接着又丢出了一段更复杂的代码案例。说实话，这真的让人难以理解。 所以今天这节课，我会采用...</div></div></div></a><a class="pagination-related" href="/posts/e851a3a2/" title="Kotlin编程第一课--(基础篇)加餐一  初识Kotlin函数式编程"><img class="cover" src="https://s2.loli.net/2023/03/14/usUMhAJnxHLO6ei.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Kotlin编程第一课--(基础篇)加餐一  初识Kotlin函数式编程</div></div><div class="info-2"><div class="info-item-1">在上一节实战课当中，我们算是用 Kotlin 实践了一把函数式编程的思想。不过，上节课我们其实只是浅尝辄止，也不完全算是函数式编程，咱们只是借鉴了它的思想。 函数式编程（Functional Programming），是一个跟“面向对象”类似的概念，它也是软件工程中的一种编程范式，它是声明式编程（Declarative Programming）的一种，而与它相反的，我们叫做命令式编程（Imperative Programming）。 虽然说，Kotlin 的函数式编程还不属于主流，但近几年它的关注度也越来越高了，所以今天我们就借着这节加餐，一起来简单聊聊 Kotlin 的函数式编程，也为上一节实战课做一个延伸。这样，等将来你想深入研究 Kotlin 函数式编程的时候，有了这节课的认知基础，也会更加轻松。 函数式与命令式的区别那么，在介绍函数式编程之前，我们首先要来看几个编程范式的概念：声明式、命令式，还有四个常见的编程范式：函数式、逻辑式、面向过程、面向对象。它们之间的关系大致如下图所示：   我们的校园里学习编程的时候，一般都是学的...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/85d82fa8/" title="Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？"><img class="cover" src="https://static001.geekbang.org/resource/image/b6/1c/b65feyy0bdc4764c6564a95912d7851c.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-06</div><div class="info-item-2">Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？</div></div><div class="info-2"><div class="info-item-1">Kotlin 的扩展（Extension），主要分为两种语法：第一个是扩展函数，第二个是扩展属性。从语法上看，扩展看起来就像是我们从类的外部为它扩展了新的成员。 这在实际编程当中是非常有用的功能。我们可以来想象一个场景：我们想修改 JDK 当中的 String，想在它的基础上增加一个方法“lastElement()”来获取末尾元素，如果使用 Java，我们是无法通过常规手段实现的，因为我们没办法修改 JDK 的源代码。任何第三方提供的 SDK，我们都无权修改。 不过，借助 Kotlin 的扩展函数，我们就完全可以在语义层面，来为第三方 SDK 的类扩展新的成员方法和成员属性。不管是为 JDK 的 String 增加新的成员方法，还是为 Android SDK 的 View 增加新成员属性，我们都可以实现。 Kotlin 的这个“扩展”功能看起来很神奇，它会不会很难学？其实不然，它的语法非常简洁。今天这节课，我们就一起来学习下 Kotlin...</div></div></div></a><a class="pagination-related" href="/posts/be9f17d6/" title="Kotlin编程第一课(目录)"><img class="cover" src="https://img2.baidu.com/it/u=3956021957,3313212296&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-10</div><div class="info-item-2">Kotlin编程第一课(目录)</div></div><div class="info-2"><div class="info-item-1">基础篇Kotlin编程第一课–(基础篇)01  Kotlin基础语法：正式开启学习之旅Kotlin编程第一课–(基础篇)02  面向对象：理解Kotlin设计者的良苦用心Kotlin编程第一课–(基础篇)03  Kotlin原理：编译器在幕后干了哪些“好事”？Kotlin编程第一课–(基础篇)04 | 实战：构建一个Kotlin版本的四则运算计算器Kotlin编程第一课–(基础篇)05  object关键字：你到底有多少种用法？Kotlin编程第一课–(基础篇)06  扩展：你的能力边界到底在哪里？Kotlin编程第一课–(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？Kotlin编程第一课–(基础篇)08  实战：用Kotlin写一个英语词频统计程序Kotlin编程第一课–(基础篇)加餐一  初识Kotlin函数式编程Kotlin编程第一课–(基础篇)09  委托：你为何总是被低估？Kotlin编程第一课–(基础篇)10  泛型：逆变or协变，傻傻分不清？Kotlin编程第一课–(基础篇)11 ...</div></div></div></a><a class="pagination-related" href="/posts/83a7144c/" title="2023-01-17-Kotlin协程 -  结构化并发"><img class="cover" src="https://s2.loli.net/2023/03/14/xEyFgn24zZPXe15.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-01-17</div><div class="info-item-2">2023-01-17-Kotlin协程 -  结构化并发</div></div><div class="info-2"><div class="info-item-1">CoroutineScope定义协程必须指定其 CoroutineScope，它会跟踪所有协程，同样它还可以取消由它所启动的所有协程。 常用的相关API有：  GlobalScope，生命周期是process级别的，及时Activity或Fragment已经被销毁，协程仍然在执行。 MainScope，在Activity中使用，可以在onDestroy()中取消协程。 viewModelScope，只能在ViewModel中使用，绑定ViewModel的生命周期。 lifecycleScope，只能在Activity、Fragment中使用，会绑定Activity和Fragment的生命周期  </div></div></div></a><a class="pagination-related" href="/posts/a20c9e06/" title="Kotlin协程"><img class="cover" src="https://s2.loli.net/2023/03/14/3MHPBy1Q4GncRlF.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-09</div><div class="info-item-2">Kotlin协程</div></div><div class="info-2"><div class="info-item-1">Kotlin协程协程的作用域构建器coroutineScope与runBlocking runBlocking是常规函数，而coroutineScope是挂起函数。 它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途  </div></div></div></a><a class="pagination-related" href="/posts/68bf7d20/" title="Kotlin函数"><img class="cover" src="https://img1.baidu.com/it/u=1546227440,2897989905&fm=253&fmt=auto&app=138&f=JPEG?w=889&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin函数</div></div><div class="info-2"><div class="info-item-1">函数类型作为返回类型fun main() &#123;	  println(show(&quot;Demo&quot;))      val lambdaFunction = showMethod(&quot;Jack&quot;) //注意lambdaFunction 这里的类型为(String,Int) -&gt; String    println(lambdaFunction(&quot;Carl&quot;,20))&#125;//普通函数fun show(name:String): String &#123;    return &quot;name is $name&quot;&#125;//返回类型为函数fun showMethod(name: String): (String,Int) -&gt; String &#123;    println(&quot;name is $name&quot;)    return &#123; name: String, age: Int -&gt;       ...</div></div></div></a><a class="pagination-related" href="/posts/8c331668/" title="Kotlin内置函数apply、let、run、with、also等区别"><img class="cover" src="https://s2.loli.net/2023/03/14/OpxWcuy2ktMzoQD.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin内置函数apply、let、run、with、also等区别</div></div><div class="info-2"><div class="info-item-1">Applyapply函数可看作一个配置函数，可以传入一个接收者，然后调用一系列函数来配置它以便使用，如果提供lambda给apply函数执行，它会返回配置好的接受者 val file1 = File(&quot;/User/geowin/hello.txt&quot;)file1.apply &#123; // this: File   setWritable(true)   setReadable(true)   setExecutable(false)&#125;  可以看到，调用一个个函数类配置接受者时，变量名就省略了，这是因为，在lambda表达式中，apply能让每个配置函数都作用于接受者，这种行为有时又叫做相关作用域,因为lambda表达式里的所有函数调用都是针对接收者的，或者说，它们是针对接受者的隐式调用. letlet函数能使某个变量作用于lambda表达式里，让it关键字能引用它。let与apply比较，let会把接受者传给lambda，而apply什么都不传，匿名函数执行完，apply会返回当前接受者，而let会返回lambda的最后一行。 fun...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Valine</span><span id="switch-btn"></span><span class="second-comment">Disqus</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div><div><div id="disqus_thread"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-0-%E7%89%88%E6%9C%AC%EF%BC%9A%E5%91%BD%E4%BB%A4%E5%BC%8F%E9%A3%8E%E6%A0%BC"><span class="toc-number">1.</span> <span class="toc-text">1.0 版本：命令式风格</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%87%E6%9C%AC%E6%B8%85%E6%B4%97"><span class="toc-number">1.1.</span> <span class="toc-text">文本清洗</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AF%8D%E9%A2%91%E7%BB%9F%E8%AE%A1"><span class="toc-number">1.2.</span> <span class="toc-text">词频统计</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%8D%E9%A2%91%E6%8E%92%E5%BA%8F"><span class="toc-number">2.</span> <span class="toc-text">词频排序</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-0-%E7%89%88%E6%9C%AC%EF%BC%9A%E5%87%BD%E6%95%B0%E5%BC%8F%E9%A3%8E%E6%A0%BC"><span class="toc-number">3.</span> <span class="toc-text">2.0 版本：函数式风格</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-0-%E7%89%88%E6%9C%AC%EF%BC%9Ainline-%E4%BC%98%E5%8C%96"><span class="toc-number">4.</span> <span class="toc-text">3.0 版本：inline 优化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%9D%E8%80%83%E9%A2%98"><span class="toc-number">6.</span> <span class="toc-text">思考题</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2025 By Carl Su</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 6.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">学无止境</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !true) {
+    if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const disqusReset = conf => {
+    window.DISQUS && window.DISQUS.reset({
+      reload: true,
+      config: conf
+    })
+  }
+
+  const loadDisqus = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyDisqus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    window.disqus_identifier = isShuoshuo ? path : '/posts/90cef85a/'
+    window.disqus_url = isShuoshuo ? location.origin + path : 'https://devsu.top/posts/90cef85a/'
+
+    const disqus_config = function () {
+      this.page.url = disqus_url
+      this.page.identifier = disqus_identifier
+      this.page.title = 'Kotlin编程第一课--(基础篇)08  实战：用Kotlin写一个英语词频统计程序'
+    }
+
+    if (window.DISQUS) disqusReset(disqus_config)
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://.disqus.com/embed.js'
+      script.setAttribute('data-timestamp', +new Date())
+      document.head.appendChild(script)
+    }
+
+    btf.addGlobalFn('themeChange', () => disqusReset(disqus_config), 'disqus')
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqus-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=&api_key=&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Disqus'
+      ? window.shuoshuoComment = { loadComment: loadDisqus }
+      : window.loadOtherComment = loadDisqus
+    return
+  }
+
+  if ('Valine' === 'Disqus' || !true) {
+    if (true) btf.loadComment(document.getElementById('disqus_thread'), loadDisqus)
+    else {
+      loadDisqus()
+      GLOBAL_CONFIG_SITE.pageType === 'post' && getCount()
+    }
+  } else {
+    window.loadOtherComment = loadDisqus
+  }
+})()</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

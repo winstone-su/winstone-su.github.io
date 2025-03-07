@@ -1,0 +1,502 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Android自定义View-01 绘图基础 | 码行</title><meta name="author" content="Carl Su"><meta name="copyright" content="Carl Su"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="基本图形绘制 Paint 画笔，设置 画笔大小、粗细、画笔颜色、透明度、字体等样式 Canvas 画布，画出成品的东西，如圆形、矩形、文字等。  Paint基础使用： import android.annotation.SuppressLintimport android.content.Contextimport android.graphics.Canvasimport android.gra">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Android自定义View-01 绘图基础">
+<meta property="og:url" content="https://devsu.top/posts/febb5061/index.html">
+<meta property="og:site_name" content="码行">
+<meta property="og:description" content="基本图形绘制 Paint 画笔，设置 画笔大小、粗细、画笔颜色、透明度、字体等样式 Canvas 画布，画出成品的东西，如圆形、矩形、文字等。  Paint基础使用： import android.annotation.SuppressLintimport android.content.Contextimport android.graphics.Canvasimport android.gra">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s2.loli.net/2023/03/14/GzPHlY2aEkeVO1M.png">
+<meta property="article:published_time" content="2020-08-05T01:59:14.000Z">
+<meta property="article:modified_time" content="2025-03-07T02:49:14.895Z">
+<meta property="article:author" content="Carl Su">
+<meta property="article:tag" content="Android">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s2.loli.net/2023/03/14/GzPHlY2aEkeVO1M.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Android自定义View-01 绘图基础",
+  "url": "https://devsu.top/posts/febb5061/",
+  "image": "https://s2.loli.net/2023/03/14/GzPHlY2aEkeVO1M.png",
+  "datePublished": "2020-08-05T01:59:14.000Z",
+  "dateModified": "2025-03-07T02:49:14.895Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Carl Su",
+      "url": "https://devsu.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png"><link rel="canonical" href="https://devsu.top/posts/febb5061/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const hour = new Date().getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (theme === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else theme === 'light' ? activateLightMode() : activateDarkMode()
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6243425e2ecb037931274c4ca1db3132";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Carl Su","link":"链接: ","source":"来源: 码行","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Android自定义View-01 绘图基础',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">193</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">41</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://s2.loli.net/2023/03/14/GzPHlY2aEkeVO1M.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png" alt="Logo"><span class="site-name">码行</span></a><a class="nav-page-title" href="/"><span class="site-name">Android自定义View-01 绘图基础</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Android自定义View-01 绘图基础</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2020-08-05T01:59:14.000Z" title="发表于 2020-08-05 09:59:14">2020-08-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-07T02:49:14.895Z" title="更新于 2025-03-07 10:49:14">2025-03-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/">Android</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/%E8%87%AA%E5%AE%9A%E4%B9%89View/">自定义View</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>9分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="基本图形绘制"><a href="#基本图形绘制" class="headerlink" title="基本图形绘制"></a><strong>基本图形绘制</strong></h2><ul>
+<li><code>Paint</code> 画笔，设置 画笔大小、粗细、画笔颜色、透明度、字体等样式</li>
+<li><code>Canvas</code> 画布，画出成品的东西，如圆形、矩形、文字等。</li>
+</ul>
+<h3 id="Paint"><a href="#Paint" class="headerlink" title="Paint"></a>Paint</h3><p>基础使用：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> android.<span class="keyword">annotation</span>.SuppressLint</span><br><span class="line"><span class="keyword">import</span> android.content.Context</span><br><span class="line"><span class="keyword">import</span> android.graphics.Canvas</span><br><span class="line"><span class="keyword">import</span> android.graphics.Color</span><br><span class="line"><span class="keyword">import</span> android.graphics.Paint</span><br><span class="line"><span class="keyword">import</span> android.util.AttributeSet</span><br><span class="line"><span class="keyword">import</span> android.view.View</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">BasicView</span>: <span class="type">View</span> &#123;</span><br><span class="line">    <span class="keyword">constructor</span>(context: Context): <span class="keyword">super</span>(context)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">constructor</span>(context: Context, atts: AttributeSet): <span class="keyword">super</span>(context,atts)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">constructor</span>(context: Context, atts: AttributeSet, defStyle: <span class="built_in">Int</span>): <span class="keyword">super</span>(context,atts,defStyle)</span><br><span class="line"></span><br><span class="line">    <span class="meta">@SuppressLint(<span class="string">&quot;DrawAllocation&quot;</span>)</span></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onDraw</span><span class="params">(canvas: <span class="type">Canvas</span>?)</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onDraw(canvas)</span><br><span class="line">        <span class="comment">//设置画笔的基本属性</span></span><br><span class="line">        <span class="keyword">val</span> paint = Paint()</span><br><span class="line">        paint.run &#123;</span><br><span class="line">            <span class="comment">//设置画笔颜色</span></span><br><span class="line">            color = Color.RED</span><br><span class="line">            <span class="comment">//设置画笔填充样式</span></span><br><span class="line">            style = Paint.Style.STROKE</span><br><span class="line">            <span class="comment">//设置画笔宽度</span></span><br><span class="line">            strokeWidth = <span class="number">50f</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//画圆 cx: 圆心x坐标，cy: 圆心y坐标</span></span><br><span class="line">        canvas?.drawCircle(<span class="number">190f</span>,<span class="number">200f</span>,<span class="number">150f</span>,paint)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>具体代码见<a target="_blank" rel="noopener" href="https://github.com/winstone-su/CustomView/blob/master/basicdrawing/src/main/java/com/carl/sample/basicdrawing/BasicView.kt">Github</a>： </p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">Paint</span> <span class="variable">paint</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Paint</span>();</span><br><span class="line">paint.setColor(Color.GREEN); <span class="comment">//设置画笔颜色</span></span><br><span class="line">paint.setStyle(Paint.Style.FILL);	<span class="comment">//设置画笔样式 FILL : 填充, STROKE : 描边, FILL_AND_STROKE : 填充和描边</span></span><br><span class="line">paint.setStrokeWidth(<span class="number">5</span>); <span class="comment">//画笔宽度 px</span></span><br></pre></td></tr></table></figure>
+
+<p>下面绘制一大一小两个圆，并且将这两个圆叠加起来，上方的圆半透明，代码如下:</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> paint = Paint()</span><br><span class="line">paint.run &#123;</span><br><span class="line">    <span class="comment">//设置画笔颜色</span></span><br><span class="line">    color = Color.RED</span><br><span class="line">    <span class="comment">//设置画笔填充样式</span></span><br><span class="line">    style = Paint.Style.FILL</span><br><span class="line">    <span class="comment">//设置画笔宽度</span></span><br><span class="line">    strokeWidth = <span class="number">50f</span></span><br><span class="line">&#125;</span><br><span class="line">canvas?.drawCircle(<span class="number">190f</span>,<span class="number">200f</span>,<span class="number">150f</span>,paint)</span><br><span class="line">paint.color = <span class="number">0x7EFFFF00</span></span><br><span class="line">canvas?.drawCircle(<span class="number">190f</span>,<span class="number">200f</span>,<span class="number">100f</span>,paint)</span><br></pre></td></tr></table></figure>
+
+<p>效果如下：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/29/dyVXM2egIHL31xl.png" alt="paint1-1"></p>
+<p><strong>paint.style</strong></p>
+<p>完整的函数生命如下：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setStyle</span><span class="params">(Style style)</span> &#123; &#125;</span><br></pre></td></tr></table></figure>
+
+<p>该函数用于设置填充样式，对于文字和集合图形都有效。style的取值如下：</p>
+<ul>
+<li>Paint.Style.FILL	仅填充内部</li>
+<li>Paint.Style.FILL_AND_STROKE    填充内部和描边</li>
+<li>Paint.Style.STROKE    仅描边</li>
+</ul>
+<p>下面以绘制圆形为例，看一下这三个不同的类型，效果图如下（代码见<a target="_blank" rel="noopener" href="https://github.com/winstone-su/CustomView/blob/master/basicdrawing/src/main/java/com/carl/sample/basicdrawing/BasicView2.kt">Github</a>）</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/29/edZHyrLGwmDXV9W.png" alt="Paint.Style"></p>
+<p>明显可见，<code>FILL_AND_STROKE</code>是<code>FILL</code>和<code>STROKE</code>叠加在一起的效果，<code>FILL_AND_STROKE</code>比<code>FILL</code>多了一个描边的宽度。</p>
+<p><strong>paint.strokeWidth</strong></p>
+<p>完整的函数声明如下:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setStrokeWidth</span><span class="params">(<span class="type">float</span> width)</span></span><br></pre></td></tr></table></figure>
+
+<p>设置用于描边宽度，单位是px。当画笔的<code>Style</code>是<code>FILL</code>、<code>STROKE</code>、<code>FILL_AND_STROKE</code>时有效。</p>
+<p>此外，<code>paint</code>还有一些属性和方法</p>
+<ul>
+<li><p><strong>paint.isAntiAlias</strong>  标识是否开启抗锯齿功能。抗锯齿是依赖算法的，一般在绘制不规则的图形时使用，比如圆形、文字等。在绘制棱角分明的图像，比如一个矩形，一张位图，是不需要打开抗锯齿功能的。</p>
+</li>
+<li><p><strong>paint.color</strong>  设置画笔的颜色</p>
+</li>
+</ul>
+<h3 id="Canvas"><a href="#Canvas" class="headerlink" title="Canvas"></a>Canvas</h3><h4 id="设置画布背景"><a href="#设置画布背景" class="headerlink" title="设置画布背景"></a>设置画布背景</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">canvas.drawColor(Color.GREEN);  <span class="comment">// drawColor(@ColorInt int color)</span></span><br><span class="line">canvas.drawRGB(<span class="number">255</span>,<span class="number">0</span>,<span class="number">255</span>);      <span class="comment">//drawRGB(int r, int g, int b) </span></span><br><span class="line">canvas.drawARGB(<span class="number">0xFF</span>,<span class="number">0xFF</span>,<span class="number">0</span>,<span class="number">0</span>); <span class="comment">//drawARGB(int a, int r, int g, int b)</span></span><br></pre></td></tr></table></figure>
+
+<p>其中<code>drawColor()</code>函数中参数<code>color</code>的取值必须是8位的0xAARRGGBB样式颜色值。</p>
+<p><code>drawARGB()</code>函数允许分别传入A、R、G、B分量，每个颜色值得取值范围都是0<del>255(对应十六进制数0x00</del>0xFF)，内部会通过这些颜色分量构造出对应的颜色值。</p>
+<p><code>drawRGB()</code>函数只允许传入R、G、B分量，透明度Alpha的取值为<code>255</code>。</p>
+<p>比如将画布默认颜色填充为蓝色。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">canvas?.run &#123;</span><br><span class="line">    drawColor(Color.BLUE)</span><br><span class="line">    <span class="comment">//这两种写法也可以</span></span><br><span class="line">    <span class="comment">// drawARGB(0xFF,0x00,0x00,0xFF)</span></span><br><span class="line">    <span class="comment">// drawRGB(0x00,0x00,0xFF)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/29/Kch2Bb71TJ3Ruxj.png" alt="canvas"></p>
+<h4 id="画直线"><a href="#画直线" class="headerlink" title="画直线"></a>画直线</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title function_">drawLine</span><span class="params">(<span class="type">float</span> startX, <span class="type">float</span> startY, <span class="type">float</span> stopX, <span class="type">float</span> stopY, <span class="meta">@NonNull</span> Paint paint)</span></span><br></pre></td></tr></table></figure>
+
+<p>参数含义:</p>
+<ul>
+<li>startX：起始点X坐标</li>
+<li>startY：起始点Y坐标</li>
+<li>stopX：终点X坐标</li>
+<li>stopY：终点Y坐标</li>
+</ul>
+<p>示例如下：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">paint.run &#123;</span><br><span class="line">    color = Color.RED</span><br><span class="line">    style = Paint.Style.FILL_AND_STROKE</span><br><span class="line">    strokeWidth = <span class="number">50f</span></span><br><span class="line">&#125;</span><br><span class="line">canvas?.run &#123;</span><br><span class="line">    drawLine(<span class="number">100f</span>,<span class="number">100f</span>,<span class="number">200f</span>,<span class="number">200f</span>,paint)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当设置不同的<code>Style</code>类型时，效果如下图所示。</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/29/1FEilmgY4yRGrZB.png" alt="image-20230329171700360"></p>
+<p>可以看到，直线的粗细和笔画的<code>Style</code>是没有关系的。</p>
+<p>当设置不同的<code>strokeWidth</code>时，效果如下：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/29/GXqFEfJmSvkPbL6.png" alt="canvas-strokeWidth"></p>
+<p>可见，直线的粗细与<code>paint.strokeWidth</code>有直接关系。所以，一般而言，<code>paint.strokeWidth</code>在<code>Style</code>起作用时，用于设置描边宽度；在Style不起作用时，用于设置笔画宽度。</p>
+<h4 id="画点"><a href="#画点" class="headerlink" title="画点"></a>画点</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title function_">drawPoint</span><span class="params">(<span class="type">float</span> x, <span class="type">float</span> y, <span class="meta">@NonNull</span> Paint paint)</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>float x：点的X坐标</li>
+<li>float y：点的Y坐标</li>
+</ul>
+<p>示例如下：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> paint = Paint()</span><br><span class="line">paint.run &#123;</span><br><span class="line">	color = Color.CYAN</span><br><span class="line">    strokeWidth = <span class="number">15f</span></span><br><span class="line">&#125;</span><br><span class="line">canvas?.drawPoint(<span class="number">100f</span>,<span class="number">100f</span>,paint)</span><br></pre></td></tr></table></figure>
+
+<p>代码很简单，就是在(100,100)的位置画了一个点。同样点的大小只与<code>paint.strokeWidth</code>有关，而与<code>paint.style</code>无关</p>
+<h4 id="矩形"><a href="#矩形" class="headerlink" title="矩形"></a>矩形</h4><p><strong>工具类介绍</strong></p>
+<p><code>Rect</code>F和<code>Rect</code>区别：<code>RectF</code>里面参数是float类型，<code>Rect</code>里面参数是int类型&#96;</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="title function_">RectF</span><span class="params">()</span> </span><br><span class="line"><span class="keyword">public</span> <span class="title function_">RectF</span><span class="params">(<span class="type">float</span> left, <span class="type">float</span> top, <span class="type">float</span> right, <span class="type">float</span> bottom)</span> </span><br><span class="line"><span class="keyword">public</span> <span class="title function_">RectF</span><span class="params">(<span class="meta">@Nullable</span> RectF r)</span> </span><br><span class="line"><span class="keyword">public</span> <span class="title function_">RectF</span><span class="params">(<span class="meta">@Nullable</span> Rect r)</span> </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="title function_">Rect</span><span class="params">()</span></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">Rect</span><span class="params">(<span class="type">int</span> left, <span class="type">int</span> top, <span class="type">int</span> right, <span class="type">int</span> bottom)</span></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">Rect</span><span class="params">(<span class="meta">@Nullable</span> Rect r)</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到<code>RectF</code>和<code>Rect</code>的构造函数基本相同，不同的只是<code>RectF</code>所保存的数值类型是float类型，而<code>Rect</code>所保存的数值类型是int类型。</p>
+<p>一般而言，要构造一个矩形结构，可以通过以下两种方式来实现。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">//直接构造</span></span><br><span class="line"><span class="keyword">val</span> rect = Rect(<span class="number">10</span>,<span class="number">10</span>,<span class="number">100</span>,<span class="number">100</span>)</span><br><span class="line"><span class="comment">//间接构造</span></span><br><span class="line"><span class="keyword">val</span> rect1 = Rect()</span><br><span class="line">rect1.<span class="keyword">set</span>(<span class="number">10</span>,<span class="number">10</span>,<span class="number">100</span>,<span class="number">100</span>)</span><br></pre></td></tr></table></figure>
+
+<p>看完了矩形的存储结构<code>RectF</code>、<code>Rect</code>之后，再来看看矩形的绘制方法。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">drawRect</span><span class="params">(<span class="type">float</span> left, <span class="type">float</span> top, <span class="type">float</span> right, <span class="type">float</span> bottom, <span class="meta">@NonNull</span> Paint paint)</span> </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">drawRect</span><span class="params">(<span class="meta">@NonNull</span> RectF rect, <span class="meta">@NonNull</span> Paint paint)</span>  </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">drawRect</span><span class="params">(<span class="meta">@NonNull</span> Rect r, <span class="meta">@NonNull</span> Paint paint)</span>  </span><br></pre></td></tr></table></figure>
+
+<p>第一个函数是通过直接传入矩形的4个点来绘制的，第二、三个是通过根据传入的Rect或者RectF的矩形变量来指定所绘制的矩形的。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">paint.run &#123;</span><br><span class="line">    color = Color.CYAN</span><br><span class="line">    strokeWidth = <span class="number">10f</span></span><br><span class="line">    style = Paint.Style.STROKE</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//直接构造</span></span><br><span class="line">canvas?.drawRect(<span class="number">10f</span>,<span class="number">10f</span>,<span class="number">100f</span>,<span class="number">100f</span>,paint)</span><br><span class="line"><span class="comment">//使用RectF构造</span></span><br><span class="line">paint.style = Paint.Style.FILL</span><br><span class="line"><span class="keyword">val</span> rectF = RectF(<span class="number">210f</span>,<span class="number">10f</span>,<span class="number">300f</span>,<span class="number">100f</span>)</span><br><span class="line">canvas?.drawRect(rectF,paint)</span><br></pre></td></tr></table></figure>
+
+<p>这里绘制了两个同样大小的矩形，第一个直接用4个点来绘制矩形，并且填充为描边类型；第二个通过RectF来绘制矩形，并且填充内容。</p>
+<p>效果图如下：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/30/Gmd4woz1ZOYyWuR.png" alt="rect"></p>
+<p><strong>圆角矩形</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* rect: 要绘制的图形</span></span><br><span class="line"><span class="comment">* rx：生成圆角的椭圆X轴半径</span></span><br><span class="line"><span class="comment">* ry: 生成圆角的椭圆Y轴半径</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">drawRoundRect</span><span class="params">(<span class="meta">@NonNull</span> RectF rect, <span class="type">float</span> rx, <span class="type">float</span> ry, <span class="meta">@NonNull</span> Paint paint)</span></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">drawRoundRect</span><span class="params">(<span class="type">float</span> left, <span class="type">float</span> top, <span class="type">float</span> right, <span class="type">float</span> bottom, <span class="type">float</span> rx, <span class="type">float</span> ry,<span class="meta">@NonNull</span> Paint paint)</span></span><br></pre></td></tr></table></figure>
+
+<p><code>shape</code>标签也可以设置矩形的圆角，与<code>shape</code>不同的是，<code>drawRoundRect()</code>函数不能针对每个角设置对应的椭圆，而只能统一设置4个角对应的椭圆。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">val</span> paint: Paint = Paint()</span><br><span class="line"></span><br><span class="line"><span class="keyword">init</span> &#123;</span><br><span class="line">    paint.color = Color.GREEN</span><br><span class="line">    paint.strokeWidth = <span class="number">10f</span></span><br><span class="line">    paint.style = Paint.Style.FILL</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">val</span> rectF = RectF(<span class="number">100f</span>,<span class="number">10f</span>,<span class="number">300f</span>,<span class="number">100f</span>)</span><br><span class="line">canvas?.drawRoundRect(rectF,<span class="number">20f</span>,<span class="number">10f</span>,paint)</span><br></pre></td></tr></table></figure>
+
+<p>效果如下：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/31/fEFlJY3u74CaxG2.png" alt="drawRoundRect"></p>
+<p><strong>圆形</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">drawCircle</span><span class="params">(<span class="type">float</span> cx, <span class="type">float</span> cy, <span class="type">float</span> radius, <span class="meta">@NonNull</span> Paint paint)</span> </span><br></pre></td></tr></table></figure>
+
+<p>参数：</p>
+<ul>
+<li><strong>cx</strong>   圆心点的X轴半径</li>
+<li><strong>cy</strong>   圆心点的Y轴半径</li>
+<li><strong>radius</strong>  圆的半径</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> paint: Paint = Paint()</span><br><span class="line">paint.color = Color.GREEN</span><br><span class="line">paint.strokeWidth = <span class="number">10f</span></span><br><span class="line">paint.style = Paint.Style.STROKE</span><br><span class="line">canvas?.drawCircle(<span class="number">150f</span>,<span class="number">150f</span>,<span class="number">100f</span>,paint)</span><br></pre></td></tr></table></figure>
+
+<p>效果如下：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/31/JW9HBQaowu73SCE.png" alt="drawCircle"></p>
+<p><strong>椭圆</strong></p>
+<p>椭圆是根据矩形生成的，以矩形的长为椭圆的X轴，以矩形的宽为椭圆的Y轴。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">drawOval</span><span class="params">(<span class="meta">@NonNull</span> RectF oval, <span class="meta">@NonNull</span> Paint paint)</span> </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">drawOval</span><span class="params">(<span class="type">float</span> left, <span class="type">float</span> top, <span class="type">float</span> right, <span class="type">float</span> bottom, <span class="meta">@NonNull</span> Paint paint)</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="type">val</span> <span class="variable">rect</span> <span class="operator">=</span> RectF(<span class="number">300f</span>,<span class="number">10f</span>,<span class="number">600f</span>,<span class="number">100f</span>)</span><br><span class="line">canvas?.drawOval(rect,paint)</span><br></pre></td></tr></table></figure>
+
+<p>效果如下：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/31/I8dLeFk6nN1SiX5.png" alt="oval"></p>
+<p><strong>弧</strong></p>
+<p>弧是椭圆的一部分，而椭圆是根据矩形来生成的，所以弧也是根据矩形来生成的。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">drawArc</span><span class="params">(<span class="meta">@NonNull</span> RectF oval, <span class="type">float</span> startAngle, <span class="type">float</span> sweepAngle, <span class="type">boolean</span> useCenter,</span></span><br><span class="line"><span class="params">        <span class="meta">@NonNull</span> Paint paint)</span> &#123;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Color"><a href="#Color" class="headerlink" title="Color"></a>Color</h3><p>前面提到，除手动组合颜色的方法外，系统还提供了一个专门用来解析颜色的类：<code>Color</code>。<code>Color</code>是Android中与颜色处理有关的类。</p>
+<h4 id="常量颜色"><a href="#常量颜色" class="headerlink" title="常量颜色"></a>常量颜色</h4><p>首先，它定义了很多常亮的颜色值，可以直接使用</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ColorInt</span> <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">BLACK</span>       <span class="operator">=</span> <span class="number">0xFF000000</span>;</span><br><span class="line"><span class="meta">@ColorInt</span> <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">DKGRAY</span>      <span class="operator">=</span> <span class="number">0xFF444444</span>;</span><br><span class="line"><span class="meta">@ColorInt</span> <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">GRAY</span>        <span class="operator">=</span> <span class="number">0xFF888888</span>;</span><br><span class="line"><span class="meta">@ColorInt</span> <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">LTGRAY</span>      <span class="operator">=</span> <span class="number">0xFFCCCCCC</span>;</span><br><span class="line"><span class="meta">@ColorInt</span> <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">WHITE</span>       <span class="operator">=</span> <span class="number">0xFFFFFFFF</span>;</span><br><span class="line"><span class="meta">@ColorInt</span> <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">RED</span>         <span class="operator">=</span> <span class="number">0xFFFF0000</span>;</span><br><span class="line"><span class="meta">@ColorInt</span> <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">GREEN</span>       <span class="operator">=</span> <span class="number">0xFF00FF00</span>;</span><br><span class="line"><span class="meta">@ColorInt</span> <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">BLUE</span>        <span class="operator">=</span> <span class="number">0xFF0000FF</span>;</span><br><span class="line"><span class="meta">@ColorInt</span> <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">YELLOW</span>      <span class="operator">=</span> <span class="number">0xFFFFFF00</span>;</span><br><span class="line"><span class="meta">@ColorInt</span> <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">CYAN</span>        <span class="operator">=</span> <span class="number">0xFF00FFFF</span>;</span><br><span class="line"><span class="meta">@ColorInt</span> <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">int</span> <span class="variable">MAGENTA</span>     <span class="operator">=</span> <span class="number">0xFFFF00FF</span>;</span><br></pre></td></tr></table></figure>
+
+<p>可以通过<code>Color.XXX</code>来直接使用这些颜色。</p>
+<h4 id="构造颜色"><a href="#构造颜色" class="headerlink" title="构造颜色"></a>构造颜色</h4><ol>
+<li>带有透明度的颜色</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">argb</span><span class="params">(<span class="type">int</span> alpha,<span class="type">int</span> red,<span class="type">int</span> green, <span class="type">int</span> blue)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">argb</span><span class="params">(<span class="type">float</span> alpha,<span class="type">float</span> red,<span class="type">float</span> green, <span class="type">float</span> blue)</span></span><br></pre></td></tr></table></figure>
+
+<p>这个函数允许我们传入A、R、G、B 4个颜色分量，然后合并一个颜色。其中，alpha、red、green、blue 4个色彩分量的取值范围都是0~255</p>
+<ol start="2">
+<li>不带透明度的颜色</li>
+</ol>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">rgb</span><span class="params">(<span class="type">float</span> red, <span class="type">float</span> green, <span class="type">float</span> blue)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">argb</span><span class="params">(<span class="type">int</span> alpha,<span class="type">int</span> red,<span class="type">int</span> green,<span class="type">int</span> blue)</span> </span><br></pre></td></tr></table></figure>
+
+<p>类似上面的带透明度的颜色，只是不需要传入alpha</p>
+<ol start="3">
+<li>提取颜色分量</li>
+</ol>
+<p>我们不仅能通过Color类来合并颜色分量，而且能从一个颜色中提取指定的颜色分量。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">alpha</span><span class="params">(<span class="type">int</span> color)</span> </span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">red</span><span class="params">(<span class="type">int</span> color)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">green</span><span class="params">(<span class="type">int</span> color)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="title function_">blue</span><span class="params">(<span class="type">int</span> color)</span></span><br></pre></td></tr></table></figure>
+
+<p>我们能通过上面的4个函数提取出颜色对应的A、R、G、B颜色分量。</p>
+<p>比如：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> green = Color.green(<span class="number">0xFF000F00</span>)</span><br></pre></td></tr></table></figure>
+
+<p>得到的结果green的值就是<code>0x0F</code>。</p>
+<blockquote>
+<p>前面的示例中创建Paint对象和其他对象都是在onDraw()函数中实现的，这个实际开发是不被允许的。因为当需要重绘时，就会调用onDraw()函数，所以onDraw()中的变量会被重复创建，可能引发GC问题。一般在自定义控件的构造函数中创建变量，即在初始化时一次性创建。</p>
+</blockquote>
+<h2 id="路径-Path"><a href="#路径-Path" class="headerlink" title="路径 (Path)"></a>路径 (Path)</h2><p>在Android中，<code>Path</code>类就代表路径。</p>
+<p>在Canvas中绘制路径的方法</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">drawPath</span><span class="params">(<span class="meta">@NonNull</span> Path path, <span class="meta">@NonNull</span> Paint paint)</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="直线路径"><a href="#直线路径" class="headerlink" title="直线路径"></a>直线路径</h4><p>画一条直线路径，一般设计下面三个函数。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">moveTo</span><span class="params">(<span class="type">float</span> x1, <span class="type">float</span> y1)</span></span><br></pre></td></tr></table></figure>
+
+<p>(x1,y1)是直线的起始点，即将直线路径的绘制点定在(x1,y1)位置</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">lineTo</span><span class="params">(<span class="type">float</span> x2, <span class="type">float</span> y2)</span> </span><br></pre></td></tr></table></figure>
+
+<p>(x2,y2)是直线的终点，又是下一次绘制直线路径的起始点；lineTo()函数可以一直使用。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">close</span><span class="params">()</span></span><br></pre></td></tr></table></figure>
+
+<p>如果连续画了几条直线，但是没有形成闭环，那么调用close()函数会将路径收尾连接起来，形成闭环。</p>
+<p>示例: 画一个三角形</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://devsu.top">Carl Su</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://devsu.top/posts/febb5061/">https://devsu.top/posts/febb5061/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://devsu.top" target="_blank">码行</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Android/">Android</a></div><div class="post-share"><div class="social-share" data-image="https://s2.loli.net/2023/03/14/GzPHlY2aEkeVO1M.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/98025dc/" title="2020-07-14-iOS本地化(Swift)"><img class="cover" src="https://img13.51tietu.net/pic/20200118/c2zuvgsebp0c2zuvgsebp0.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">2020-07-14-iOS本地化(Swift)</div></div><div class="info-2"><div class="info-item-1">1. 项目配置 如下图为项目添加不同语种   弹框中显示要为显示的文件添加语种信息  添加完多语种后，相关需要本地化的文件会产生一组文件   实际在目录结构中是根据不同语言生成不同的*.lproj目录，再在*.lproj目录中生成了不同的.strings文件。  2. 应用名称本地化 新建一个.strings文件，名为InfoPlist.strings。  </div></div></div></a><a class="pagination-related" href="/posts/d2fda48f/" title="Android自定义View-02 视图动画"><img class="cover" src="https://s2.loli.net/2023/03/14/RLM1qPGF3S6sNnJ.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Android自定义View-02 视图动画</div></div><div class="info-2"><div class="info-item-1">动画类型View Animation(视图动画) Tween Animation(补间动画) Frame Animation(逐帧动画)  Property Animation(属性动画) ValueAnimator ObjectAnimator  一. 视图动画标签1.概述Android动画由5种类型组成：alpha、scale、translate、rotate、set 1.1配置XML动画文件常用标签：  alpha：渐变透明度动画 scale：渐变尺寸伸缩动画 translate：画面变换位置移动动画 rotate：画面转移旋转动画 set：定义动画集  &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&lt;scale xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;    android:fromXScale=&quot;0.0&quot;   ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/bf1f0a14/" title="2023-03-27-Hilt基本用法"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-03-27</div><div class="info-item-2">2023-03-27-Hilt基本用法</div></div><div class="info-2"><div class="info-item-1">添加依赖项首先，将 hilt-android-gradle-plugin 插件添加到项目的根级 build.gradle 文件中： GroovyKotlinplugins &#123;  ...  id &#x27;com.google.dagger.hilt.android&#x27; version &#x27;2.44&#x27; apply false&#125;plugins &#123;  ...  id(&quot;com.google.dagger.hilt.android&quot;) version &quot;2.44&quot; apply false&#125;  然后，应用 Gradle 插件并在 app/build.gradle 文件中添加以下依赖项： GroovyKotlin...plugins &#123;  id &#x27;kotlin-kapt&#x27;  id &#x27;com.google.dagger.hilt.android&#x27;&#125;android &#123;  ...&#125;dependencies...</div></div></div></a><a class="pagination-related" href="/posts/e911a731/" title="2023-03-30-Android-使用Chrome调试WebView"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-03-30</div><div class="info-item-2">2023-03-30-Android-使用Chrome调试WebView</div></div><div class="info-2"><div class="info-item-1">为了调试WebView，需要在应用程序中启用WebView的调试模式。可以通过在应用程序的Java代码中添加以下代码实现： javaCopy codeif(Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.KITKAT) &#123;    WebView.setWebContentsDebuggingEnabled(true);&#125;  此外，在WebView中打开的网页也可以通过Chrome开发者工具进行调试。具体步骤如下：  在手机上打开应用程序并进入WebView页面。 在电脑上打开Chrome浏览器。 在地址栏输入 chrome://inspect 并回车。 点击 “设备” 按钮，会列出连接到电脑上的所有设备。 找到相应的应用程序并点击 “检查” 按钮，即可打开Chrome开发者工具进行WebView的调试。  需要注意的是，Chrome开发者工具只能调试已经加载的网页，无法调试WebView中的本地HTML文件。 </div></div></div></a><a class="pagination-related" href="/posts/935bce3/" title="2023-05-12-Hilt的使用"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-12</div><div class="info-item-2">2023-05-12-Hilt的使用</div></div><div class="info-2"><div class="info-item-1">Hilt的作用Hilt是Dagger的最强辅助  Hilt简化了Dagger使用，大量减少了使用Dagger时编写的模板代码。 Hilt提供一套标准组件和作用域注解：不必再自定义组件和作用域。 Hilt提供几种预定义的的绑定(提供对象实例的获取称为绑定)：如Application和Activity。 Hilt提供集中预定义的限定符(Qualifier)： @ApplicationContext和@ActivityContext。  添加依赖项首先，将hilt-android-gradle-plugi添加到Project级的build.gradle文件中： plugins &#123;    id(&quot;com.google.dagger.hilt.android&quot;) version &quot;2.44&quot; apply false&#125;  然后，应用 Gradle 插件并在 app/build.gradle 文件中添加以下依赖项： plugins &#123;  kotlin(&quot;kapt&quot;) //报错的话使用  id...</div></div></div></a><a class="pagination-related" href="/posts/409df144/" title="2023-07-08-Android手动升级AGP"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-07-08</div><div class="info-item-2">2023-07-08-Android手动升级AGP</div></div><div class="info-2"><div class="info-item-1">打开Android Studio工程，有些项目会弹出升级AGP的提示，有些项目又不会。 最近因为升级了工程的某些依赖库，需要将 compileSdk 和targetSdk升级到33，同时工程会报错，显示AGP版本低了，需要升级。 操作方法  在AS里面搜索Upgrade Assistant ![截屏2023-07-08 22.48.45](&#x2F;Users&#x2F;carl&#x2F;Library&#x2F;Application Support&#x2F;typora-user-images&#x2F;截屏2023-07-08 22.48.45.png) </div></div></div></a><a class="pagination-related" href="/posts/7c600644/" title="2024-05-21-Mapbox for Android - 本地化地图"><img class="cover" src="https://s2.loli.net/2024/05/21/m5X46WwBKfZEgJp.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-05-21</div><div class="info-item-2">2024-05-21-Mapbox for Android - 本地化地图</div></div><div class="info-2"><div class="info-item-1">加载地图private val mapboxMap by lazy &#123;	mapView.mapboxMap &#125;mapboxMap.apply &#123;    loadStyle(Style.MAPBOX_STREETS)    setCamera(        CameraOptions.Builder()        .center(Point.fromLngLat(LONGITUDE, LATITUDE))        .zoom(15.0)        .build()    )&#125;  可以看到地图的效果是  如何将这些注记用中文展示，需要修改mapboxMap的style private lateinit var locale: Localelocale = resources.configuration.locales.get(0)mapboxMap.apply &#123;    loadStyle(Style.MAPBOX_STREETS)&#123;        //或者这里的local...</div></div></div></a><a class="pagination-related" href="/posts/be1a9334/" title="Android-在Activity中使用Menu"><img class="cover" src="https://img10.51tietu.net/pic/20191030/k2hqdmpfendk2hqdmpfend.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Android-在Activity中使用Menu</div></div><div class="info-2"><div class="info-item-1">在Activity中使用Menu资源文件​	首先在 res 目录下新建一个menu文件夹，右击res目录–&gt;New–&gt;Android Resource Directory，输入文件夹名menu，在弹出的菜单中Directory Name输入Menu，Resource type 选择Menu，然后在此文件夹下新建一个 main.xml的菜单文件，右击menu–&gt;New–&gt;Menu Resource File。    最后添加 Item的 id和title即可. &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&lt;menu xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;&gt;&lt;item    android:id=&quot;@+id/add_item&quot;    android:title=&quot;@string/add&quot; /&gt;&lt;item   ...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Valine</span><span id="switch-btn"></span><span class="second-comment">Disqus</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div><div><div id="disqus_thread"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%9B%BE%E5%BD%A2%E7%BB%98%E5%88%B6"><span class="toc-number">1.</span> <span class="toc-text">基本图形绘制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Paint"><span class="toc-number">1.1.</span> <span class="toc-text">Paint</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Canvas"><span class="toc-number">1.2.</span> <span class="toc-text">Canvas</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E7%94%BB%E5%B8%83%E8%83%8C%E6%99%AF"><span class="toc-number">1.2.1.</span> <span class="toc-text">设置画布背景</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%BB%E7%9B%B4%E7%BA%BF"><span class="toc-number">1.2.2.</span> <span class="toc-text">画直线</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%BB%E7%82%B9"><span class="toc-number">1.2.3.</span> <span class="toc-text">画点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9F%A9%E5%BD%A2"><span class="toc-number">1.2.4.</span> <span class="toc-text">矩形</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Color"><span class="toc-number">1.3.</span> <span class="toc-text">Color</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B8%B8%E9%87%8F%E9%A2%9C%E8%89%B2"><span class="toc-number">1.3.1.</span> <span class="toc-text">常量颜色</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9E%84%E9%80%A0%E9%A2%9C%E8%89%B2"><span class="toc-number">1.3.2.</span> <span class="toc-text">构造颜色</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%B7%AF%E5%BE%84-Path"><span class="toc-number">2.</span> <span class="toc-text">路径 (Path)</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9B%B4%E7%BA%BF%E8%B7%AF%E5%BE%84"><span class="toc-number">2.0.1.</span> <span class="toc-text">直线路径</span></a></li></ol></li></ol></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2025 By Carl Su</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 6.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">学无止境</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !true) {
+    if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const disqusReset = conf => {
+    window.DISQUS && window.DISQUS.reset({
+      reload: true,
+      config: conf
+    })
+  }
+
+  const loadDisqus = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyDisqus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    window.disqus_identifier = isShuoshuo ? path : '/posts/febb5061/'
+    window.disqus_url = isShuoshuo ? location.origin + path : 'https://devsu.top/posts/febb5061/'
+
+    const disqus_config = function () {
+      this.page.url = disqus_url
+      this.page.identifier = disqus_identifier
+      this.page.title = 'Android自定义View-01 绘图基础'
+    }
+
+    if (window.DISQUS) disqusReset(disqus_config)
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://.disqus.com/embed.js'
+      script.setAttribute('data-timestamp', +new Date())
+      document.head.appendChild(script)
+    }
+
+    btf.addGlobalFn('themeChange', () => disqusReset(disqus_config), 'disqus')
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqus-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=&api_key=&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Disqus'
+      ? window.shuoshuoComment = { loadComment: loadDisqus }
+      : window.loadOtherComment = loadDisqus
+    return
+  }
+
+  if ('Valine' === 'Disqus' || !true) {
+    if (true) btf.loadComment(document.getElementById('disqus_thread'), loadDisqus)
+    else {
+      loadDisqus()
+      GLOBAL_CONFIG_SITE.pageType === 'post' && getCount()
+    }
+  } else {
+    window.loadOtherComment = loadDisqus
+  }
+})()</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,528 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Kotlin编程第一课--(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？ | 码行</title><meta name="author" content="Carl Su"><meta name="copyright" content="Carl Su"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="高阶函数在 Kotlin 里有着举足轻重的地位。它是 Kotlin 函数式编程的基石，是各种框架的关键元素。高阶函数掌握好了，我们理解协程的 launch、async 函数就会轻松一些，阅读协程的源代码也会不那么吃力；高阶函数理解透彻了，我们学习 Jetpack Compose 也会得心应手，在特定业务场景下，我们甚至可以用它来实现自己的 DSL（Domain Specific Language）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin编程第一课--(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？">
+<meta property="og:url" content="https://devsu.top/posts/15c1fa4b/index.html">
+<meta property="og:site_name" content="码行">
+<meta property="og:description" content="高阶函数在 Kotlin 里有着举足轻重的地位。它是 Kotlin 函数式编程的基石，是各种框架的关键元素。高阶函数掌握好了，我们理解协程的 launch、async 函数就会轻松一些，阅读协程的源代码也会不那么吃力；高阶函数理解透彻了，我们学习 Jetpack Compose 也会得心应手，在特定业务场景下，我们甚至可以用它来实现自己的 DSL（Domain Specific Language）">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://static001.geekbang.org/resource/image/33/01/3324223f0e7c380dcd9939dc12986701.jpg">
+<meta property="article:published_time" content="2022-05-07T08:44:36.000Z">
+<meta property="article:modified_time" content="2025-03-07T02:49:14.886Z">
+<meta property="article:author" content="Carl Su">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://static001.geekbang.org/resource/image/33/01/3324223f0e7c380dcd9939dc12986701.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Kotlin编程第一课--(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？",
+  "url": "https://devsu.top/posts/15c1fa4b/",
+  "image": "https://static001.geekbang.org/resource/image/33/01/3324223f0e7c380dcd9939dc12986701.jpg",
+  "datePublished": "2022-05-07T08:44:36.000Z",
+  "dateModified": "2025-03-07T02:49:14.886Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Carl Su",
+      "url": "https://devsu.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png"><link rel="canonical" href="https://devsu.top/posts/15c1fa4b/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const hour = new Date().getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (theme === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else theme === 'light' ? activateLightMode() : activateDarkMode()
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6243425e2ecb037931274c4ca1db3132";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Carl Su","link":"链接: ","source":"来源: 码行","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Kotlin编程第一课--(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">193</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">41</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://static001.geekbang.org/resource/image/33/01/3324223f0e7c380dcd9939dc12986701.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png" alt="Logo"><span class="site-name">码行</span></a><a class="nav-page-title" href="/"><span class="site-name">Kotlin编程第一课--(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Kotlin编程第一课--(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-05-07T08:44:36.000Z" title="发表于 2022-05-07 16:44:36">2022-05-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-07T02:49:14.886Z" title="更新于 2025-03-07 10:49:14">2025-03-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/">Android</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/">Kotlin</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/Kotlin%E7%BC%96%E7%A8%8B%E7%AC%AC%E4%B8%80%E8%AF%BE/">Kotlin编程第一课</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>21分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>高阶函数在 Kotlin 里有着举足轻重的地位。<strong>它是 Kotlin 函数式编程的基石，是各种框架的关键元素</strong>。高阶函数掌握好了，我们理解协程的 launch、async 函数就会轻松一些，阅读协程的源代码也会不那么吃力；高阶函数理解透彻了，我们学习 Jetpack Compose 也会得心应手，在特定业务场景下，我们甚至可以用它来实现自己的 DSL（Domain Specific Language）。</p>
+<p>不过，如果你没有函数式编程的相关经验，在初次接触高阶函数的时候，很可能会被绕晕。因为它是一个全新的概念，你很难从经典的 C&#x2F;Java 里找到同等的概念迁移过来（Java 从 1.8 开始才引入相关概念）。然而，对于高阶函数这么重要的概念，Kotlin 官方文档又惜字如金。</p>
+<p>文档里只是突兀地介绍了高阶函数、函数类型、Lambda 表达式的简单用法，接着就丢出一段复杂的代码案例，然后丢出一个更复杂的概念，“带接收者的函数类型”（Function Types With Receiver），接着又丢出了一段更复杂的代码案例。说实话，这真的让人难以理解。</p>
+<p>所以今天这节课，我会采用 Java 和 Kotlin 对照的方式，来给你讲解 Kotlin 高阶函数的核心概念。并且我会通过一个实际案例，来帮助你理解其中最晦涩难懂的“带接收者的函数类型”，为你今后的 Kotlin 学习之路打下坚实的基础。</p>
+<h2 id="Kotlin-为什么要引入高阶函数？"><a href="#Kotlin-为什么要引入高阶函数？" class="headerlink" title="Kotlin 为什么要引入高阶函数？"></a>Kotlin 为什么要引入高阶函数？</h2><p>想要掌握好高阶函数，我们首先要知道，Kotlin 为什么要引入这一全新的概念。这个问题，Kotlin 官方并没有给出解释，但是我们很容易在它的使用上找到蛛丝马迹。</p>
+<p>我们来看个实际的例子，这是 Android 中的 View 定义，这里我省略了大部分代码，主要是想带你来看看 Kotlin 高阶函数的一个典型使用场景。</p>
+<p><code>补充：如果你不了解 Android 开发也没关系，Java Swing 中也有类似的代码模式。如果两者你都不熟悉，借助我提供的注释，也不难理解。</code></p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// View.java</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 成员变量</span></span><br><span class="line"><span class="keyword">private</span> OnClickListener mOnClickListener;</span><br><span class="line"><span class="keyword">private</span> OnContextClickListener mOnContextClickListener;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 监听手指点击事件</span></span><br><span class="line"><span class="keyword">public</span> void setOnClickListener(OnClickListener l) &#123;</span><br><span class="line">    mOnClickListener = l;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 为传递这个点击事件，专门定义了一个接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">OnClickListener</span> &#123;</span><br><span class="line">    void onClick(View v);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 监听鼠标点击事件</span></span><br><span class="line"><span class="keyword">public</span> void setOnContextClickListener(OnContextClickListener l) &#123;</span><br><span class="line">    getListenerInfo().mOnContextClickListener = l;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 为传递这个鼠标点击事件，专门定义了一个接口</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">OnContextClickListener</span> &#123;</span><br><span class="line">    boolean onContextClick(View v);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码，其实是一个典型的“可以用高阶函数来优化”的例子。让我们来看看它都做了什么：</p>
+<ul>
+<li>首先，为了设置点击事件的监听，代码里特地定义了一个 OnClickListener 接口；</li>
+<li>接着，为了设置鼠标点击事件的监听，又专门定义了一个 OnContextClickListener 接口。</li>
+</ul>
+<p>乍一看，我们貌似是可以复用同一个接口就行了，对吧？但事实上，<strong>借助高阶函数，我们一个接口都不必定义</strong>。</p>
+<p>当然了，上面的代码是 Android 团队十几年前用 Java 写的，在那个场景下，这么写代码是完全没问题的。可是这段代码在使用的时候，问题更大。比如，我们可以来看看如下所示的 Android 里设置点击监听的代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 设置手指点击事件</span></span><br><span class="line">image.setOnClickListener(new View.OnClickListener() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> void onClick(View v) &#123;</span><br><span class="line">        gotoPreview();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置鼠标点击事件</span></span><br><span class="line">image.setOnContextClickListener(new View.OnContextClickListener() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> void onContextClick(View v) &#123;</span><br><span class="line">        gotoPreview();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>看完了这两段代码之后，你有没有觉得这样的代码会很啰嗦？因为，真正逻辑只有一行代码：gotoPreview()，而实际上我们却写了 6 行代码。</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/18/ac/1876d635751fd11662fbfcc3285a0eac.jpg?wh=1852x494" alt="img"></p>
+<p>如果我们将其中的核心逻辑提取出来，会发现这样才是最简单明了的：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//                      &#123; gotoPreview() &#125; 就是 Lambda</span></span><br><span class="line"><span class="comment">//                             ↑</span></span><br><span class="line">image.setOnClickListener(&#123; gotoPreview() &#125;)</span><br><span class="line">image.setOnContextClickListener(&#123; gotoPreview() &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>那么，Kotlin 语言的设计者是怎么做的呢？实际上他们是分成了两个部分：</p>
+<ul>
+<li>用函数类型替代接口定义；</li>
+<li>用 Lambda 表达式作为函数参数。</li>
+</ul>
+<p>这里我们再来看看与前面 View.java 的等价 Kotlin 代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//View.kt</span></span><br><span class="line"><span class="comment">//                     (View) -&gt; Unit 就是「函数类型 」</span></span><br><span class="line"><span class="comment">//                       ↑        ↑ </span></span><br><span class="line"><span class="keyword">var</span> mOnClickListener: ((View) -&gt; <span class="built_in">Unit</span>)? = <span class="literal">null</span></span><br><span class="line"><span class="keyword">var</span> mOnContextClickListener: ((View) -&gt; <span class="built_in">Unit</span>)? = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 高阶函数</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">setOnClickListener</span><span class="params">(l: (<span class="type">View</span>) -&gt; <span class="type">Unit</span>)</span></span> &#123;</span><br><span class="line">    mOnClickListener = l;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 高阶函数</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">setOnContextClickListener</span><span class="params">(l: (<span class="type">View</span>) -&gt; <span class="type">Unit</span>)</span></span> &#123;</span><br><span class="line">    mOnContextClickListener = l;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么通过对比，我们能看到，Kotlin 中引入高阶函数会带来几个<strong>好处</strong>：一个是针对定义方，代码中减少了两个接口类的定义；另一个是对于调用方来说，代码也会更加简洁。这样一来，就大大减少了代码量，提高了代码可读性，并通过减少类的数量，提高了代码的性能。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/a7/eb/a7yy974d95cd3938f0f36781afb425eb.jpg?wh=1531x699" alt="img" style="zoom:33%;" />
+
+<p><code>注：关于“inline”，我会在下节课中详细介绍。</code></p>
+<p>通过上面的例子，我们已经清楚高阶函数存在的意义和价值了。不过，前面出现的一些新的概念我们还没来得及详细解释，比如，<strong>函数类型、Lambda，它们到底是什么呢？还有高阶函数的具体定义是什么呢？</strong></p>
+<p>接下来，我会通过一个具体的代码案例，来给你一一解读与高阶函数关系密切的概念及使用定义，让你能进一步夯实函数式编程的基础知识。</p>
+<h2 id="理解高阶函数的相关概念"><a href="#理解高阶函数的相关概念" class="headerlink" title="理解高阶函数的相关概念"></a>理解高阶函数的相关概念</h2><p>首先，我们来了解下什么是函数类型。</p>
+<h3 id="函数类型"><a href="#函数类型" class="headerlink" title="函数类型"></a>函数类型</h3><p>顾名思义，函数类型（Function Type）就是<strong>函数的类型</strong>。如果你之前没有函数式编程的经验，刚接触这个概念的话也许会觉得奇怪：函数也有类型吗？</p>
+<p>是的，既然变量可以有类型，函数也可以有。在 Kotlin 的世界里<a target="_blank" rel="noopener" href="https://kotlinlang.org/docs/lambdas.html">，函数是一等公民</a>。你可以将其理解为 Kotlin 里的 VIP，普通人有的东西，VIP 当然也有。比如，我们可以仔细看看下面的函数：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//         (Int,  Int) -&gt;Float 这就是 add 函数的类型</span></span><br><span class="line"><span class="comment">//           ↑     ↑      ↑</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">add</span><span class="params">(a: <span class="type">Int</span>, b: <span class="type">Int</span>)</span></span>: <span class="built_in">Float</span> &#123; <span class="keyword">return</span> (a+b).toFloat() &#125;</span><br></pre></td></tr></table></figure>
+
+<p>请注意这里我给出代码注释，第二行注释里面的“↑”代表的是一种映射关系。其实，将第三行代码里的“Int Int Float”抽出来，就代表了该函数的类型。</p>
+<p>我们可以用更精练的语言来描述函数类型的规律：<strong>将函数的“参数类型”和“返回值类型”抽象出来后，就得到了“函数类型</strong>”。(Int, Int) -&gt;Float 就代表了参数类型是两个 Int，返回值类型为 Float 的函数类型。</p>
+<p>理解了函数类型以后，我们再来看<strong>函数的引用</strong>。普通的变量也有引用的概念，我们可以将一个变量赋值给另一个变量。而这一点，在函数上也是同样适用的，函数也有引用，并且也可以赋值给变量。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 函数赋值给变量                    函数引用</span></span><br><span class="line"><span class="comment">//    ↑                              ↑</span></span><br><span class="line"><span class="keyword">val</span> function: (<span class="built_in">Int</span>, <span class="built_in">Int</span>) -&gt; <span class="built_in">Float</span> = ::add</span><br></pre></td></tr></table></figure>
+
+<h3 id="高阶函数"><a href="#高阶函数" class="headerlink" title="高阶函数"></a>高阶函数</h3><p>好，接着我们再来看看高阶函数的具体定义。当然，前面解释了这么多，现在我们对高阶函数应该已经有了比较清晰的认识了，我们用 Kotlin 实现的 View 点击事件函数，它就是一个高阶函数</p>
+<p>而它明确的定义其实是这样的：<strong>高阶函数是将函数用作参数或返回值的函数。</strong></p>
+<p>这句话有点绕，我们还是直接看例子吧。如果我们将 Android 里点击事件的监听用 Kotlin 来实现的话，它其实就是一个典型的高阶函数。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">//                      函数作为参数的高阶函数</span></span><br><span class="line"><span class="comment">//                              ↓</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">setOnClickListener</span><span class="params">(l: (<span class="type">View</span>) -&gt; <span class="type">Unit</span>)</span></span> &#123; ... &#125;</span><br></pre></td></tr></table></figure>
+
+<p>换句话说，一个函数的参数或是返回值，它们当中有一个是函数的情况下，这个函数就是高阶函数。</p>
+<h3 id="Lambda"><a href="#Lambda" class="headerlink" title="Lambda"></a>Lambda</h3><p>而前面我们还提到过，Kotlin 语言的设计者是用 Lambda 表达式作为函数参数的，那么这里的 Lambda，就可以理解为是<strong>函数的简写</strong>：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">onClick</span><span class="params">(v: <span class="type">View</span>)</span></span>: <span class="built_in">Unit</span> &#123; ... &#125;</span><br><span class="line">setOnClickListener(::onClick)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用 Lambda 表达式来替代函数引用</span></span><br><span class="line">setOnClickListener(&#123;v: View -&gt; ...&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>那么，如果你够细心的话，可能已经发现了一个问题：Android 并没有提供 View.java 的 Kotlin 实现，那么为什么我们的 Demo 里面可以用 Lambda 来简化事件监听呢？</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 在实际开发中，我们经常使用这种简化方式</span></span><br><span class="line">setOnClickListener(&#123; gotoPreview() &#125;</span><br></pre></td></tr></table></figure>
+
+<p>原因是这样的，由于 OnClickListener 符合 SAM 转换的要求，因此编译器自动帮我们做了一层转换，让我们可以用 Lambda 表达式来简化我们的函数调用。</p>
+<p>那么，SAM 又是个什么鬼？</p>
+<h2 id="SAM-转换"><a href="#SAM-转换" class="headerlink" title="SAM 转换"></a>SAM 转换</h2><p>SAM 是 Single Abstract Method 的缩写，意思就是只有一个抽象方法的类或者接口。但在 Kotlin 和 Java 8 里，<strong>SAM 代表着只有一个抽象方法的接口</strong>。只要是符合 SAM 要求的接口，编译器就能进行 SAM 转换，也就是我们可以使用 Lambda 表达式，来简写接口类的参数。</p>
+<p>注意，Java 8 中的 SAM 有明确的名称，叫做<strong>函数式接口（FunctionalInterface</strong>）。FunctionalInterface 的限制如下，缺一不可：</p>
+<ul>
+<li>必须是接口，抽象类不行；</li>
+<li>该接口有且仅有一个抽象的方法，抽象方法个数必须是 1，默认实现的方法可以有多个。</li>
+</ul>
+<p>也就是说，对于 View.java 来说，它虽然是 Java 代码，但 Kotlin 编译器知道它的参数 OnClickListener 符合 SAM 转换的条件，所以会自动做以下转换。</p>
+<p>转换前：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> void setOnClickListener(OnClickListener l)</span><br></pre></td></tr></table></figure>
+
+<p>转换后：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">setOnClickListener</span><span class="params">(l: (<span class="type">View</span>) -&gt; <span class="type">Unit</span>)</span></span></span><br><span class="line"><span class="comment">// 实际上是这样：</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">setOnClickListener</span><span class="params">(l: ((<span class="type">View</span>!) -&gt; <span class="type">Unit</span>)?)</span></span></span><br></pre></td></tr></table></figure>
+
+<p>其中，((View!) -&gt; Unit)? 代表的是这个参数可能为空。</p>
+<h3 id="Lambda-表达式引发的-8-种写法"><a href="#Lambda-表达式引发的-8-种写法" class="headerlink" title="Lambda 表达式引发的 8 种写法"></a>Lambda 表达式引发的 8 种写法</h3><p>当一个函数的参数是 SAM 的情况下，我们同样也可以使用 Lambda 作为参数。所以，我<strong>们既可以用匿名内部类的方式传参，也可以使用 Lambda 的方式传参</strong>。这两种方式在我们前面都已经提到过了。然而，在这两种写法的中间，还有 6 种“过渡状态”的写法。这对大部分初学者简直是噩梦：同样的代码，能有 8 种不同的写法，确实也挺懵的。</p>
+<p>而要理解 Lambda 表达式的简写逻辑，其实很简单，那就是：<strong>多写</strong>。你也可以跟着我接下来的流程来一起写一写。</p>
+<h4 id="第-1-种写法"><a href="#第-1-种写法" class="headerlink" title="第 1 种写法"></a>第 1 种写法</h4><p>这是原始代码，它的本质是用 object 关键字定义了一个匿名内部类：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">image.setOnClickListener(<span class="keyword">object</span>: View.OnClickListener &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onClick</span><span class="params">(v: <span class="type">View</span>?)</span></span> &#123;</span><br><span class="line">        gotoPreview(v)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h4 id="第-2-种写法"><a href="#第-2-种写法" class="headerlink" title="第 2 种写法"></a>第 2 种写法</h4><p>在这种情况下，object 关键字可以被省略。这时候它在语法层面就不再是匿名内部类了，它更像是 Lambda 表达式了，因此它里面 override 的方法也要跟着删掉：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">image.setOnClickListener(View.OnClickListener &#123; v: View? -&gt;</span><br><span class="line">    gotoPreview(v)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>上面的View.OnClickListener被称为 SAM Constructor（SAM 构造器），它是编译器为我们生成的。</p>
+<h4 id="第-3-种写法"><a href="#第-3-种写法" class="headerlink" title="第 3 种写法"></a>第 3 种写法</h4><p>由于 Kotlin 的 Lambda 表达式是不需要 SAM Constructor 的，所以它也可以被删掉：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">image.setOnClickListener(&#123; v: View? -&gt;</span><br><span class="line">    gotoPreview(v)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h4 id="第-4-种写法"><a href="#第-4-种写法" class="headerlink" title="第 4 种写法"></a>第 4 种写法</h4><p>由于 Kotlin 支持类型推导，所以 View 可以被删掉</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">image.setOnClickListener(&#123; v -&gt;</span><br><span class="line">    gotoPreview(v)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h4 id="第-5-种写法"><a href="#第-5-种写法" class="headerlink" title="第 5 种写法"></a>第 5 种写法</h4><p>当 Kotlin Lambda 表达式只有一个参数的时候，它可以被写成 it：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">image.setOnClickListener(&#123; it -&gt;</span><br><span class="line">    gotoPreview(it)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h4 id="第-6-种写法"><a href="#第-6-种写法" class="headerlink" title="第 6 种写法"></a>第 6 种写法</h4><p>Kotlin Lambda 的 it 是可以被省略的：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">image.setOnClickListener(&#123;</span><br><span class="line">    gotoPreview(it)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<h4 id="第-7-种写法"><a href="#第-7-种写法" class="headerlink" title="第 7 种写法"></a>第 7 种写法</h4><p>当 Kotlin Lambda 作为函数的最后一个参数时，Lambda 可以被挪到外面：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">image.setOnClickListener() &#123;</span><br><span class="line">    gotoPreview(it)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="第-8-种写法"><a href="#第-8-种写法" class="headerlink" title="第 8 种写法"></a>第 8 种写法</h4><p>当 Kotlin 只有一个 Lambda 作为函数参数时，() 可以被省略：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">image.setOnClickListener &#123;</span><br><span class="line">    gotoPreview(it)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里，我把这 8 种写法的演进过程以动图的形式展现了出来，让你对 Lambda 这几种写法的差异有一个更加直观的认识。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/e4/bf/e441323968c0c061898257fd06db37bf.gif?wh=1080x608" alt="img" style="zoom:67%;" />
+
+<p>按照这个流程，在 IDE 里多写几遍，你自然就会理解了。一定要写，光看是记不住的。</p>
+<p>好了，到这里，你就搞明白这些概念是什么意思了。下面我们来做一个小的总结，在后续的 Kotlin 学习当中，这些都是要铭记在心的。</p>
+<ul>
+<li>将函数的参数类型和返回值类型抽象出来后，我们就得到了函数类型。比如(View) -&gt; Unit 就代表了参数类型是 View，返回值类型为 Unit 的函数类型。</li>
+<li>如果一个函数的“参数”或者“返回值”的类型是函数类型，那这个函数就是高阶函数。很明显，我们刚刚就写了一个高阶函数，只是它比较简单而已。</li>
+<li>Lambda 就是函数的一种简写。</li>
+</ul>
+<p>然后，你也可以再通过一张图来回顾下函数类型、高阶函数以及 Lambda 表达式三者之间的关系：</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/ec/71/ecf85d05f6fdc5ea2d015a61d7e64771.png?wh=1920x914" alt="img" style="zoom:67%;" />
+
+<p>你也可以再回过头来看看官方文档提供的例子：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="type">&lt;T, R&gt;</span> Collection<span class="type">&lt;T&gt;</span>.<span class="title">fold</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    initial: <span class="type">R</span>, </span></span></span><br><span class="line"><span class="params"><span class="function">    combine: (<span class="type">acc</span>: <span class="type">R</span>, <span class="type">nextElement</span>: <span class="type">T</span>) -&gt; <span class="type">R</span></span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>: R &#123;</span><br><span class="line">    <span class="keyword">var</span> accumulator: R = initial</span><br><span class="line">    <span class="keyword">for</span> (element: T <span class="keyword">in</span> <span class="keyword">this</span>) &#123;</span><br><span class="line">        accumulator = combine(accumulator, element)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> accumulator</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>你看到这个函数类型：(acc: R, nextElement: T) -&gt; R，是不是瞬间就懂了呢？这个函数接收了两个参数，第一个参数类型是 R，第二个参数是 T，函数的返回类型是 R。</p>
+<h2 id="难点：带接收者的函数类型"><a href="#难点：带接收者的函数类型" class="headerlink" title="难点：带接收者的函数类型"></a>难点：带接收者的函数类型</h2><p>那么现在，我们就把高阶函数这个知识点理解得有 80% 了。而在这节课一开始，我还提到，在 Kotlin 的函数类型这个知识点当中，还有一个特殊的概念，叫做<strong>带接收者的函数类型</strong>，它尤其晦涩难懂。</p>
+<p>说实话，这个名字也对初学者不太友好，“带接收者的函数类型”，这里面的每一个字我都认识，可放到一块我就懵了。所以我们其实还是绕不开一个问题：为什么？</p>
+<p><em><strong>为什么要引入带接收者的函数类型？</strong></em></p>
+<p>这里，让我们先来看一下 Kotlin 的标准函数 apply 的使用场景。</p>
+<p>不用 apply：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">if</span> (user != <span class="literal">null</span>) &#123;</span><br><span class="line">    ...</span><br><span class="line">    username.text = user.name</span><br><span class="line">    website.text = user.blog</span><br><span class="line">    image.setOnClickListener &#123; gotoImagePreviewActivity(user) &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用 apply</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">user?.apply &#123;</span><br><span class="line">    ...</span><br><span class="line">    username.text = name</span><br><span class="line">    website.text = blog</span><br><span class="line">    image.setOnClickListener &#123; gotoImagePreviewActivity(<span class="keyword">this</span>) &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>请问这个 apply 方法应该怎么实现呢？</p>
+<p>上面的写法其实是简化后的 Lambda 表达式，让我们来反推一下，看看它简化前是什么样的：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// apply 肯定是个函数，所以有 ()，只是被省略了</span></span><br><span class="line">user?.apply() &#123;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Lambda 肯定是在 () 里面</span></span><br><span class="line">user?.apply(&#123; ... &#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 由于 gotoImagePreviewActivity(this) 里的 this 代表了 user</span></span><br><span class="line"><span class="comment">// 所以 user 应该是 apply 函数的一个参数，而且参数名为：this</span></span><br><span class="line">user?.apply(&#123; <span class="keyword">this</span>: User -&gt; ... &#125;)</span><br></pre></td></tr></table></figure>
+
+<p>所以，现在问题非常明确了，apply 其实是接收了一个 Lambda 表达式：{ this: User -&gt; … }。那么现在，我们就尝试来实现这个 apply 方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> User.<span class="title">apply</span><span class="params">(self: <span class="type">User</span>, block: (<span class="type">self</span>: <span class="type">User</span>) -&gt; <span class="type">Unit</span>)</span></span>: User&#123;</span><br><span class="line">    block(self)</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">user?.apply(self = user) &#123; self: User -&gt;</span><br><span class="line">            username.text = self.name</span><br><span class="line">            website.text = self.blog</span><br><span class="line">            image.setOnClickListener &#123; gotoImagePreviewActivity(<span class="keyword">this</span>) &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由于 Kotlin 里面的函数形参是不允许被命名为 this 的，因此我这里用的是 self。另外，这里我们自己写出来的 apply，仍然还要通过 self.name 这样的方式来访问成员变量，但 Kotlin 的语言设计者能做到这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//           改为this             改为this</span></span><br><span class="line"><span class="comment">//               ↓                    ↓ </span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> User.<span class="title">apply</span><span class="params">(this: <span class="type">User</span>, block: (<span class="type">this</span>: <span class="type">User</span>) -&gt; <span class="type">Unit</span>)</span></span>: User&#123;</span><br><span class="line"><span class="comment">//    这里还要传参数</span></span><br><span class="line"><span class="comment">//         ↓ </span></span><br><span class="line">    block(<span class="keyword">this</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">user?.apply(<span class="keyword">this</span> = user) &#123; <span class="keyword">this</span>: User -&gt;</span><br><span class="line">    ...</span><br><span class="line"><span class="comment">//               this 可以省略</span></span><br><span class="line"><span class="comment">//                   ↓ </span></span><br><span class="line">    username.text = <span class="keyword">this</span>.name</span><br><span class="line">    website.text = blog</span><br><span class="line">    image.setOnClickListener &#123; gotoImagePreviewActivity(<span class="keyword">this</span>) &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的例子能看到，我们反推的 apply 实现会比较繁琐：</p>
+<ul>
+<li>需要我们传入 this：user?.apply(this &#x3D; user)</li>
+<li>需要我们自己调用：block(this)。</li>
+</ul>
+<p>因此，Kotlin 就引入了带接收者的函数类型，可以简化 apply 的定义：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//              带接收者的函数类型</span></span><br><span class="line"><span class="comment">//                     ↓  </span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> User.<span class="title">apply</span><span class="params">(block: <span class="type">User</span>.() -&gt; <span class="type">Unit</span>)</span></span>: User&#123;</span><br><span class="line"><span class="comment">//  不用再传this</span></span><br><span class="line"><span class="comment">//       ↓ </span></span><br><span class="line">    block()</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">user?.apply &#123; <span class="keyword">this</span>: User -&gt;</span><br><span class="line"><span class="comment">//               this 可以省略</span></span><br><span class="line"><span class="comment">//                   ↓</span></span><br><span class="line">    username.text = <span class="keyword">this</span>.name</span><br><span class="line">    website.text = <span class="keyword">this</span>.blog</span><br><span class="line">    image.setOnClickListener &#123; gotoImagePreviewActivity(<span class="keyword">this</span>) &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>现在，关键来了。上面的 apply 方法是不是看起来就像是在 User 里，增加了一个成员方法 apply()？</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">User</span>() &#123;</span><br><span class="line">    <span class="keyword">val</span> name: String = <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="keyword">val</span> blog: String = <span class="string">&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">apply</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="comment">// 成员方法可以通过 this 访问成员变量</span></span><br><span class="line">        username.text = <span class="keyword">this</span>.name</span><br><span class="line">        website.text = <span class="keyword">this</span>.blog</span><br><span class="line">        image.setOnClickListener &#123; gotoImagePreviewActivity(<span class="keyword">this</span>) &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以，从外表上看，带接收者的函数类型，就等价于成员方法<strong>。但从本质上讲，它仍是通过编译器注入 this 来实现的</strong>。</p>
+<p>我们可以再通过一张图，来理解下什么是带接收者的函数类型：</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/9a/04/9acd54ac08d88c94ca52336a576b3304.png?wh=1890x1156" alt="img" style="zoom: 50%;" />
+
+<p>看到这里，也许你会想起前面我们讲过的“扩展函数”。那么，带接收者的函数类型，是否也能代表扩展函数呢？</p>
+<p>答案是肯定的。毕竟，从语法层面讲<strong>，扩展函数就相当于成员函数</strong>。</p>
+<h2 id="实战与思考"><a href="#实战与思考" class="headerlink" title="实战与思考"></a>实战与思考</h2><p>在第 5 讲当中，我们实现了“单例的抽象类模板”，在课程的最后，我还给你留了一个思考题：</p>
+<p><code>我们的抽象类模板 BaseSingleton 是否还有改进的空间？</code></p>
+<p>这里，让我们先回顾一下 BaseSingleton 的代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">                     </span><br><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">BaseSingleton</span>&lt;<span class="type">in P, out T</span>&gt; &#123;</span><br><span class="line">    <span class="meta">@Volatile</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> instance: T? = <span class="literal">null</span></span><br><span class="line">    <span class="comment">//                       ①</span></span><br><span class="line">    <span class="comment">//                       ↓</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="function"><span class="keyword">fun</span> <span class="title">creator</span><span class="params">(param: <span class="type">P</span>)</span></span>: T</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getInstance</span><span class="params">(param: <span class="type">P</span>)</span></span>: T =</span><br><span class="line">        instance ?: synchronized(<span class="keyword">this</span>) &#123;</span><br><span class="line">            instance ?: creator(param).also &#123; instance = it &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">PersonManager</span> <span class="keyword">private</span> <span class="keyword">constructor</span>(name: String) &#123;</span><br><span class="line">    <span class="keyword">companion</span> <span class="keyword">object</span> : BaseSingleton&lt;String, PersonManager&gt;() &#123;</span><br><span class="line">        <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">creator</span><span class="params">(param: <span class="type">String</span>)</span></span>: PersonManager = PersonManager(param)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码我们可以看到，BaseSingleton 是单例抽象模板，而 PersonManager 则是实际的单例类。</p>
+<p>在前面的第 2 讲里，我们就讨论过 Person 的 isAdult 应该是属性，而 walk 则应该是方法。那么现在，请看注释①，它是我们定义的一个抽象方法，名字叫做 creator。这时候，相信你马上就能反应过来：creator 应该定义成属性。</p>
+<p>可是，<strong>如何才能将一个方法改成属性呢</strong>？答案当然就是刚学过的：<strong>高阶函数</strong>。</p>
+<p>运用这节课学到的知识，我们很容易就能将 creator 改成一个类型为：(P)-&gt;T的属性，如下所示：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">BaseSingleton</span>&lt;<span class="type">in P, out T</span>&gt; &#123;</span><br><span class="line">    <span class="meta">@Volatile</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> instance: T? = <span class="literal">null</span></span><br><span class="line">    <span class="comment">//               变化在这里，函数类型的属性</span></span><br><span class="line">    <span class="comment">//                  ↓              ↓</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">val</span> creator: (P)-&gt; T</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getInstance</span><span class="params">(param: <span class="type">P</span>)</span></span>: T =</span><br><span class="line">        instance ?: synchronized(<span class="keyword">this</span>) &#123;</span><br><span class="line">            instance ?: creator(param).also &#123; instance = it &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码中，我们将 creator 改成了一个抽象的属性，如果其他的单例类继承了 BaseSingleton 这个类，就必须实现这个 creator 属性。不过，这时候一个问题就出现了：<strong>PersonManager 该怎么写呢？</strong></p>
+<p>如果我们依葫芦画瓢，在实现 creator 的时候传入 PersonManager 的构造函数，会发现代码报错：类型不匹配。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">PersonManager</span> <span class="keyword">private</span> <span class="keyword">constructor</span>(name: String) &#123;</span><br><span class="line">    <span class="keyword">companion</span> <span class="keyword">object</span> : BaseSingleton&lt;String, PersonManager&gt;() &#123;</span><br><span class="line">    <span class="comment">//             报错，类型不匹配</span></span><br><span class="line">    <span class="comment">//                  ↓ </span></span><br><span class="line">        <span class="keyword">override</span> <span class="keyword">val</span> creator = PersonManager(name)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码报错的原因其实也很简单，creator 的类型是一个 (String)-&gt; PersonManager，而 PersonManager 构造函数这个表达式的值类型，是 PersonManager 类型。<strong>前者是函数类型，后者是普通对象类型</strong>。那么，如何才能正确实现 creator 这个函数类型的属性呢？</p>
+<p>答案就是我们前面刚学的：<strong>函数引用</strong>！</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">PersonManager</span> <span class="keyword">private</span> <span class="keyword">constructor</span>(name: String) &#123;</span><br><span class="line">    <span class="keyword">companion</span> <span class="keyword">object</span> : BaseSingleton&lt;String, PersonManager&gt;() &#123;</span><br><span class="line">    <span class="comment">//                             函数引用</span></span><br><span class="line">    <span class="comment">//                                ↓ </span></span><br><span class="line">        <span class="keyword">override</span> <span class="keyword">val</span> creator = ::PersonManager</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码中可以看到，我们直接将 PersonManager 的构造函数，以函数引用的方式传给了 creator 这个属性，这样就成功地实现了这个函数类型的属性。</p>
+<p>在这个案例里，我们将函数引用以及高阶函数应用到了单例抽象类模板当中，而在这个过程当中，我们也就能更加透彻地理解这两个特性的使用场景了。</p>
+<p>这里我制作了一个代码的转换动图，帮你建立一个更加直观的认识。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/49/5c/49b134d723c11c7d50762497b44afa5c.gif?wh=1080x608" alt="img" style="zoom: 67%;" />
+
+<p>从这个动图里，我们可以清晰地看到某些元素的转移过程。比如泛型 P、T，还有 PersonManager 的构造函数，这些都是代码中的关键元素。这些关键元素只是换了一种语法排列规则：<strong>从函数的语法变成了属性的语法，语法从复杂变得简洁，其中的关键元素并未丢失。</strong></p>
+<p>因此，这两种代码是完全等价的，但后者更加简洁易懂。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>到现在为止，咱们高阶函数部分的内容就进入尾声了。让我们再来做一次总结：</p>
+<ul>
+<li><strong>为什么引入高阶函数？</strong>答：为了简化。</li>
+<li><strong>高阶函数是什么？</strong>答：函数作为参数 or 返回值。</li>
+<li><strong>函数类型是什么？</strong>答：函数的类型。</li>
+<li><strong>函数引用是什么？</strong>答：类比变量的引用。</li>
+<li><strong>Lambda 是什么？</strong>答：可以简单理解为“函数的简写”（官方定义我们以后再讨论）。</li>
+<li><strong>带接收者的函数类型是什么？</strong>答：可以简单理解为“成员函数的类型”。</li>
+</ul>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/45/3e/45e23ce48a64711943366fec784af23e.jpg?wh=1920x1171" alt="img" style="zoom:50%;" />
+
+<p>事实上，对于初学者来说，要一下子理解并掌握 Kotlin“高阶函数”不是一件容易的事情。在掌握好这节课内容的基础上，我们可以尝试去读一些优秀的代码。</p>
+<p>比如 Kotlin 官方的源代码<a target="_blank" rel="noopener" href="https://github.com/JetBrains/kotlin/blob/1.5.30/libraries/stdlib/src/kotlin/util/Standard.kt">StandardKt</a>，你可以去分析其中的 with、let、also、takeIf、repeat、apply，来进一步加深对高阶函数的理解。还有就是<a target="_blank" rel="noopener" href="https://github.com/JetBrains/kotlin/blob/1.5.30/libraries/stdlib/common/src/generated/_Collections.kt">CollectionsKt</a>，你可以去分析其中的 map、flatMap、fold、groupBy 等操作符，从而对高阶函数的应用场景有一个更具体的认知。</p>
+<p>另外，在第2 讲的时候，我们曾经提到过：理论上讲，Kotlin 与 Java 是完全兼容的。那么问题来了，<strong>Kotlin 引入全新的高阶函数，最终变成 JVM 字节码后是怎么执行呢</strong>？毕竟，JVM 可不知道什么是高阶函数啊。</p>
+<p>答案其实也很简单：<strong>匿名内部类</strong>。</p>
+<p>而这样又引出了另一个问题：所以 Kotlin 弄了个这么高端的高阶函数，最终还是以匿名内部类的形式在运行呗？那它们两者的性能差不多？这不是多此一举吗？</p>
+<p>答案当然是否定的，Kotlin 高阶函数的性能，在极端情况下可以达到匿名内部类的 100 倍！具体是怎么回事儿呢？别着急，下节课讲“inline”时，我们就会来详细探讨。</p>
+<h2 id="小作业"><a href="#小作业" class="headerlink" title="小作业"></a>小作业</h2><p>请你去阅读一下 Kotlin 官方的标准函数库<a target="_blank" rel="noopener" href="https://github.com/JetBrains/kotlin/blob/1.5.30/libraries/stdlib/src/kotlin/util/Standard.kt">StandardKt</a> 的源代码，尝试去解析其中任意一个高阶函数的原理和意义，并分享出来，我们一起探讨。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;R&gt;</span> <span class="title">run</span><span class="params">(block: () -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> block()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T, R&gt;</span> T.<span class="title">run</span><span class="params">(block: <span class="type">T</span>.() -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> block()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T, R&gt;</span> <span class="title">with</span><span class="params">(receiver: <span class="type">T</span>, block: <span class="type">T</span>.() -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> receiver.block()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> T.<span class="title">apply</span><span class="params">(block: <span class="type">T</span>.() -&gt; <span class="type">Unit</span>)</span></span>: T &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    block()</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> T.<span class="title">also</span><span class="params">(block: (<span class="type">T</span>) -&gt; <span class="type">Unit</span>)</span></span>: T &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    block(<span class="keyword">this</span>)</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T, R&gt;</span> T.<span class="title">let</span><span class="params">(block: (<span class="type">T</span>) -&gt; <span class="type">R</span>)</span></span>: R &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(block, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> block(<span class="keyword">this</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> T.<span class="title">takeIf</span><span class="params">(predicate: (<span class="type">T</span>) -&gt; <span class="type">Boolean</span>)</span></span>: T? &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(predicate, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">if</span> (predicate(<span class="keyword">this</span>)) <span class="keyword">this</span> <span class="keyword">else</span> <span class="literal">null</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> T.<span class="title">takeUnless</span><span class="params">(predicate: (<span class="type">T</span>) -&gt; <span class="type">Boolean</span>)</span></span>: T? &#123;</span><br><span class="line">    contract &#123;</span><br><span class="line">        callsInPlace(predicate, InvocationKind.EXACTLY_ONCE)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">if</span> (!predicate(<span class="keyword">this</span>)) <span class="keyword">this</span> <span class="keyword">else</span> <span class="literal">null</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="title">repeat</span><span class="params">(times: <span class="type">Int</span>, action: (<span class="type">Int</span>) -&gt; <span class="type">Unit</span>)</span></span> &#123;</span><br><span class="line">    contract &#123; callsInPlace(action) &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (index <span class="keyword">in</span> <span class="number">0</span> until times) &#123;</span><br><span class="line">        action(index)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>好了，这节课就到这里，如果觉得有收获，非常欢迎你把今天的内容分享给更多的朋友，咱们下节课再见。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://devsu.top">Carl Su</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://devsu.top/posts/15c1fa4b/">https://devsu.top/posts/15c1fa4b/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://devsu.top" target="_blank">码行</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Kotlin/">Kotlin</a></div><div class="post-share"><div class="social-share" data-image="https://static001.geekbang.org/resource/image/33/01/3324223f0e7c380dcd9939dc12986701.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/85d82fa8/" title="Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？"><img class="cover" src="https://static001.geekbang.org/resource/image/b6/1c/b65feyy0bdc4764c6564a95912d7851c.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？</div></div><div class="info-2"><div class="info-item-1">Kotlin 的扩展（Extension），主要分为两种语法：第一个是扩展函数，第二个是扩展属性。从语法上看，扩展看起来就像是我们从类的外部为它扩展了新的成员。 这在实际编程当中是非常有用的功能。我们可以来想象一个场景：我们想修改 JDK 当中的 String，想在它的基础上增加一个方法“lastElement()”来获取末尾元素，如果使用 Java，我们是无法通过常规手段实现的，因为我们没办法修改 JDK 的源代码。任何第三方提供的 SDK，我们都无权修改。 不过，借助 Kotlin 的扩展函数，我们就完全可以在语义层面，来为第三方 SDK 的类扩展新的成员方法和成员属性。不管是为 JDK 的 String 增加新的成员方法，还是为 Android SDK 的 View 增加新成员属性，我们都可以实现。 Kotlin 的这个“扩展”功能看起来很神奇，它会不会很难学？其实不然，它的语法非常简洁。今天这节课，我们就一起来学习下 Kotlin...</div></div></div></a><a class="pagination-related" href="/posts/90cef85a/" title="Kotlin编程第一课--(基础篇)08  实战：用Kotlin写一个英语词频统计程序"><img class="cover" src="https://static001.geekbang.org/resource/image/d7/f1/d79a634178bd8f34e54cyya7cfd8c8f1.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Kotlin编程第一课--(基础篇)08  实战：用Kotlin写一个英语词频统计程序</div></div><div class="info-2"><div class="info-item-1">前面几节课，我们学了一些 Kotlin 独有的特性，包括扩展、高阶函数等等。虽然我在前面的几节课当中都分别介绍了这些特性的实际应用场景，但那终归不够过瘾。因此，这节课我们来尝试将这些知识点串联起来，一起来写一个“单词词频统计程序”。 英语单词的频率统计，有很多实际应用场景，比如高考、研究生考试、雅思考试，都有对应的“高频词清单”，考生优先突破这些高频词，可以大大提升备考效率。那么这个高频词是如何统计出来的呢？当然是通过计算机统计出来的。只是，我们的操作系统并没有提供这样的程序，想要用这样的功能，我们必须自己动手写。 而这节课，我将带你用 Kotlin 写一个单词频率统计程序。为了让你更容易理解，我们的程序同样会分为三个版本。  1.0 版本：实现频率统计基本功能，使用“命令式风格”的代码。 2.0 版本：利用扩展函数、高阶函数来优化代码，实现“函数式风格”的代码。 3.0 版本：使用 inline 进一步提升软件的性能，并分析高阶函数的实现原理，以及 inline 到底能带来多大的性能提升。  在正式开始学习之前，我也建议你去 clone 我 GitHub 上面的...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/85d82fa8/" title="Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？"><img class="cover" src="https://static001.geekbang.org/resource/image/b6/1c/b65feyy0bdc4764c6564a95912d7851c.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-06</div><div class="info-item-2">Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？</div></div><div class="info-2"><div class="info-item-1">Kotlin 的扩展（Extension），主要分为两种语法：第一个是扩展函数，第二个是扩展属性。从语法上看，扩展看起来就像是我们从类的外部为它扩展了新的成员。 这在实际编程当中是非常有用的功能。我们可以来想象一个场景：我们想修改 JDK 当中的 String，想在它的基础上增加一个方法“lastElement()”来获取末尾元素，如果使用 Java，我们是无法通过常规手段实现的，因为我们没办法修改 JDK 的源代码。任何第三方提供的 SDK，我们都无权修改。 不过，借助 Kotlin 的扩展函数，我们就完全可以在语义层面，来为第三方 SDK 的类扩展新的成员方法和成员属性。不管是为 JDK 的 String 增加新的成员方法，还是为 Android SDK 的 View 增加新成员属性，我们都可以实现。 Kotlin 的这个“扩展”功能看起来很神奇，它会不会很难学？其实不然，它的语法非常简洁。今天这节课，我们就一起来学习下 Kotlin...</div></div></div></a><a class="pagination-related" href="/posts/be9f17d6/" title="Kotlin编程第一课(目录)"><img class="cover" src="https://img2.baidu.com/it/u=3956021957,3313212296&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-10</div><div class="info-item-2">Kotlin编程第一课(目录)</div></div><div class="info-2"><div class="info-item-1">基础篇Kotlin编程第一课–(基础篇)01  Kotlin基础语法：正式开启学习之旅Kotlin编程第一课–(基础篇)02  面向对象：理解Kotlin设计者的良苦用心Kotlin编程第一课–(基础篇)03  Kotlin原理：编译器在幕后干了哪些“好事”？Kotlin编程第一课–(基础篇)04 | 实战：构建一个Kotlin版本的四则运算计算器Kotlin编程第一课–(基础篇)05  object关键字：你到底有多少种用法？Kotlin编程第一课–(基础篇)06  扩展：你的能力边界到底在哪里？Kotlin编程第一课–(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？Kotlin编程第一课–(基础篇)08  实战：用Kotlin写一个英语词频统计程序Kotlin编程第一课–(基础篇)加餐一  初识Kotlin函数式编程Kotlin编程第一课–(基础篇)09  委托：你为何总是被低估？Kotlin编程第一课–(基础篇)10  泛型：逆变or协变，傻傻分不清？Kotlin编程第一课–(基础篇)11 ...</div></div></div></a><a class="pagination-related" href="/posts/83a7144c/" title="2023-01-17-Kotlin协程 -  结构化并发"><img class="cover" src="https://s2.loli.net/2023/03/14/xEyFgn24zZPXe15.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-01-17</div><div class="info-item-2">2023-01-17-Kotlin协程 -  结构化并发</div></div><div class="info-2"><div class="info-item-1">CoroutineScope定义协程必须指定其 CoroutineScope，它会跟踪所有协程，同样它还可以取消由它所启动的所有协程。 常用的相关API有：  GlobalScope，生命周期是process级别的，及时Activity或Fragment已经被销毁，协程仍然在执行。 MainScope，在Activity中使用，可以在onDestroy()中取消协程。 viewModelScope，只能在ViewModel中使用，绑定ViewModel的生命周期。 lifecycleScope，只能在Activity、Fragment中使用，会绑定Activity和Fragment的生命周期  </div></div></div></a><a class="pagination-related" href="/posts/a20c9e06/" title="Kotlin协程"><img class="cover" src="https://s2.loli.net/2023/03/14/3MHPBy1Q4GncRlF.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-09</div><div class="info-item-2">Kotlin协程</div></div><div class="info-2"><div class="info-item-1">Kotlin协程协程的作用域构建器coroutineScope与runBlocking runBlocking是常规函数，而coroutineScope是挂起函数。 它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途  </div></div></div></a><a class="pagination-related" href="/posts/68bf7d20/" title="Kotlin函数"><img class="cover" src="https://img1.baidu.com/it/u=1546227440,2897989905&fm=253&fmt=auto&app=138&f=JPEG?w=889&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin函数</div></div><div class="info-2"><div class="info-item-1">函数类型作为返回类型fun main() &#123;	  println(show(&quot;Demo&quot;))      val lambdaFunction = showMethod(&quot;Jack&quot;) //注意lambdaFunction 这里的类型为(String,Int) -&gt; String    println(lambdaFunction(&quot;Carl&quot;,20))&#125;//普通函数fun show(name:String): String &#123;    return &quot;name is $name&quot;&#125;//返回类型为函数fun showMethod(name: String): (String,Int) -&gt; String &#123;    println(&quot;name is $name&quot;)    return &#123; name: String, age: Int -&gt;       ...</div></div></div></a><a class="pagination-related" href="/posts/8c331668/" title="Kotlin内置函数apply、let、run、with、also等区别"><img class="cover" src="https://s2.loli.net/2023/03/14/OpxWcuy2ktMzoQD.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin内置函数apply、let、run、with、also等区别</div></div><div class="info-2"><div class="info-item-1">Applyapply函数可看作一个配置函数，可以传入一个接收者，然后调用一系列函数来配置它以便使用，如果提供lambda给apply函数执行，它会返回配置好的接受者 val file1 = File(&quot;/User/geowin/hello.txt&quot;)file1.apply &#123; // this: File   setWritable(true)   setReadable(true)   setExecutable(false)&#125;  可以看到，调用一个个函数类配置接受者时，变量名就省略了，这是因为，在lambda表达式中，apply能让每个配置函数都作用于接受者，这种行为有时又叫做相关作用域,因为lambda表达式里的所有函数调用都是针对接收者的，或者说，它们是针对接受者的隐式调用. letlet函数能使某个变量作用于lambda表达式里，让it关键字能引用它。let与apply比较，let会把接受者传给lambda，而apply什么都不传，匿名函数执行完，apply会返回当前接受者，而let会返回lambda的最后一行。 fun...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Valine</span><span id="switch-btn"></span><span class="second-comment">Disqus</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div><div><div id="disqus_thread"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Kotlin-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%BC%95%E5%85%A5%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">Kotlin 为什么要引入高阶函数？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%90%86%E8%A7%A3%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0%E7%9A%84%E7%9B%B8%E5%85%B3%E6%A6%82%E5%BF%B5"><span class="toc-number">2.</span> <span class="toc-text">理解高阶函数的相关概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E7%B1%BB%E5%9E%8B"><span class="toc-number">2.1.</span> <span class="toc-text">函数类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%AB%98%E9%98%B6%E5%87%BD%E6%95%B0"><span class="toc-number">2.2.</span> <span class="toc-text">高阶函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Lambda"><span class="toc-number">2.3.</span> <span class="toc-text">Lambda</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SAM-%E8%BD%AC%E6%8D%A2"><span class="toc-number">3.</span> <span class="toc-text">SAM 转换</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Lambda-%E8%A1%A8%E8%BE%BE%E5%BC%8F%E5%BC%95%E5%8F%91%E7%9A%84-8-%E7%A7%8D%E5%86%99%E6%B3%95"><span class="toc-number">3.1.</span> <span class="toc-text">Lambda 表达式引发的 8 种写法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC-1-%E7%A7%8D%E5%86%99%E6%B3%95"><span class="toc-number">3.1.1.</span> <span class="toc-text">第 1 种写法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC-2-%E7%A7%8D%E5%86%99%E6%B3%95"><span class="toc-number">3.1.2.</span> <span class="toc-text">第 2 种写法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC-3-%E7%A7%8D%E5%86%99%E6%B3%95"><span class="toc-number">3.1.3.</span> <span class="toc-text">第 3 种写法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC-4-%E7%A7%8D%E5%86%99%E6%B3%95"><span class="toc-number">3.1.4.</span> <span class="toc-text">第 4 种写法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC-5-%E7%A7%8D%E5%86%99%E6%B3%95"><span class="toc-number">3.1.5.</span> <span class="toc-text">第 5 种写法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC-6-%E7%A7%8D%E5%86%99%E6%B3%95"><span class="toc-number">3.1.6.</span> <span class="toc-text">第 6 种写法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC-7-%E7%A7%8D%E5%86%99%E6%B3%95"><span class="toc-number">3.1.7.</span> <span class="toc-text">第 7 种写法</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC-8-%E7%A7%8D%E5%86%99%E6%B3%95"><span class="toc-number">3.1.8.</span> <span class="toc-text">第 8 种写法</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9A%BE%E7%82%B9%EF%BC%9A%E5%B8%A6%E6%8E%A5%E6%94%B6%E8%80%85%E7%9A%84%E5%87%BD%E6%95%B0%E7%B1%BB%E5%9E%8B"><span class="toc-number">4.</span> <span class="toc-text">难点：带接收者的函数类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E6%88%98%E4%B8%8E%E6%80%9D%E8%80%83"><span class="toc-number">5.</span> <span class="toc-text">实战与思考</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E4%BD%9C%E4%B8%9A"><span class="toc-number">7.</span> <span class="toc-text">小作业</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2025 By Carl Su</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 6.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">学无止境</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !true) {
+    if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const disqusReset = conf => {
+    window.DISQUS && window.DISQUS.reset({
+      reload: true,
+      config: conf
+    })
+  }
+
+  const loadDisqus = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyDisqus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    window.disqus_identifier = isShuoshuo ? path : '/posts/15c1fa4b/'
+    window.disqus_url = isShuoshuo ? location.origin + path : 'https://devsu.top/posts/15c1fa4b/'
+
+    const disqus_config = function () {
+      this.page.url = disqus_url
+      this.page.identifier = disqus_identifier
+      this.page.title = 'Kotlin编程第一课--(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？'
+    }
+
+    if (window.DISQUS) disqusReset(disqus_config)
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://.disqus.com/embed.js'
+      script.setAttribute('data-timestamp', +new Date())
+      document.head.appendChild(script)
+    }
+
+    btf.addGlobalFn('themeChange', () => disqusReset(disqus_config), 'disqus')
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqus-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=&api_key=&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Disqus'
+      ? window.shuoshuoComment = { loadComment: loadDisqus }
+      : window.loadOtherComment = loadDisqus
+    return
+  }
+
+  if ('Valine' === 'Disqus' || !true) {
+    if (true) btf.loadComment(document.getElementById('disqus_thread'), loadDisqus)
+    else {
+      loadDisqus()
+      GLOBAL_CONFIG_SITE.pageType === 'post' && getCount()
+    }
+  } else {
+    window.loadOtherComment = loadDisqus
+  }
+})()</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,438 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Kotlin编程第一课--(源码篇)30  CoroutineScope是如何管理协程的？ | 码行</title><meta name="author" content="Carl Su"><meta name="copyright" content="Carl Su"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="通过前面课程的学习，我们知道 CoroutineScope 是实现协程结构化并发的关键。使用 CoroutineScope，我们可以批量管理同一个作用域下面所有的协程。那么，今天这节课，我们就来研究一下 CoroutineScope 是如何管理协程的。 CoroutineScope VS 结构化并发在前面的课程中，我们学习过 CoroutineScope 的用法。由于 launch、async 被">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin编程第一课--(源码篇)30  CoroutineScope是如何管理协程的？">
+<meta property="og:url" content="https://devsu.top/posts/4f3df7f8/index.html">
+<meta property="og:site_name" content="码行">
+<meta property="og:description" content="通过前面课程的学习，我们知道 CoroutineScope 是实现协程结构化并发的关键。使用 CoroutineScope，我们可以批量管理同一个作用域下面所有的协程。那么，今天这节课，我们就来研究一下 CoroutineScope 是如何管理协程的。 CoroutineScope VS 结构化并发在前面的课程中，我们学习过 CoroutineScope 的用法。由于 launch、async 被">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s2.loli.net/2023/03/14/se3pdS2JL7aIHPg.jpg">
+<meta property="article:published_time" content="2022-06-27T09:17:07.000Z">
+<meta property="article:modified_time" content="2025-03-07T02:49:14.894Z">
+<meta property="article:author" content="Carl Su">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s2.loli.net/2023/03/14/se3pdS2JL7aIHPg.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Kotlin编程第一课--(源码篇)30  CoroutineScope是如何管理协程的？",
+  "url": "https://devsu.top/posts/4f3df7f8/",
+  "image": "https://s2.loli.net/2023/03/14/se3pdS2JL7aIHPg.jpg",
+  "datePublished": "2022-06-27T09:17:07.000Z",
+  "dateModified": "2025-03-07T02:49:14.894Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Carl Su",
+      "url": "https://devsu.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png"><link rel="canonical" href="https://devsu.top/posts/4f3df7f8/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const hour = new Date().getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (theme === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else theme === 'light' ? activateLightMode() : activateDarkMode()
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6243425e2ecb037931274c4ca1db3132";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Carl Su","link":"链接: ","source":"来源: 码行","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Kotlin编程第一课--(源码篇)30  CoroutineScope是如何管理协程的？',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">193</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">41</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://s2.loli.net/2023/03/14/se3pdS2JL7aIHPg.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png" alt="Logo"><span class="site-name">码行</span></a><a class="nav-page-title" href="/"><span class="site-name">Kotlin编程第一课--(源码篇)30  CoroutineScope是如何管理协程的？</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Kotlin编程第一课--(源码篇)30  CoroutineScope是如何管理协程的？</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-06-27T09:17:07.000Z" title="发表于 2022-06-27 17:17:07">2022-06-27</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-07T02:49:14.894Z" title="更新于 2025-03-07 10:49:14">2025-03-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/">Android</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/">Kotlin</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/Kotlin%E7%BC%96%E7%A8%8B%E7%AC%AC%E4%B8%80%E8%AF%BE/">Kotlin编程第一课</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">4.3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>16分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>通过前面课程的学习，我们知道 CoroutineScope 是实现协程结构化并发的关键。使用 CoroutineScope，我们可以批量管理同一个作用域下面所有的协程。那么，今天这节课，我们就来研究一下 CoroutineScope 是如何管理协程的。</p>
+<h2 id="CoroutineScope-VS-结构化并发"><a href="#CoroutineScope-VS-结构化并发" class="headerlink" title="CoroutineScope VS 结构化并发"></a>CoroutineScope VS 结构化并发</h2><p>在前面的课程中，我们学习过 CoroutineScope 的用法。由于 launch、async 被定义成了 CoroutineScope 的扩展函数，这就意味着：在调用 launch 之前，我们必须先获取 CoroutineScope。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段1</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> CoroutineScope.<span class="title">launch</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    context: <span class="type">CoroutineContext</span> = EmptyCoroutineContext,</span></span></span><br><span class="line"><span class="params"><span class="function">    start: <span class="type">CoroutineStart</span> = CoroutineStart.DEFAULT,</span></span></span><br><span class="line"><span class="params"><span class="function">    block: <span class="type">suspend</span> <span class="type">CoroutineScope</span>.() -&gt; <span class="type">Unit</span></span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>: Job &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> CoroutineScope.<span class="title">async</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    context: <span class="type">CoroutineContext</span> = EmptyCoroutineContext,</span></span></span><br><span class="line"><span class="params"><span class="function">    start: <span class="type">CoroutineStart</span> = CoroutineStart.DEFAULT,</span></span></span><br><span class="line"><span class="params"><span class="function">    block: <span class="type">suspend</span> <span class="type">CoroutineScope</span>.() -&gt; <span class="type">T</span></span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>: Deferred&lt;T&gt; &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">testScope</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> scope = CoroutineScope(Job())</span><br><span class="line">    scope.launch&#123;</span><br><span class="line">        <span class="comment">// 省略</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不过，很多初学者可能不知道，协程早期的 API 并不是这么设计的，最初的 launch、async 只是普通的顶层函数，我们不需要 scope 就可以直接创建协程，就像这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段2</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">testScope</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 早期协程API的写法</span></span><br><span class="line">    launch&#123;</span><br><span class="line">        <span class="comment">// 省略</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>很明显，代码段 2 的写法要比代码段 1 的简单很多，那么 Kotlin 官方为什么要舍近求远，专门设计一个更加复杂的 API 呢？这一切，都是因为<strong>结构化并发</strong>。</p>
+<p>让我们来看一段代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段3</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">testScope</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> scope = CoroutineScope(Job())</span><br><span class="line">    scope.launch&#123;</span><br><span class="line">        launch &#123;</span><br><span class="line">            delay(<span class="number">1000000L</span>)</span><br><span class="line">            logX(<span class="string">&quot;Inner&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        logX(<span class="string">&quot;Hello!&quot;</span>)</span><br><span class="line">        delay(<span class="number">1000000L</span>)</span><br><span class="line">        logX(<span class="string">&quot;World!&quot;</span>)  <span class="comment">// 不会执行</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    scope.launch&#123;</span><br><span class="line">        launch &#123;</span><br><span class="line">            delay(<span class="number">1000000L</span>)</span><br><span class="line">            logX(<span class="string">&quot;Inner！！！&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        logX(<span class="string">&quot;Hello！！!&quot;</span>)</span><br><span class="line">        delay(<span class="number">1000000L</span>)</span><br><span class="line">        logX(<span class="string">&quot;World1!！！&quot;</span>)  <span class="comment">// 不会执行</span></span><br><span class="line">    &#125;</span><br><span class="line">    Thread.sleep(<span class="number">500L</span>)</span><br><span class="line">    scope.cancel()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面这段代码很简单，我们使用 scope 创建了两个顶层的协程，接着，在协程的内部我们使用 launch 又创建了一个子协程。最后，我们在协程的外部等待了 500 毫秒，并且调用了 scope.cancel()。这样一来，我们前面创建的 4 个协程就全部都取消了。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/7b/80/7b40c302yy14d01d07787dc857a5cf80.jpg?wh=2000x1125" alt="img" style="zoom: 33%;" />
+
+<p>通过前面第 17 讲的学习，我们知道上面的代码其实可以用这样的关系图来表示。父协程是属于 Scope 的，子协程是属于父协程的，因此，只要调用了 scope.cancel()，这 4 个协程都会被取消。</p>
+<p>想象一下，如果我们将上面的代码用协程最初的 API 改写的话，这一切就完全不一样了：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段4</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用协程最初的API，只是伪代码</span></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">testScopeJob</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> job = Job()</span><br><span class="line">    launch(job)&#123;</span><br><span class="line">        launch &#123;</span><br><span class="line">            delay(<span class="number">1000000L</span>)</span><br><span class="line">            logX(<span class="string">&quot;Inner&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        logX(<span class="string">&quot;Hello!&quot;</span>)</span><br><span class="line">        delay(<span class="number">1000000L</span>)</span><br><span class="line">        logX(<span class="string">&quot;World!&quot;</span>)  <span class="comment">// 不会执行</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    launch(job)&#123;</span><br><span class="line">        launch &#123;</span><br><span class="line">            delay(<span class="number">1000000L</span>)</span><br><span class="line">            logX(<span class="string">&quot;Inner！！！&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">        logX(<span class="string">&quot;Hello！！!&quot;</span>)</span><br><span class="line">        delay(<span class="number">1000000L</span>)</span><br><span class="line">        logX(<span class="string">&quot;World1!！！&quot;</span>)  <span class="comment">// 不会执行</span></span><br><span class="line">    &#125;</span><br><span class="line">    Thread.sleep(<span class="number">500L</span>)</span><br><span class="line">    job.cancel()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上面的代码中，为了实现结构化并发，我们不得不创建一个 Job 对象，然后将其传入 launch 当中作为参数。</p>
+<p>你能感受到其中的差别吗？如果使用原始的协程 API，结构化并发是需要开发者自觉往 launch 当中传 job 参数才能实现，它是<strong>可选</strong>的，开发者也可能疏忽大意，忘记传参数。而 launch 成为 CoroutineScope 的扩展函数以后，这一切就成为必须的了，我们开发者不可能忘记。</p>
+<p>而且，通过对比代码段 3 和 4 以后，我们也可以发现：<strong>CoroutineScope 管理协程的能力，其实也是源自于 Job</strong>。</p>
+<p>那么，CoroutineScope 与 Job 到底是如何实现结构化并发的呢？接下来，让我们从源码中寻找答案吧！</p>
+<p><strong>父子关系在哪里建立的？</strong></p>
+<p>在分析源码之前，我们先来写一个简单的 Demo。接下来，我们就以这个 Demo 为例，来研究一下 CoroutineScope 是如何通过 Job 来管理协程的。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段5</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">testScope</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">val</span> scope = CoroutineScope(Job())</span><br><span class="line">    scope.launch&#123;</span><br><span class="line">        launch &#123;</span><br><span class="line">            delay(<span class="number">1000000L</span>)</span><br><span class="line">            logX(<span class="string">&quot;Inner&quot;</span>)  <span class="comment">// 不会执行</span></span><br><span class="line">        &#125;</span><br><span class="line">        logX(<span class="string">&quot;Hello!&quot;</span>)</span><br><span class="line">        delay(<span class="number">1000000L</span>)</span><br><span class="line">        logX(<span class="string">&quot;World!&quot;</span>)  <span class="comment">// 不会执行</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Thread.sleep(<span class="number">500L</span>)</span><br><span class="line">    <span class="comment">// 2</span></span><br><span class="line">    scope.cancel()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">CoroutineScope</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">val</span> coroutineContext: CoroutineContext</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Job</span> : <span class="type">CoroutineContext.Element</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上代码的逻辑很简单，我们先来看看注释 1 对应的地方。我们都知道，CoroutineScope 是一个接口，那么我们为<strong>什么可以调用它的构造函数，来创建 CoroutineScope 对象呢？</strong>不应该使用 object 关键字创建匿名内部类吗？</p>
+<p>其实，代码段 5 当中调用 CoroutineScope() 并不是构造函数，而是一个顶层函数：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段6</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 顶层函数</span></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="title">CoroutineScope</span><span class="params">(context: <span class="type">CoroutineContext</span>)</span></span>: CoroutineScope =</span><br><span class="line">    <span class="comment">// 1</span></span><br><span class="line">    ContextScope(<span class="keyword">if</span> (context[Job] != <span class="literal">null</span>) context <span class="keyword">else</span> context + Job())</span><br><span class="line"></span><br><span class="line"><span class="comment">// 顶层函数</span></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="title">Job</span><span class="params">(parent: <span class="type">Job</span>? = <span class="literal">null</span>)</span></span>: CompletableJob = JobImpl(parent)</span><br></pre></td></tr></table></figure>
+
+<p>在第 1 讲当中，我曾提到过，Kotlin 当中的函数名称，在大部分情况下都是遵循“驼峰命名法”的，而在一些特殊情况下则不遵循这种命名法。上面的顶层函数 CoroutineScope()，其实就属于特殊的情况，因为它虽然是一个普通的顶层函数，但它发挥的作用却是“构造函数”。类似的用法，还有 Job() 这个顶层函数。</p>
+<p>因此，在 Kotlin 当中，当顶层函数作为构造函数使用的时候，<strong>它的首字母是要大写的</strong>。</p>
+<p>让我们回到代码段 6，看看其中注释 1 的地方。这行代码的意思是，当我们创建 CoroutineScope 的时候，如果传入的 Context 是包含 Job 的，那就直接用；如果是不包含 Job 的，就会创建一个新的 Job。这就意味着<strong>，每一个 CoroutineScope 对象，它的 Context 当中必定存在一个 Job 对象</strong>。而代码段 5 当中的 CoroutineScope(Job())，改成 CoroutineScope() 也是完全没问题的。</p>
+<p>接下来，我们再来看看 launch 的源代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段7</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> CoroutineScope.<span class="title">launch</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    context: <span class="type">CoroutineContext</span> = EmptyCoroutineContext,</span></span></span><br><span class="line"><span class="params"><span class="function">    start: <span class="type">CoroutineStart</span> = CoroutineStart.DEFAULT,</span></span></span><br><span class="line"><span class="params"><span class="function">    block: <span class="type">suspend</span> <span class="type">CoroutineScope</span>.() -&gt; <span class="type">Unit</span></span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>: Job &#123;</span><br><span class="line">    <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">val</span> newContext = newCoroutineContext(context)</span><br><span class="line">    <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">val</span> coroutine = <span class="keyword">if</span> (start.isLazy)</span><br><span class="line">        LazyStandaloneCoroutine(newContext, block) <span class="keyword">else</span></span><br><span class="line">        StandaloneCoroutine(newContext, active = <span class="literal">true</span>)</span><br><span class="line">    <span class="comment">// 3</span></span><br><span class="line">    coroutine.start(start, coroutine, block)</span><br><span class="line">    <span class="keyword">return</span> coroutine</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在前面两节课里，我们已经分析过注释 1 和注释 3 当中的逻辑了，这节课呢，我们来分析注释 2 处的逻辑。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">open</span> <span class="keyword">class</span> <span class="title class_">StandaloneCoroutine</span>(</span><br><span class="line">    parentContext: CoroutineContext,</span><br><span class="line">    active: <span class="built_in">Boolean</span></span><br><span class="line">) : AbstractCoroutine&lt;<span class="built_in">Unit</span>&gt;(parentContext, initParentJob = <span class="literal">true</span>, active = active) &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">handleJobException</span><span class="params">(exception: <span class="type">Throwable</span>)</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">        handleCoroutineException(context, exception)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">class</span> <span class="title class_">LazyStandaloneCoroutine</span>(</span><br><span class="line">    parentContext: CoroutineContext,</span><br><span class="line">    block: <span class="keyword">suspend</span> CoroutineScope.() -&gt; <span class="built_in">Unit</span></span><br><span class="line">) : StandaloneCoroutine(parentContext, active = <span class="literal">false</span>) &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> continuation = block.createCoroutineUnintercepted(<span class="keyword">this</span>, <span class="keyword">this</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onStart</span><span class="params">()</span></span> &#123;</span><br><span class="line">        continuation.startCoroutineCancellable(<span class="keyword">this</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，StandaloneCoroutine 是 AbstractCoroutine 的子类，而在第 28 讲当中，我们就已经遇到过 AbstractCoroutine，它其实就是代表了<strong>协程的抽象类</strong>。另外这里有一个 initParentJob 参数，它是 true，代表了协程创建了以后，需要初始化协程的父子关系。而 LazyStandaloneCoroutine 则是 StandaloneCoroutine 的子类，它的 active 参数是 false，代表了以懒加载的方式创建协程。</p>
+<p>接下来，我们就看看它们的父类 AbstractCoroutine：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段9</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">AbstractCoroutine</span>&lt;<span class="type">in T</span>&gt;(</span><br><span class="line">    parentContext: CoroutineContext,</span><br><span class="line">    initParentJob: <span class="built_in">Boolean</span>,</span><br><span class="line">    active: <span class="built_in">Boolean</span></span><br><span class="line">) : JobSupport(active), Job, Continuation&lt;T&gt;, CoroutineScope &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (initParentJob) initParentJob(parentContext[Job])</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来，我们就看看它们的父类 AbstractCoroutine：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段9</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">AbstractCoroutine</span>&lt;<span class="type">in T</span>&gt;(</span><br><span class="line">    parentContext: CoroutineContext,</span><br><span class="line">    initParentJob: <span class="built_in">Boolean</span>,</span><br><span class="line">    active: <span class="built_in">Boolean</span></span><br><span class="line">) : JobSupport(active), Job, Continuation&lt;T&gt;, CoroutineScope &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">init</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (initParentJob) initParentJob(parentContext[Job])</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，<strong>AbstractCoroutine 其实是 JobSupport 的子类</strong>，在它的 init{} 代码块当中，会根据 initParentJob 参数，判断是否需要初始化协程的父子关系。这个参数我们在代码段 8 当中已经分析过了，它一定是 true，所以这里的 initParentJob() 方法一定会执行，而它的参数 parentContext[Job]取出来的 Job，其实就是我们在 Scope 当中的 Job。</p>
+<p>另外，这里的 initParentJob() 方法，是它的父类 JobSupport 当中的方法，我们来看看：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段10</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">open</span> <span class="keyword">class</span> <span class="title class_">JobSupport</span> <span class="keyword">constructor</span>(active: <span class="built_in">Boolean</span>) : Job, ChildJob, ParentJob, SelectClause0 &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">override</span> <span class="keyword">val</span> key: CoroutineContext.Key&lt;*&gt; <span class="keyword">get</span>() = Job</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">fun</span> <span class="title">initParentJob</span><span class="params">(parent: <span class="type">Job</span>?)</span></span> &#123;</span><br><span class="line">        assert &#123; parentHandle == <span class="literal">null</span> &#125;</span><br><span class="line">        <span class="comment">// 1</span></span><br><span class="line">        <span class="keyword">if</span> (parent == <span class="literal">null</span>) &#123;</span><br><span class="line">            parentHandle = NonDisposableHandle</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 2</span></span><br><span class="line">        parent.start()</span><br><span class="line">        <span class="meta">@Suppress(<span class="string">&quot;DEPRECATION&quot;</span>)</span></span><br><span class="line">        <span class="comment">// 3</span></span><br><span class="line">        <span class="keyword">val</span> handle = parent.attachChild(<span class="keyword">this</span>)</span><br><span class="line">        parentHandle = handle</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (isCompleted) &#123;</span><br><span class="line">            handle.dispose()</span><br><span class="line">            parentHandle = NonDisposableHandle </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Job源码</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Job</span> : <span class="type">CoroutineContext.Element</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">val</span> children: Sequence&lt;Job&gt;   </span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="title">attachChild</span><span class="params">(child: <span class="type">ChildJob</span>)</span></span>: ChildHandle</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，<strong>AbstractCoroutine 其实是 JobSupport 的子类</strong>，在它的 init{} 代码块当中，会根据 initParentJob 参数，判断是否需要初始化协程的父子关系。这个参数我们在代码段 8 当中已经分析过了，它一定是 true，所以这里的 initParentJob() 方法一定会执行，而它的参数 parentContext[Job]取出来的 Job，其实就是我们在 Scope 当中的 Job。</p>
+<p>另外，这里的 initParentJob() 方法，是它的父类 JobSupport 当中的方法，我们来看看：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段10</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">open</span> <span class="keyword">class</span> <span class="title class_">JobSupport</span> <span class="keyword">constructor</span>(active: <span class="built_in">Boolean</span>) : Job, ChildJob, ParentJob, SelectClause0 &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">override</span> <span class="keyword">val</span> key: CoroutineContext.Key&lt;*&gt; <span class="keyword">get</span>() = Job</span><br><span class="line"></span><br><span class="line">    <span class="keyword">protected</span> <span class="function"><span class="keyword">fun</span> <span class="title">initParentJob</span><span class="params">(parent: <span class="type">Job</span>?)</span></span> &#123;</span><br><span class="line">        assert &#123; parentHandle == <span class="literal">null</span> &#125;</span><br><span class="line">        <span class="comment">// 1</span></span><br><span class="line">        <span class="keyword">if</span> (parent == <span class="literal">null</span>) &#123;</span><br><span class="line">            parentHandle = NonDisposableHandle</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 2</span></span><br><span class="line">        parent.start()</span><br><span class="line">        <span class="meta">@Suppress(<span class="string">&quot;DEPRECATION&quot;</span>)</span></span><br><span class="line">        <span class="comment">// 3</span></span><br><span class="line">        <span class="keyword">val</span> handle = parent.attachChild(<span class="keyword">this</span>)</span><br><span class="line">        parentHandle = handle</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (isCompleted) &#123;</span><br><span class="line">            handle.dispose()</span><br><span class="line">            parentHandle = NonDisposableHandle </span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Job源码</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Job</span> : <span class="type">CoroutineContext.Element</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">val</span> children: Sequence&lt;Job&gt;   </span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="title">attachChild</span><span class="params">(child: <span class="type">ChildJob</span>)</span></span>: ChildHandle</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码一共有三个地方需要注意，我们来分析一下：</p>
+<ul>
+<li>注释 1，判断传入的 parent 是否为空，如果 parent 为空，说明当前的协程不存在父 Job，这时候就谈不上创建协程父子关系了。不过，如果按照代码段 5 的逻辑来分析的话，此处的 parent 则是 scope 当中的 Job，因此，代码会继续执行到注释 2。</li>
+<li>注释 2，这里是确保 parent 对应的 Job 启动了。</li>
+<li>注释 3，parent.attachChild(this)，这个方法我们在第 16 讲当中提到过，它会将当前的 Job，添加为 parent 的子 Job。<strong>这里其实就是建立协程父子关系的关键代码。</strong></li>
+</ul>
+<p>所以，我们可以将协程的结构当作一颗 <strong>N 叉树</strong>。每一个协程，都对应着一个 Job 的对象，而每一个 Job 可以有一个父 Job，也可以有多个子 Job。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/30/9a/308decb3a0d5c89d2082673d00f33f9a.jpg?wh=2000x1013" alt="img" style="zoom: 33%;" />
+
+<p>这样，当我们知道协程的父子关系是如何建立的了以后，父协程如何取消子协程也就很容易理解了。</p>
+<h2 id="协程是如何“结构化取消”的？"><a href="#协程是如何“结构化取消”的？" class="headerlink" title="协程是如何“结构化取消”的？"></a>协程是如何“结构化取消”的？</h2><p>其实，协程的结构化取消，本质上是<strong>事件的传递</strong>，它跟我们平时生活中的场景都是类似的：</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/0b/da/0b95644933e584dcdf0e8a24696394da.jpg?wh=2000x986" alt="img" style="zoom:33%;" />
+
+<p>就比如，当我们在学校、公司内部，有消息或任务需要传递的时候，总是遵循这样的规则：处理好分内的事情，剩下的部分交给上级和下级。协程的结构化取消，也是通过这样的事件消息模型来实现的。</p>
+<p>甚至，如果让我们来实现协程 API 的话，都能想象到它的代码该怎么写：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段11</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> Job.<span class="title">cancelJob</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 通知子Job</span></span><br><span class="line">    children.forEach &#123;</span><br><span class="line">        cancelJob()</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 通知父Job</span></span><br><span class="line">    notifyParentCancel()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当然，以上只是简化后的伪代码，真实的协程代码一定比这个复杂很多，但只要你能理解这一点，我们后面的分析就很简单了。让我们接着代码段 5 当中的注释 2，继续分析 scope.cancel() 后续的流程。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段12</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> CoroutineScope.<span class="title">cancel</span><span class="params">(cause: <span class="type">CancellationException</span>? = <span class="literal">null</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> job = coroutineContext[Job] ?: error(<span class="string">&quot;Scope cannot be cancelled because it does not have a job: <span class="variable">$this</span>&quot;</span>)</span><br><span class="line">    job.cancel(cause)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，CoroutineScope 的 cancel() 方法，本质上是调用了它当中的 Job.cancel()。而这个方法的具体实现在 JobSupport 当中：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段13</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">cancel</span><span class="params">(cause: <span class="type">CancellationException</span>?)</span></span> &#123;</span><br><span class="line">    cancelInternal(cause ?: defaultCancellationException())</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">open</span> <span class="function"><span class="keyword">fun</span> <span class="title">cancelInternal</span><span class="params">(cause: <span class="type">Throwable</span>)</span></span> &#123;</span><br><span class="line">    cancelImpl(cause)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="function"><span class="keyword">fun</span> <span class="title">cancelImpl</span><span class="params">(cause: <span class="type">Any</span>?)</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">    <span class="keyword">var</span> finalState: Any? = COMPLETING_ALREADY</span><br><span class="line">    <span class="keyword">if</span> (onCancelComplete) &#123;</span><br><span class="line">        <span class="comment">// 1</span></span><br><span class="line">        finalState = cancelMakeCompleting(cause)</span><br><span class="line">        <span class="keyword">if</span> (finalState === COMPLETING_WAITING_CHILDREN) <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (finalState === COMPLETING_ALREADY) &#123;</span><br><span class="line">        <span class="comment">// 2</span></span><br><span class="line">        finalState = makeCancelling(cause)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">when</span> &#123;</span><br><span class="line">        finalState === COMPLETING_ALREADY -&gt; <span class="literal">true</span></span><br><span class="line">        finalState === COMPLETING_WAITING_CHILDREN -&gt; <span class="literal">true</span></span><br><span class="line">        finalState === TOO_LATE_TO_CANCEL -&gt; <span class="literal">false</span></span><br><span class="line">        <span class="keyword">else</span> -&gt; &#123;</span><br><span class="line">            afterCompletion(finalState)</span><br><span class="line">            <span class="literal">true</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可见，job.cancel() 最终会调用 JobSupport 的 <strong>cancelImpl() 方法</strong>。其中有两个注释，代表了两个分支，它的判断依据是 onCancelComplete 这个 Boolean 类型的成员属性。这个其实就代表了当前的 Job，是否有协程体需要执行。</p>
+<p>另外，由于 CoroutineScope 当中的 Job 是我们手动创建的，并不需要执行任何协程代码，所以，它会是 <strong>true</strong>。也就是说，这里会执行注释 1 对应的代码。</p>
+<p>让我们继续分析 cancelMakeCompleting() 方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段14</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">cancelMakeCompleting</span><span class="params">(cause: <span class="type">Any</span>?)</span></span>: Any? &#123;</span><br><span class="line">    loopOnState &#123; state -&gt;</span><br><span class="line">        <span class="comment">// 省略部分</span></span><br><span class="line">        <span class="keyword">val</span> finalState = tryMakeCompleting(state, proposedUpdate)</span><br><span class="line">        <span class="keyword">if</span> (finalState !== COMPLETING_RETRY) <span class="keyword">return</span> finalState</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">tryMakeCompleting</span><span class="params">(state: <span class="type">Any</span>?, proposedUpdate: <span class="type">Any</span>?)</span></span>: Any? &#123;</span><br><span class="line">    <span class="keyword">if</span> (state !<span class="keyword">is</span> Incomplete)</span><br><span class="line">        <span class="keyword">return</span> COMPLETING_ALREADY</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 省略部分</span></span><br><span class="line">        <span class="keyword">return</span> COMPLETING_RETRY</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> tryMakeCompletingSlowPath(state, proposedUpdate)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">tryMakeCompletingSlowPath</span><span class="params">(state: <span class="type">Incomplete</span>, proposedUpdate: <span class="type">Any</span>?)</span></span>: Any? &#123;</span><br><span class="line">    <span class="comment">// 省略部分</span></span><br><span class="line">    notifyRootCause?.let &#123; notifyCancelling(list, it) &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> finalizeFinishingState(finishing, proposedUpdate)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码中，我们可以看到 cancelMakeCompleting() 会调用 tryMakeCompleting() 方法，最终则会调用 tryMakeCompletingSlowPath() 当中的 notifyCancelling() 方法。所以<strong>，它才是最关键的代码</strong>。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段15</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">notifyCancelling</span><span class="params">(list: <span class="type">NodeList</span>, cause: <span class="type">Throwable</span>)</span></span> &#123;</span><br><span class="line"></span><br><span class="line">    onCancelling(cause)</span><br><span class="line">    <span class="comment">// 1，通知子Job</span></span><br><span class="line">    notifyHandlers&lt;JobCancellingNode&gt;(list, cause)</span><br><span class="line">    <span class="comment">// 2，通知父Job</span></span><br><span class="line">    cancelParent(cause)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，上面代码段 15 和我们前面写的代码段 11 当中的伪代码的逻辑是一致的。我们再分别来看看它们具体的逻辑：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段16</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;<span class="keyword">reified</span> T: JobNode&gt;</span> <span class="title">notifyHandlers</span><span class="params">(list: <span class="type">NodeList</span>, cause: <span class="type">Throwable</span>?)</span></span> &#123;</span><br><span class="line">    <span class="keyword">var</span> exception: Throwable? = <span class="literal">null</span></span><br><span class="line">    list.forEach&lt;T&gt; &#123; node -&gt;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            node.invoke(cause)</span><br><span class="line">        &#125; <span class="keyword">catch</span> (ex: Throwable) &#123;</span><br><span class="line">            exception?.apply &#123; addSuppressedThrowable(ex) &#125; ?: run &#123;</span><br><span class="line">                exception =  CompletionHandlerException(<span class="string">&quot;Exception in completion handler <span class="variable">$node</span> for <span class="variable">$this</span>&quot;</span>, ex)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    exception?.let &#123; handleOnCompletionException(it) &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码段 16 当中的逻辑，就是遍历当前 Job 的子 Job，并将取消的 cause 传递过去，这里的 invoke() 最终会调用 ChildHandleNode 的 invoke() 方法：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">class</span> <span class="title class_">ChildHandleNode</span>(</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">val</span> childJob: ChildJob</span><br><span class="line">) : JobCancellingNode(), ChildHandle &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">val</span> parent: Job <span class="keyword">get</span>() = job</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">invoke</span><span class="params">(cause: <span class="type">Throwable</span>?)</span></span> = childJob.parentCancelled(job)</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">childCancelled</span><span class="params">(cause: <span class="type">Throwable</span>)</span></span>: <span class="built_in">Boolean</span> = job.childCancelled(cause)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">parentCancelled</span><span class="params">(parentJob: <span class="type">ParentJob</span>)</span></span> &#123;</span><br><span class="line">    cancelImpl(parentJob)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后，从以上代码中我们可以看到，ChildHandleNode 的 invoke() 方法会调用 parentCancelled() 方法，而它最终会调用 cancelImpl() 方法。其实，这个就是代码段 13 当中的 cancelImpl() 方法，也就是 Job 取消的入口函数。这实际上就相当于在做<strong>递归调用</strong>。</p>
+<p>接下来，我们看看代码段 15 当中的注释 2，通知父 Job 的流程：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">cancelParent</span><span class="params">(cause: <span class="type">Throwable</span>)</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (isScopedCoroutine) <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> isCancellation = cause <span class="keyword">is</span> CancellationException</span><br><span class="line">    <span class="keyword">val</span> parent = parentHandle</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (parent === <span class="literal">null</span> || parent === NonDisposableHandle) &#123;</span><br><span class="line">        <span class="keyword">return</span> isCancellation</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">return</span> parent.childCancelled(cause) || isCancellation</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>请留意上面代码段的注释 1，这个函数的返回值是有意义的，返回 true 代表父协程处理了异常，而返回 false，代表父协程没有处理异常。这种类似<strong>责任链的设计模式</strong>，在很多领域都有应用，比如 Android 的事件分发机制、OkHttp 的拦截器，等等。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">open</span> <span class="function"><span class="keyword">fun</span> <span class="title">childCancelled</span><span class="params">(cause: <span class="type">Throwable</span>)</span></span>: <span class="built_in">Boolean</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (cause <span class="keyword">is</span> CancellationException) <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">    <span class="keyword">return</span> cancelImpl(cause) &amp;&amp; handlesException</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么，当异常是 CancellationException 的时候，协程是会进行特殊处理的。一般来说，父协程会忽略子协程的取消异常，这一点我们在第 23 讲当中也提到过。而如果是其他的异常，那么父协程就会响应子协程的取消了。这个时候，我们的代码又会继续递归调用代码段 13 当中的 cancelImpl() 方法了。</p>
+<p>至此，协程的“结构化取消”部分的逻辑，我们也分析完了。让我们通过视频来看看它们整体的执行流程。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>今天的内容到这里就结束了，我们来总结和回顾一下这节课里涉及到的知识点：</p>
+<ul>
+<li>每次创建 CoroutineScope 的时候，它的内部会确保 CoroutineContext 当中一定存在 Job 元素，而 CoroutineScope 就是通过这个 Job 对象来管理协程的。</li>
+<li>在我们通过 launch、async 创建协程的时候，会同时创建 AbstractCoroutine 的子类，在它的 initParentJob() 方法当中，会建立协程的父子关系。每个协程都会对应一个 Job，而每个 Job 都会有一个父 Job，多个子 Job。最终它们会形成一个 N 叉树的结构。</li>
+<li>由于协程是一个 N 叉树的结构，因此协程的取消事件以及异常传播，也会按照这个结构进行传递。每个 Job 取消的时候，都会通知自己的子 Job 和父 Job，最终以递归的形式传递给每一个协程。另外，协程在向上取消父 Job 的时候，还利用了责任链模式，确保取消事件可以一步步传播到最顶层的协程。这里还有一个细节就是，默认情况下，父协程都会忽略子协程的 CancellationException。</li>
+</ul>
+<p>到这里，我们其实就可以进一步总结出协程的<strong>结构化取消</strong>的规律了。</p>
+<p>对于 CancellationException 引起的取消，它只会向下传播，取消子协程；对于其他的异常引起的取消，它既向上传播，也向下传播，最终会导致所有协程都被取消。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/04/35/04a978310f722996c38bd09a00fdae35.gif?wh=1080x608" alt="img" style="zoom: 67%;" />
+
+<h2 id="思考题"><a href="#思考题" class="headerlink" title="思考题"></a>思考题</h2><p>在第 23 讲当中，我们学习过 SupervisorJob，它可以起到隔离异常传播的作用，下面是它的源代码，请问你能借助这节课学的知识点来分析下它的原理吗？</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="title">SupervisorJob</span><span class="params">(parent: <span class="type">Job</span>? = <span class="literal">null</span>)</span></span> : CompletableJob = </span><br><span class="line">    SupervisorJobImpl(parent)</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">class</span> <span class="title class_">SupervisorJobImpl</span>(parent: Job?) : JobImpl(parent) &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">childCancelled</span><span class="params">(cause: <span class="type">Throwable</span>)</span></span>: <span class="built_in">Boolean</span> = <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://devsu.top">Carl Su</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://devsu.top/posts/4f3df7f8/">https://devsu.top/posts/4f3df7f8/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://devsu.top" target="_blank">码行</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Kotlin/">Kotlin</a></div><div class="post-share"><div class="social-share" data-image="https://s2.loli.net/2023/03/14/se3pdS2JL7aIHPg.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/c0627888/" title="Kotlin编程第一课--(源码篇)29  Dispatchers是如何工作的？"><img class="cover" src="https://pic.rmb.bdstatic.com/18ec2a58fd6a2bac0c819d31ee46e2a3.jpeg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Kotlin编程第一课--(源码篇)29  Dispatchers是如何工作的？</div></div><div class="info-2"><div class="info-item-1">今天，我们来分析 Kotlin 协程当中的 Dispatchers。 上节课里，我们分析了 launch 的源代码，从中我们知道，Kotlin 的 launch 会调用 startCoroutineCancellable()，接着又会调用 createCoroutineUnintercepted()，最终会调用编译器帮我们生成 SuspendLambda 实现类当中的 create() 方法。这样，协程就创建出来了。不过，协程是创建出来了，可它是如何运行的呢？ 另外我们也都知道，协程无法脱离线程运行，Kotlin 当中所有的协程，最终都是运行在线程之上的。那么，协程创建出来以后，它又是如何跟线程产生关联的？这节课，我们将进一步分析 launch 的启动流程，去发掘上节课我们忽略掉的代码分支。 我相信，经过这节课的学习，你会对协程与线程之间的关系有一个更加透彻的认识。 Dispatchers在上节课里我们学习过，launch{}本质上是调用了 startCoroutineCancellable() 当中的 createCoroutineUnintercepted()...</div></div></div></a><a class="pagination-related" href="/posts/6017bcef/" title="Kotlin编程第一课--(源码篇)31  图解Channel：如何理解它的CSP通信模型？"><img class="cover" src="https://www.gaoguang.com/uploads/allimg/201015/2-201015120J1-51.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Kotlin编程第一课--(源码篇)31  图解Channel：如何理解它的CSP通信模型？</div></div><div class="info-2"><div class="info-item-1">今天我们来分析 Channel 的源码。 Kotlin 的 Channel 是一个非常重要的组件，在它出现之前，协程之间很难进行通信，有了它以后，协程之间的通信就轻而易举了。在第 22 讲当中，我们甚至还借助 Channel 实现的 Actor 做到了并发安全。 那么总的来说，Channel 是热的，同时它还是一个线程安全的数据管道。而由于 Channel 具有线程安全的特性，因此，它最常见的用法，就是建立 CSP 通信模型（Communicating Sequential Processes）。 不过你可能会觉得，CSP 太抽象了不好理解，但其实，这个通信模型我们在第 22 讲里就接触过了。当时我们虽然是通过 Actor 来实现的，但却是把它当作 CSP 在用，它们两者的差异其实很小。 关于CSP 的理论，它的精确定义其实比较复杂，不过它的核心理念用一句话就可以概括：不要共享内存来通信；而是要用通信来共享内存（Don’t communicate by sharing memory; share memory by communicating）。 可是，我们为什么可以通过...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/85d82fa8/" title="Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？"><img class="cover" src="https://static001.geekbang.org/resource/image/b6/1c/b65feyy0bdc4764c6564a95912d7851c.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-06</div><div class="info-item-2">Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？</div></div><div class="info-2"><div class="info-item-1">Kotlin 的扩展（Extension），主要分为两种语法：第一个是扩展函数，第二个是扩展属性。从语法上看，扩展看起来就像是我们从类的外部为它扩展了新的成员。 这在实际编程当中是非常有用的功能。我们可以来想象一个场景：我们想修改 JDK 当中的 String，想在它的基础上增加一个方法“lastElement()”来获取末尾元素，如果使用 Java，我们是无法通过常规手段实现的，因为我们没办法修改 JDK 的源代码。任何第三方提供的 SDK，我们都无权修改。 不过，借助 Kotlin 的扩展函数，我们就完全可以在语义层面，来为第三方 SDK 的类扩展新的成员方法和成员属性。不管是为 JDK 的 String 增加新的成员方法，还是为 Android SDK 的 View 增加新成员属性，我们都可以实现。 Kotlin 的这个“扩展”功能看起来很神奇，它会不会很难学？其实不然，它的语法非常简洁。今天这节课，我们就一起来学习下 Kotlin...</div></div></div></a><a class="pagination-related" href="/posts/be9f17d6/" title="Kotlin编程第一课(目录)"><img class="cover" src="https://img2.baidu.com/it/u=3956021957,3313212296&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-10</div><div class="info-item-2">Kotlin编程第一课(目录)</div></div><div class="info-2"><div class="info-item-1">基础篇Kotlin编程第一课–(基础篇)01  Kotlin基础语法：正式开启学习之旅Kotlin编程第一课–(基础篇)02  面向对象：理解Kotlin设计者的良苦用心Kotlin编程第一课–(基础篇)03  Kotlin原理：编译器在幕后干了哪些“好事”？Kotlin编程第一课–(基础篇)04 | 实战：构建一个Kotlin版本的四则运算计算器Kotlin编程第一课–(基础篇)05  object关键字：你到底有多少种用法？Kotlin编程第一课–(基础篇)06  扩展：你的能力边界到底在哪里？Kotlin编程第一课–(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？Kotlin编程第一课–(基础篇)08  实战：用Kotlin写一个英语词频统计程序Kotlin编程第一课–(基础篇)加餐一  初识Kotlin函数式编程Kotlin编程第一课–(基础篇)09  委托：你为何总是被低估？Kotlin编程第一课–(基础篇)10  泛型：逆变or协变，傻傻分不清？Kotlin编程第一课–(基础篇)11 ...</div></div></div></a><a class="pagination-related" href="/posts/83a7144c/" title="2023-01-17-Kotlin协程 -  结构化并发"><img class="cover" src="https://s2.loli.net/2023/03/14/xEyFgn24zZPXe15.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-01-17</div><div class="info-item-2">2023-01-17-Kotlin协程 -  结构化并发</div></div><div class="info-2"><div class="info-item-1">CoroutineScope定义协程必须指定其 CoroutineScope，它会跟踪所有协程，同样它还可以取消由它所启动的所有协程。 常用的相关API有：  GlobalScope，生命周期是process级别的，及时Activity或Fragment已经被销毁，协程仍然在执行。 MainScope，在Activity中使用，可以在onDestroy()中取消协程。 viewModelScope，只能在ViewModel中使用，绑定ViewModel的生命周期。 lifecycleScope，只能在Activity、Fragment中使用，会绑定Activity和Fragment的生命周期  </div></div></div></a><a class="pagination-related" href="/posts/a20c9e06/" title="Kotlin协程"><img class="cover" src="https://s2.loli.net/2023/03/14/3MHPBy1Q4GncRlF.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-09</div><div class="info-item-2">Kotlin协程</div></div><div class="info-2"><div class="info-item-1">Kotlin协程协程的作用域构建器coroutineScope与runBlocking runBlocking是常规函数，而coroutineScope是挂起函数。 它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途  </div></div></div></a><a class="pagination-related" href="/posts/68bf7d20/" title="Kotlin函数"><img class="cover" src="https://img1.baidu.com/it/u=1546227440,2897989905&fm=253&fmt=auto&app=138&f=JPEG?w=889&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin函数</div></div><div class="info-2"><div class="info-item-1">函数类型作为返回类型fun main() &#123;	  println(show(&quot;Demo&quot;))      val lambdaFunction = showMethod(&quot;Jack&quot;) //注意lambdaFunction 这里的类型为(String,Int) -&gt; String    println(lambdaFunction(&quot;Carl&quot;,20))&#125;//普通函数fun show(name:String): String &#123;    return &quot;name is $name&quot;&#125;//返回类型为函数fun showMethod(name: String): (String,Int) -&gt; String &#123;    println(&quot;name is $name&quot;)    return &#123; name: String, age: Int -&gt;       ...</div></div></div></a><a class="pagination-related" href="/posts/8c331668/" title="Kotlin内置函数apply、let、run、with、also等区别"><img class="cover" src="https://s2.loli.net/2023/03/14/OpxWcuy2ktMzoQD.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin内置函数apply、let、run、with、also等区别</div></div><div class="info-2"><div class="info-item-1">Applyapply函数可看作一个配置函数，可以传入一个接收者，然后调用一系列函数来配置它以便使用，如果提供lambda给apply函数执行，它会返回配置好的接受者 val file1 = File(&quot;/User/geowin/hello.txt&quot;)file1.apply &#123; // this: File   setWritable(true)   setReadable(true)   setExecutable(false)&#125;  可以看到，调用一个个函数类配置接受者时，变量名就省略了，这是因为，在lambda表达式中，apply能让每个配置函数都作用于接受者，这种行为有时又叫做相关作用域,因为lambda表达式里的所有函数调用都是针对接收者的，或者说，它们是针对接受者的隐式调用. letlet函数能使某个变量作用于lambda表达式里，让it关键字能引用它。let与apply比较，let会把接受者传给lambda，而apply什么都不传，匿名函数执行完，apply会返回当前接受者，而let会返回lambda的最后一行。 fun...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Valine</span><span id="switch-btn"></span><span class="second-comment">Disqus</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div><div><div id="disqus_thread"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#CoroutineScope-VS-%E7%BB%93%E6%9E%84%E5%8C%96%E5%B9%B6%E5%8F%91"><span class="toc-number">1.</span> <span class="toc-text">CoroutineScope VS 结构化并发</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%8F%E7%A8%8B%E6%98%AF%E5%A6%82%E4%BD%95%E2%80%9C%E7%BB%93%E6%9E%84%E5%8C%96%E5%8F%96%E6%B6%88%E2%80%9D%E7%9A%84%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">协程是如何“结构化取消”的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%9D%E8%80%83%E9%A2%98"><span class="toc-number">4.</span> <span class="toc-text">思考题</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2025 By Carl Su</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 6.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">学无止境</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !true) {
+    if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const disqusReset = conf => {
+    window.DISQUS && window.DISQUS.reset({
+      reload: true,
+      config: conf
+    })
+  }
+
+  const loadDisqus = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyDisqus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    window.disqus_identifier = isShuoshuo ? path : '/posts/4f3df7f8/'
+    window.disqus_url = isShuoshuo ? location.origin + path : 'https://devsu.top/posts/4f3df7f8/'
+
+    const disqus_config = function () {
+      this.page.url = disqus_url
+      this.page.identifier = disqus_identifier
+      this.page.title = 'Kotlin编程第一课--(源码篇)30  CoroutineScope是如何管理协程的？'
+    }
+
+    if (window.DISQUS) disqusReset(disqus_config)
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://.disqus.com/embed.js'
+      script.setAttribute('data-timestamp', +new Date())
+      document.head.appendChild(script)
+    }
+
+    btf.addGlobalFn('themeChange', () => disqusReset(disqus_config), 'disqus')
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqus-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=&api_key=&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Disqus'
+      ? window.shuoshuoComment = { loadComment: loadDisqus }
+      : window.loadOtherComment = loadDisqus
+    return
+  }
+
+  if ('Valine' === 'Disqus' || !true) {
+    if (true) btf.loadComment(document.getElementById('disqus_thread'), loadDisqus)
+    else {
+      loadDisqus()
+      GLOBAL_CONFIG_SITE.pageType === 'post' && getCount()
+    }
+  } else {
+    window.loadOtherComment = loadDisqus
+  }
+})()</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

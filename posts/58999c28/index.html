@@ -1,0 +1,440 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Kotlin编程第一课--(Android项目篇)35  用Kotlin写一个GitHub Trending App | 码行</title><meta name="author" content="Carl Su"><meta name="copyright" content="Carl Su"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="这节课，我们一起来用 Kotlin 和 Jetpack 写一个简单的 Android 应用。为了便于理解，这个应用的功能会尽量简单，即使你对 Android 不是特别熟悉，跟着课程的引导，你也能轻松完成。 准备工作在之前的课程中，我们的实战项目都是基于 JVM 的，并没有涉及过 Android 相关的配置。因此，如果你的电脑没有 Android 开发的环境的话，那么可能需要做一些额外的配置。当然，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin编程第一课--(Android项目篇)35  用Kotlin写一个GitHub Trending App">
+<meta property="og:url" content="https://devsu.top/posts/58999c28/index.html">
+<meta property="og:site_name" content="码行">
+<meta property="og:description" content="这节课，我们一起来用 Kotlin 和 Jetpack 写一个简单的 Android 应用。为了便于理解，这个应用的功能会尽量简单，即使你对 Android 不是特别熟悉，跟着课程的引导，你也能轻松完成。 准备工作在之前的课程中，我们的实战项目都是基于 JVM 的，并没有涉及过 Android 相关的配置。因此，如果你的电脑没有 Android 开发的环境的话，那么可能需要做一些额外的配置。当然，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://www.gaoguang.com/uploads/allimg/201015/2-201015120J1.jpg">
+<meta property="article:published_time" content="2022-07-03T03:02:12.000Z">
+<meta property="article:modified_time" content="2025-03-07T02:49:14.895Z">
+<meta property="article:author" content="Carl Su">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://www.gaoguang.com/uploads/allimg/201015/2-201015120J1.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Kotlin编程第一课--(Android项目篇)35  用Kotlin写一个GitHub Trending App",
+  "url": "https://devsu.top/posts/58999c28/",
+  "image": "https://www.gaoguang.com/uploads/allimg/201015/2-201015120J1.jpg",
+  "datePublished": "2022-07-03T03:02:12.000Z",
+  "dateModified": "2025-03-07T02:49:14.895Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Carl Su",
+      "url": "https://devsu.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png"><link rel="canonical" href="https://devsu.top/posts/58999c28/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const hour = new Date().getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (theme === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else theme === 'light' ? activateLightMode() : activateDarkMode()
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6243425e2ecb037931274c4ca1db3132";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Carl Su","link":"链接: ","source":"来源: 码行","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Kotlin编程第一课--(Android项目篇)35  用Kotlin写一个GitHub Trending App',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">193</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">41</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://www.gaoguang.com/uploads/allimg/201015/2-201015120J1.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png" alt="Logo"><span class="site-name">码行</span></a><a class="nav-page-title" href="/"><span class="site-name">Kotlin编程第一课--(Android项目篇)35  用Kotlin写一个GitHub Trending App</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Kotlin编程第一课--(Android项目篇)35  用Kotlin写一个GitHub Trending App</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-07-03T03:02:12.000Z" title="发表于 2022-07-03 11:02:12">2022-07-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-07T02:49:14.895Z" title="更新于 2025-03-07 10:49:14">2025-03-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/">Android</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/">Kotlin</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/Kotlin%E7%BC%96%E7%A8%8B%E7%AC%AC%E4%B8%80%E8%AF%BE/">Kotlin编程第一课</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>14分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>这节课，我们一起来用 Kotlin 和 Jetpack 写一个简单的 Android 应用。为了便于理解，这个应用的功能会尽量简单，即使你对 Android 不是特别熟悉，跟着课程的引导，你也能轻松完成。</p>
+<h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>在之前的课程中，我们的实战项目都是基于 JVM 的，并没有涉及过 Android 相关的配置。因此，如果你的电脑没有 Android 开发的环境的话，那么可能需要做一些额外的配置。当然，在你已有 Java 环境的前提下，想要配置 Android 开发环境并不麻烦，你可以去搜索一些相关的Android 开发环境配置的教程。</p>
+<p>那么，要进行 Android 开发，我们可以使用 IntelliJ，也可以使用 Android Studio，后者针对 Android 开发做了很多定制化，也是免费的，这里我也建议你去下载 Android Studio。</p>
+<p>当配置好所有的环境以后，我们就可以像创建 Kotlin 工程一样，来创建一个新的 Android 工程了。</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/f9/00/f9f6b73c7a09bac3ae5b3e15ff997000.gif?wh=900x650" alt="img"></p>
+<p>然后，当你创建好工程以后，就可以尝试运行代码了，这时候你大概率会看到一个 Hello World 的初始界面。</p>
+<p>接下来，我们就正式进入开发吧。</p>
+<h2 id="MVVM-架构"><a href="#MVVM-架构" class="headerlink" title="MVVM 架构"></a>MVVM 架构</h2><p>Android 应用的架构，在过去的这些年里一直都在变化。最开始的 Android 其实没有什么明确的架构，大家习惯于把所有代码都往 Activity 里放，直到后来才开始有了 MVC、MVP 以及 MVVM。</p>
+<p>那么，站在现在这个时间节点上，当前 Android 中比较主流、比较受 Google 推崇的，是 MVVM 架构。这节课，我们就以 <strong>MVVM 架构</strong>为基础，并且也尝试<strong>结合 Clean 架构</strong>来进行一些实践。</p>
+<p>关于 MVVM 架构，它其实就是代表了 Model — View — ViewModel，如果将其对应到 Android 当中来的话，它们之间大概会是这样的关系：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/41/04/416e9447d2cfbe726154c25b6317f404.png?wh=771x232" alt="img"></p>
+<p>MVVM 其实是一种广泛存在的架构模式，在 Android 当中也有类似的实现。ViewModel 会连接 View 和 Model，View 和 Model 之间是隔离开的。而 View 和 ViewModel 之间，也往往会存在数据绑定，这里的数据绑定可以是一个组件（如 Android 的 DataBinding），也可以是由代码来完成绑定。</p>
+<p>而相比 MVVM 架构，Clean 架构则是一种更加抽象的思维模式了。它将整个架构大致分为三层，由外到内分别是：表现层、领域层、数据层。它们之间的依赖关系也是由外到内的。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/ae/0a/ae182ae3b475ff0289ce3653db6ec70a.png?wh=1656x1216" alt="img" style="zoom: 50%;" />
+
+<p>不过 <strong>Clean 架构只是一种思想</strong>，当我们尝试在 Android 中落地应用的时候，其实并不一定会完全按照这里的架构图来设计，目前比较常见的架构是下面这样的：</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/5a/b2/5aa98ff8962f90dd47b479fee303dcb2.png?wh=928x687" alt="img" style="zoom: 67%;" />
+
+<p>可以看到，上面这个架构，融入了 MVVM 与 Clean 两个架构的特点，让我们从下往上看：</p>
+<ul>
+<li><strong>实体层</strong>，这里其实就是我们平时定义的一些 Bean 的实体类，用 Kotlin 的数据类即可。</li>
+<li><strong>数据层</strong>，这里一般会有两个概念，分别是 DataSource 与 Repository，前者代表数据源，后者代表数据仓库。数据源一般会区分本地数据源和远程数据源，而数据仓库则会统筹它们两者。</li>
+<li><strong>领域层</strong>，这里一般会是一些相对具体一些的业务逻辑。</li>
+<li><strong>表现层</strong>，这里则是接近 UI 展示的上层逻辑了。</li>
+</ul>
+<p>好，架构分析完了，接下来我们看看代码该怎么写，我们还是按照架构的分层，从下往上来实现。</p>
+<h3 id="实体层"><a href="#实体层" class="headerlink" title="实体层"></a>实体层</h3><p>首先，我们要定义一个密封类，来统一不同情况下的数据形式。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">sealed</span> <span class="keyword">class</span> <span class="title class_">ResultX</span>&lt;<span class="type">out R: Any</span>&gt; &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Success</span>&lt;<span class="type">out T: Any</span>&gt;(<span class="keyword">val</span> <span class="keyword">data</span>: T) : ResultX&lt;T&gt;()</span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Error</span>(<span class="keyword">val</span> exception: Exception) : ResultX&lt;<span class="built_in">Nothing</span>&gt;()</span><br><span class="line">    <span class="keyword">object</span> Loading : ResultX&lt;<span class="built_in">Nothing</span>&gt;()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">toString</span><span class="params">()</span></span>: String &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">when</span> (<span class="keyword">this</span>) &#123;</span><br><span class="line">            <span class="keyword">is</span> Success&lt;*&gt; -&gt; <span class="string">&quot;Success[data=<span class="variable">$data</span>]&quot;</span></span><br><span class="line">            <span class="keyword">is</span> Error -&gt; <span class="string">&quot;Error[exception=<span class="variable">$exception</span>]&quot;</span></span><br><span class="line">            Loading -&gt; <span class="string">&quot;Loading&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里，我们利用密封类和泛型，将数据的成功、失败、加载中都统一了起来。类似这样的做法，我们在课程的第 2 讲里也已经提到过了。</p>
+<p>然后，由于我们是要实现一个 GitHub Trending 的应用，所以这里我们只需要找一个开源的 API，通过分析它的 JSON 结构，然后定义出具体的 Data Class 就行了。这一步，我们其实在第 12 讲当中就已经完成了。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">RepoList</span>(</span><br><span class="line">    <span class="keyword">var</span> count: <span class="built_in">Int</span>?,</span><br><span class="line">    <span class="keyword">var</span> items: List&lt;Repo&gt;?,</span><br><span class="line">    <span class="keyword">var</span> msg: String?</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Repo</span>(</span><br><span class="line">    <span class="keyword">var</span> added_stars: String?,</span><br><span class="line">    <span class="keyword">var</span> avatars: List&lt;String&gt;?,</span><br><span class="line">    <span class="keyword">var</span> desc: String?,</span><br><span class="line">    <span class="keyword">var</span> forks: String?,</span><br><span class="line">    <span class="keyword">var</span> lang: String?,</span><br><span class="line">    <span class="keyword">var</span> repo: String?,</span><br><span class="line">    <span class="keyword">var</span> repo_link: String?,</span><br><span class="line">    <span class="keyword">var</span> stars: String?</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>不过，在之前的课程当中，我提到过以这种方式定义的数据类，其实还存在 2 个问题。</p>
+<ul>
+<li>问题 1：不符合“不变性思维”，成员属性全部都是 var 定义的。</li>
+<li>问题 2：不符合“空安全思维”，所有的类型都是可为空的。</li>
+</ul>
+<p>那么针对这两个问题，我们像下面这样做，其实很容易就能搞定：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">RepoList</span>(</span><br><span class="line">    <span class="keyword">val</span> count: <span class="built_in">Int</span> = <span class="number">0</span>,</span><br><span class="line">    <span class="keyword">val</span> items: List&lt;Repo&gt; = listOf(),</span><br><span class="line">    <span class="keyword">val</span> msg: String = <span class="string">&quot;数据为空&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Repo</span>(</span><br><span class="line">    <span class="keyword">val</span> added_stars: String = <span class="string">&quot;&quot;</span>,</span><br><span class="line">    <span class="keyword">val</span> avatars: List&lt;String&gt; = listOf(),</span><br><span class="line">    <span class="keyword">val</span> desc: String = <span class="string">&quot;&quot;</span>,</span><br><span class="line">    <span class="keyword">val</span> forks: String = <span class="string">&quot;&quot;</span>,</span><br><span class="line">    <span class="keyword">val</span> lang: String = <span class="string">&quot;&quot;</span>,</span><br><span class="line">    <span class="keyword">val</span> repo: String = <span class="string">&quot;&quot;</span>,</span><br><span class="line">    <span class="keyword">val</span> repo_link: String = <span class="string">&quot;&quot;</span>,</span><br><span class="line">    <span class="keyword">val</span> stars: String = <span class="string">&quot;&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>在这段代码中，我们是把 var 都替换成了 val，把所有的可空类型都改成了不可空类型，同时也为属性都提供了默认值。</p>
+<p>当然，仅仅只是改变底层的实体类的定义还远远不够，具体遇到的问题，我们会在后面分析。下面我们接着来看数据层。</p>
+<h3 id="数据层"><a href="#数据层" class="headerlink" title="数据层"></a>数据层</h3><p>在数据层当中，最关键的就是 RepoDataSource 和 Repository。那么首先，我们就要定义它们对应的接口。你可以参考这里的实现：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">RepoDataSource</span> &#123;</span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">getRepos</span><span class="params">()</span></span>: ResultX&lt;RepoList&gt;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">IRepository</span> &#123;</span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">getRepoList</span><span class="params">()</span></span>: ResultX&lt;RepoList&gt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>接下来，就是它们对应的实现类了，我们先来看看数据源怎么处理。</p>
+<p>由于我们需要请求网络，所以这里我们自然就会想到 OkHttp 和 Retrofit 了。虽然我们也可以使用自己写的 KtHttp，但它毕竟只是用于学习和研究目的而编写的，并不适合真的拿来用。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">object</span> RetrofitClient &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> TAG = <span class="string">&quot;OkHttp&quot;</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> BASE_URL = <span class="string">&quot;https://baseUrl.com/&quot;</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">val</span> TIME_OUT = <span class="number">10</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> moshi: Moshi <span class="keyword">by</span> lazy &#123;</span><br><span class="line">        Moshi.Builder()</span><br><span class="line">            .add(KotlinJsonAdapterFactory())</span><br><span class="line">            .build()</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> service <span class="keyword">by</span> lazy &#123; getService(RepoService::<span class="keyword">class</span>.java, BASE_URL) &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> client: OkHttpClient <span class="keyword">by</span> lazy &#123;</span><br><span class="line">        <span class="keyword">val</span> builder = OkHttpClient.Builder()</span><br><span class="line">        builder.connectTimeout(TIME_OUT.toLong(), TimeUnit.SECONDS)</span><br><span class="line">        builder.build()</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;S&gt;</span> <span class="title">getService</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">        serviceClass: <span class="type">Class</span>&lt;<span class="type">S</span>&gt;,</span></span></span><br><span class="line"><span class="params"><span class="function">        baseUrl: <span class="type">String</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">        client: <span class="type">OkHttpClient</span> = this.client</span></span></span><br><span class="line"><span class="params"><span class="function">    )</span></span>: S &#123;</span><br><span class="line">        <span class="keyword">return</span> Retrofit.Builder()</span><br><span class="line">            .client(client)</span><br><span class="line">            .addConverterFactory(MoshiConverterFactory.create(moshi))</span><br><span class="line">            .baseUrl(baseUrl)</span><br><span class="line">            .build().create(serviceClass)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">RepoService</span> &#123;</span><br><span class="line">    <span class="meta">@GET(<span class="string">&quot;repo&quot;</span>)</span></span><br><span class="line">    <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">repos</span><span class="params">(<span class="meta">@Query(<span class="string">&quot;lang&quot;</span>)</span> lang: <span class="type">String</span> = <span class="string">&quot;Kotlin&quot;</span>, <span class="meta">@Query(<span class="string">&quot;since&quot;</span>)</span> since: <span class="type">String</span> = <span class="string">&quot;weekly&quot;</span>)</span></span>: RepoList</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其实，当我们自己手写了 KtHttp 的源码以后，Retrofit 用起来就会非常顺手。这里我们是定义了一个单例 RetrofitClient 用来请求 API，还有 RepoService 来代表具体的请求参数规则。</p>
+<p>那么有了 Retrofit 以后，我们要处理数据源也就很容易了。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">object</span> RemoteRepoDataSource : RepoDataSource &#123;</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">val</span> TAG = <span class="string">&quot;RemoteRepoDataSource&quot;</span></span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">getRepos</span><span class="params">()</span></span>: ResultX&lt;RepoList&gt; =</span><br><span class="line">        withContext(Dispatchers.IO) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                Success(RetrofitClient.service.repos())</span><br><span class="line">            &#125; <span class="keyword">catch</span> (e: Exception) &#123;</span><br><span class="line">                Log.e(TAG, e.message, e)</span><br><span class="line">                Error(e)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这里，我们定义了一个 RemoteRepoDataSource，它实现了 RepoDataSource 这个数据源的接口。而它具体的实现方法，是使用 withContext{} 将 API 请求分发到了 IO 线程池，然后根据实际的运行结果，将数据封装成对应的 ResultX 的子类型。</p>
+<p>接着就是数据仓库了，它一般是用于统筹缓存数据、远程数据的，这里为了不引入过多的复杂度，我们简单来实现：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MainRepository</span>(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> dataSource: RepoDataSource = RemoteRepoDataSource,</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> localDataSource: RepoDataSource? = <span class="literal">null</span></span><br><span class="line">) : IRepository &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">getRepoList</span><span class="params">()</span></span>: ResultX&lt;RepoList&gt; &#123;</span><br><span class="line">        <span class="comment">// 暂不处理缓存逻辑</span></span><br><span class="line">        <span class="keyword">return</span> dataSource.getRepos()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>你可以看到，它其实就是数据源的一层封装而已。</p>
+<p>好，至此，我们的数据层就已经完成了。</p>
+<h3 id="领域层"><a href="#领域层" class="headerlink" title="领域层"></a>领域层</h3><p>所谓领域层，其实就像是业务逻辑的一个小单元，这里的小单元，我们可以将其称为 UseCase。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">GetRepoListUseCase</span>(<span class="keyword">private</span> <span class="keyword">val</span> repository: IRepository = MainRepository()) &#123;</span><br><span class="line">    <span class="keyword">suspend</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">invoke</span><span class="params">()</span></span>: ResultX&lt;RepoList&gt; &#123;</span><br><span class="line">        <span class="keyword">return</span> repository.getRepoList()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在当前的案例中，我们只有一个业务场景，也就是获取 GitHub 仓库的列表，所以这个 UseCase 的逻辑也很简单。不过你要知道，在实际的工作场景中，UseCase 是可以承载复杂的业务逻辑的。</p>
+<p>接下来，我们往上看一下表现层。</p>
+<h3 id="表现层"><a href="#表现层" class="headerlink" title="表现层"></a>表现层</h3><p>到了表现层这里，我们其实就已经非常接近 UI 了，具体来说，这里主要涉及到 ViewModel 还有 Activity、Fragment。我们先来看看 ViewModel。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MainViewModel</span>(</span><br><span class="line">    <span class="keyword">val</span> getRepoListUseCase: GetRepoListUseCase = GetRepoListUseCase()</span><br><span class="line">) : ViewModel() &#123;</span><br><span class="line">    <span class="keyword">val</span> repos: LiveData&lt;RepoList&gt;</span><br><span class="line">        <span class="keyword">get</span>() = _repos</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> _repos = MutableLiveData&lt;RepoList&gt;()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">loadRepos</span><span class="params">()</span></span> &#123;</span><br><span class="line">        viewModelScope.launch &#123;</span><br><span class="line">            <span class="keyword">val</span> result = getRepoListUseCase()</span><br><span class="line">            <span class="keyword">when</span> (result) &#123;</span><br><span class="line">                <span class="keyword">is</span> ResultX.Success -&gt; &#123;</span><br><span class="line">                    _repos.value = result.<span class="keyword">data</span></span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">is</span> ResultX.Error -&gt; &#123;</span><br><span class="line">                    _repos.value = RepoList()</span><br><span class="line">                &#125;</span><br><span class="line">                ResultX.Loading -&gt; &#123;</span><br><span class="line">                    <span class="comment">// 展示Loading</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，我们在 ViewModel 当中定义了一组 LiveData，并且针对它的读写做了限制，这一点，我们在讲不变性思维的时候提到过。</p>
+<p>在 loadRepos() 这个方法中，我们用到了 viewModelScope.launch {} 来启动协程。经过上节课的学习，我们知道以这种方式启动的协程是不会发生泄漏的，其中的协程任务会随着 Activity 的销毁而取消。</p>
+<p>OK，最后，就是 Activity 当中的逻辑了。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MainActivity</span> : <span class="type">AppCompatActivity</span>() &#123;</span><br><span class="line">    <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> viewModel: MainViewModel <span class="keyword">by</span> viewModels()</span><br><span class="line">    <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">lateinit</span> <span class="keyword">var</span> binding: ActivityMainBinding</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">lateinit</span> <span class="keyword">var</span> adapter: RepoAdapter</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> layoutManager = LinearLayoutManager(<span class="keyword">this</span>, LinearLayoutManager.VERTICAL, <span class="literal">false</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreate</span><span class="params">(savedInstanceState: <span class="type">Bundle</span>?)</span></span> &#123;</span><br><span class="line">        <span class="keyword">super</span>.onCreate(savedInstanceState)</span><br><span class="line">        binding = ActivityMainBinding.inflate(layoutInflater)</span><br><span class="line">        setContentView(binding.root)</span><br><span class="line"></span><br><span class="line">        viewModel.loadRepos()</span><br><span class="line">        observeData()</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">observeData</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="comment">// 3</span></span><br><span class="line">        viewModel.repos.observe(<span class="keyword">this</span>) &#123;</span><br><span class="line">            display(it)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">display</span><span class="params">(repoList: <span class="type">RepoList</span>)</span></span> &#123;</span><br><span class="line">        adapter = RepoAdapter(repoList)</span><br><span class="line">        binding.recycler.layoutManager = layoutManager</span><br><span class="line">        binding.recycler.adapter = adapter</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面 Activity 的逻辑也很简单，其中有几个注释，我们一起来看看：</p>
+<ul>
+<li>注释 1，这里我们使用了委托的语法，将 ViewModel 的创建交给了”by viewModels()”。它其实是 Activity 的一个扩展函数，是由 KTX 实现的。</li>
+<li>注释 2，ActivityMainBinding，这里我们使用了 Jetpack 当中的 ViewBinding，这样我们就不用写烦人的 findViewById() 了。</li>
+<li>注释 3，viewModel.repos.observe{}，这里我们完成了 ViewModel 当中 LiveData 的数据监听，当我们的网络请求有结果以后，它就会立刻被回调。</li>
+</ul>
+<p>另外，以上代码中还涉及到了一些 RecyclerView 相关的适配器逻辑，也非常简单：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RepoAdapter</span>(<span class="keyword">private</span> <span class="keyword">val</span> repoList: RepoList): RecyclerView.Adapter&lt;RepoHolder&gt;() &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onCreateViewHolder</span><span class="params">(parent: <span class="type">ViewGroup</span>, viewType: <span class="type">Int</span>)</span></span>: RepoHolder &#123;</span><br><span class="line">        <span class="keyword">return</span> RepoHolder(LayoutInflater.from(parent.context).inflate(R.layout.item_repo, parent, <span class="literal">false</span>))</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">onBindViewHolder</span><span class="params">(holder: <span class="type">RepoHolder</span>, position: <span class="type">Int</span>)</span></span> &#123;</span><br><span class="line">        holder.text.text = repoList.items.getOrNull(position)?.repo</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">getItemCount</span><span class="params">()</span></span>: <span class="built_in">Int</span> = repoList.count</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RepoHolder</span>(itemView: View): RecyclerView.ViewHolder(itemView) &#123;</span><br><span class="line">    <span class="keyword">val</span> text : TextView = itemView.findViewById(R.id.text)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也就是，为了让 RecyclerView 正确展示数据，我们需要实现一些方法，以上这些都是一些模板代码。</p>
+<p>最后，在运行代码之前，我们还需要给 App 增加一个网络权限。</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">uses-permission</span> <span class="attr">android:name</span>=<span class="string">&quot;android.permission.INTERNET&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这个时候，如果你在模拟器或者真机上运行的话，就会看到类似这样的一个效果：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/9d/0b/9d1b8168691b7b59a0dbf30cecbbbd0b.gif?wh=271x576" alt="img"></p>
+<p>那么，到这里，我们的代码是不是就写完了呢？其实并没有。</p>
+<h2 id="空安全"><a href="#空安全" class="headerlink" title="空安全"></a>空安全</h2><p>因为，我们还有一个问题没有解决：<strong>如果服务端返回的 JSON 字段是 null 的话，我们的程序仍然会出错</strong>。具体来说，我们可以用这个单元测试来模拟。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">test</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">//                  强行返回null</span></span><br><span class="line">    <span class="comment">//                      ↓</span></span><br><span class="line">    <span class="keyword">val</span> json = <span class="string">&quot;&quot;&quot;&#123;&quot;repo&quot;: null, &quot;repo_link&quot;: &quot;https://github.com/JetBrains/kotlin&quot;, &quot;desc&quot;: &quot;The Kotlin Programming Language.&quot;, &quot;lang&quot;: &quot;Kotlin&quot;, &quot;stars&quot;: &quot;40,907&quot;, &quot;forks&quot;: &quot;5,067&quot;, &quot;added_stars&quot;: &quot;98 stars this week&quot;, &quot;avatars&quot;: [&quot;https://avatars.githubusercontent.com/u/292714?s=40&amp;v=4&quot;, &quot;https://avatars.githubusercontent.com/u/1127631?s=40&amp;v=4&quot;, &quot;https://avatars.githubusercontent.com/u/908958?s=40&amp;v=4&quot;, &quot;https://avatars.githubusercontent.com/u/3007027?s=40&amp;v=4&quot;, &quot;https://avatars.githubusercontent.com/u/888318?s=40&amp;v=4&quot;]&#125;&quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">val</span> repo = RetrofitClient.moshi.adapter(Repo::<span class="keyword">class</span>.java).fromJson(json)</span><br><span class="line">    println(repo?.repo)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">报错：</span></span><br><span class="line"><span class="comment">Non-null value &#x27;repo&#x27; was null at $.repo at com.squareup.moshi.internal.Util</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/30/36/30b3bbf89b59c957801b1f75454a3236.gif?wh=1200x850" alt="img" style="zoom:50%;" />
+
+<p>其实，当我们利用空安全思维，将 Repo 中所有的成员都定义成“非空类型”以后，当 API 不返回某个字段的时候，程序是可以自动填充默认值的。但是，当 API 强行在接口当中返回 null 的时候，我们的程序还是会崩溃。为了解决这个问题，</p>
+<p>我们需要为 JSON 解析框架Moshi，配置一个额外的规则：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">object</span> NullStringAdapter &#123;</span><br><span class="line">    <span class="meta">@FromJson</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">fromJson</span><span class="params">(reader: <span class="type">JsonReader</span>)</span></span>: String &#123;</span><br><span class="line">        <span class="keyword">if</span> (reader.peek() != JsonReader.Token.NULL) &#123;</span><br><span class="line">            <span class="keyword">return</span> reader.nextString()</span><br><span class="line">        &#125;</span><br><span class="line">        reader.nextNull&lt;<span class="built_in">Unit</span>&gt;()</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@ToJson</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">toJson</span><span class="params">(writer: <span class="type">JsonWriter</span>, value: <span class="type">String</span>?)</span></span> &#123;</span><br><span class="line">        writer.value(value)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个 Adapter，其实就是在服务端返回 null 的时候，我们做一层兼容，将其替换成默认值。它的用法也很简单：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">object</span> RetrofitClient &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 省略</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> moshi: Moshi <span class="keyword">by</span> lazy &#123;</span><br><span class="line">        Moshi.Builder()</span><br><span class="line">            .add(NullStringAdapter) <span class="comment">// 变化在这里</span></span><br><span class="line">            .add(KotlinJsonAdapterFactory())</span><br><span class="line">            .build()</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这样，当我们把这个 Adapter 配置到 Moshi 当中以后，单元测试就可以正常通过了。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/19/88/197d46d4fe35edf1babbd0a9b15ff388.gif?wh=1198x822" alt="img" style="zoom:50%;" />
+
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>好，这节课的内容到这里就差不多结束了。让我们来做一个简单的总结。</p>
+<ul>
+<li>MVVM，是一种常见的架构模式，在 Android 当中，一般会借助 ViewModel、LiveData 之类的组件来实现。在实战当中，我们还可以将其跟 Clean 架构的思想相结合，将整体应用的架构分为四层：实体层、数据层、领域层、表现层。</li>
+<li>实体层，在大部分架构设计当中，实体层会和数据层进行融合，不过在这节课当中，我们将其单独抽了出来，放在了整个架构的最底层，通过密封类、数据类来实现的。</li>
+<li>数据层，这里有两个概念，分别是“数据源”和“数据仓库”。数据源一般会分为缓存数据与远程数据，数据仓库则负责统筹多种数据源。</li>
+<li>领域层，这里会涉及到业务逻辑的最小单元，我们一般将其称为 UseCase。</li>
+<li>表现层，这里会涉及到数据与 UI 交互的逻辑。ViewModel 当中会封装 UseCase，并且持有数据和 View 进行交互。</li>
+<li>最后，我们还根据实际情况，对 JSON 解析库 Moshi，做了额外配置，让它可以对服务端返回 null 的时候，仍然保持兼容，不会出现空指针异常。</li>
+</ul>
+<p>那么，如果你本身对 Android、MVVM、Clean 架构都不是很熟悉，也许在学习这节课的过程中会有点不太适应。这时候，你可以去 GitHub 下载本课程对应的 Demo，来实际运行和调试，以加深印象，链接在这里。</p>
+<h2 id="思考题"><a href="#思考题" class="headerlink" title="思考题"></a>思考题</h2><p>这节课，我们融合 MVVM 和 Clean 完成了一种混合架构，请问这种架构有什么样的优点和缺点呢？</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://devsu.top">Carl Su</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://devsu.top/posts/58999c28/">https://devsu.top/posts/58999c28/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://devsu.top" target="_blank">码行</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Kotlin/">Kotlin</a></div><div class="post-share"><div class="social-share" data-image="https://www.gaoguang.com/uploads/allimg/201015/2-201015120J1.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/b63f0842/" title="Kotlin编程第一课--(Android项目篇)34  Kotlin与Jetpack简直是天生一对！"><img class="cover" src="https://s2.loli.net/2023/03/14/ViqYvHWes9C2f6J.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Kotlin编程第一课--(Android项目篇)34  Kotlin与Jetpack简直是天生一对！</div></div><div class="info-2"><div class="info-item-1">今天，我们来聊聊 Android 的 Jetpack。 在我看来，Kotlin 和 Jetpack，它们两个简直就是天生一对。作为 Android 开发者，如果只用 Kotlin 不用 Jetpack，我们其实很难在 Android 平台充分发挥 Kotlin 的语言优势。而如果我们只用 Jetpack 而不用 Kotlin，那么，我们将只能用到 Jetpack 的小部分功能。毕竟，Jetpack 当中有很多 API 和库，是专门为 Kotlin 提供的。 经过前面课程内容的学习，相信现在你已经对 Kotlin 十分熟悉了，那么，接下来就让我们来看看 Jetpack 吧！这节课里，我会为你介绍 Jetpack 核心库的基本概念、简单用法，以及它跟 Kotlin 之间的关系，从而也为我们下节课的实战项目打下基础。 Jetpack 简介Jetpack，它有“喷气式背包”的意思。对于我们开发者来说，它其实就是 Google 官方为我们提供的一套开发套件，专门用来帮助 Android 开发者提升开发效率、提升应用稳定性的。  Android...</div></div></div></a><a class="pagination-related" href="/posts/be9f17d6/" title="Kotlin编程第一课(目录)"><img class="cover" src="https://img2.baidu.com/it/u=3956021957,3313212296&amp;fm=253&amp;fmt=auto&amp;app=138&amp;f=JPEG?w=800&amp;h=500" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Kotlin编程第一课(目录)</div></div><div class="info-2"><div class="info-item-1">基础篇Kotlin编程第一课–(基础篇)01  Kotlin基础语法：正式开启学习之旅Kotlin编程第一课–(基础篇)02  面向对象：理解Kotlin设计者的良苦用心Kotlin编程第一课–(基础篇)03  Kotlin原理：编译器在幕后干了哪些“好事”？Kotlin编程第一课–(基础篇)04 | 实战：构建一个Kotlin版本的四则运算计算器Kotlin编程第一课–(基础篇)05  object关键字：你到底有多少种用法？Kotlin编程第一课–(基础篇)06  扩展：你的能力边界到底在哪里？Kotlin编程第一课–(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？Kotlin编程第一课–(基础篇)08  实战：用Kotlin写一个英语词频统计程序Kotlin编程第一课–(基础篇)加餐一  初识Kotlin函数式编程Kotlin编程第一课–(基础篇)09  委托：你为何总是被低估？Kotlin编程第一课–(基础篇)10  泛型：逆变or协变，傻傻分不清？Kotlin编程第一课–(基础篇)11 ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/85d82fa8/" title="Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？"><img class="cover" src="https://static001.geekbang.org/resource/image/b6/1c/b65feyy0bdc4764c6564a95912d7851c.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-06</div><div class="info-item-2">Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？</div></div><div class="info-2"><div class="info-item-1">Kotlin 的扩展（Extension），主要分为两种语法：第一个是扩展函数，第二个是扩展属性。从语法上看，扩展看起来就像是我们从类的外部为它扩展了新的成员。 这在实际编程当中是非常有用的功能。我们可以来想象一个场景：我们想修改 JDK 当中的 String，想在它的基础上增加一个方法“lastElement()”来获取末尾元素，如果使用 Java，我们是无法通过常规手段实现的，因为我们没办法修改 JDK 的源代码。任何第三方提供的 SDK，我们都无权修改。 不过，借助 Kotlin 的扩展函数，我们就完全可以在语义层面，来为第三方 SDK 的类扩展新的成员方法和成员属性。不管是为 JDK 的 String 增加新的成员方法，还是为 Android SDK 的 View 增加新成员属性，我们都可以实现。 Kotlin 的这个“扩展”功能看起来很神奇，它会不会很难学？其实不然，它的语法非常简洁。今天这节课，我们就一起来学习下 Kotlin...</div></div></div></a><a class="pagination-related" href="/posts/be9f17d6/" title="Kotlin编程第一课(目录)"><img class="cover" src="https://img2.baidu.com/it/u=3956021957,3313212296&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-10</div><div class="info-item-2">Kotlin编程第一课(目录)</div></div><div class="info-2"><div class="info-item-1">基础篇Kotlin编程第一课–(基础篇)01  Kotlin基础语法：正式开启学习之旅Kotlin编程第一课–(基础篇)02  面向对象：理解Kotlin设计者的良苦用心Kotlin编程第一课–(基础篇)03  Kotlin原理：编译器在幕后干了哪些“好事”？Kotlin编程第一课–(基础篇)04 | 实战：构建一个Kotlin版本的四则运算计算器Kotlin编程第一课–(基础篇)05  object关键字：你到底有多少种用法？Kotlin编程第一课–(基础篇)06  扩展：你的能力边界到底在哪里？Kotlin编程第一课–(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？Kotlin编程第一课–(基础篇)08  实战：用Kotlin写一个英语词频统计程序Kotlin编程第一课–(基础篇)加餐一  初识Kotlin函数式编程Kotlin编程第一课–(基础篇)09  委托：你为何总是被低估？Kotlin编程第一课–(基础篇)10  泛型：逆变or协变，傻傻分不清？Kotlin编程第一课–(基础篇)11 ...</div></div></div></a><a class="pagination-related" href="/posts/83a7144c/" title="2023-01-17-Kotlin协程 -  结构化并发"><img class="cover" src="https://s2.loli.net/2023/03/14/xEyFgn24zZPXe15.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-01-17</div><div class="info-item-2">2023-01-17-Kotlin协程 -  结构化并发</div></div><div class="info-2"><div class="info-item-1">CoroutineScope定义协程必须指定其 CoroutineScope，它会跟踪所有协程，同样它还可以取消由它所启动的所有协程。 常用的相关API有：  GlobalScope，生命周期是process级别的，及时Activity或Fragment已经被销毁，协程仍然在执行。 MainScope，在Activity中使用，可以在onDestroy()中取消协程。 viewModelScope，只能在ViewModel中使用，绑定ViewModel的生命周期。 lifecycleScope，只能在Activity、Fragment中使用，会绑定Activity和Fragment的生命周期  </div></div></div></a><a class="pagination-related" href="/posts/a20c9e06/" title="Kotlin协程"><img class="cover" src="https://s2.loli.net/2023/03/14/3MHPBy1Q4GncRlF.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-09</div><div class="info-item-2">Kotlin协程</div></div><div class="info-2"><div class="info-item-1">Kotlin协程协程的作用域构建器coroutineScope与runBlocking runBlocking是常规函数，而coroutineScope是挂起函数。 它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途  </div></div></div></a><a class="pagination-related" href="/posts/68bf7d20/" title="Kotlin函数"><img class="cover" src="https://img1.baidu.com/it/u=1546227440,2897989905&fm=253&fmt=auto&app=138&f=JPEG?w=889&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin函数</div></div><div class="info-2"><div class="info-item-1">函数类型作为返回类型fun main() &#123;	  println(show(&quot;Demo&quot;))      val lambdaFunction = showMethod(&quot;Jack&quot;) //注意lambdaFunction 这里的类型为(String,Int) -&gt; String    println(lambdaFunction(&quot;Carl&quot;,20))&#125;//普通函数fun show(name:String): String &#123;    return &quot;name is $name&quot;&#125;//返回类型为函数fun showMethod(name: String): (String,Int) -&gt; String &#123;    println(&quot;name is $name&quot;)    return &#123; name: String, age: Int -&gt;       ...</div></div></div></a><a class="pagination-related" href="/posts/8c331668/" title="Kotlin内置函数apply、let、run、with、also等区别"><img class="cover" src="https://s2.loli.net/2023/03/14/OpxWcuy2ktMzoQD.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin内置函数apply、let、run、with、also等区别</div></div><div class="info-2"><div class="info-item-1">Applyapply函数可看作一个配置函数，可以传入一个接收者，然后调用一系列函数来配置它以便使用，如果提供lambda给apply函数执行，它会返回配置好的接受者 val file1 = File(&quot;/User/geowin/hello.txt&quot;)file1.apply &#123; // this: File   setWritable(true)   setReadable(true)   setExecutable(false)&#125;  可以看到，调用一个个函数类配置接受者时，变量名就省略了，这是因为，在lambda表达式中，apply能让每个配置函数都作用于接受者，这种行为有时又叫做相关作用域,因为lambda表达式里的所有函数调用都是针对接收者的，或者说，它们是针对接受者的隐式调用. letlet函数能使某个变量作用于lambda表达式里，让it关键字能引用它。let与apply比较，let会把接受者传给lambda，而apply什么都不传，匿名函数执行完，apply会返回当前接受者，而let会返回lambda的最后一行。 fun...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Valine</span><span id="switch-btn"></span><span class="second-comment">Disqus</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div><div><div id="disqus_thread"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%86%E5%A4%87%E5%B7%A5%E4%BD%9C"><span class="toc-number">1.</span> <span class="toc-text">准备工作</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MVVM-%E6%9E%B6%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">MVVM 架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E4%BD%93%E5%B1%82"><span class="toc-number">2.1.</span> <span class="toc-text">实体层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%B1%82"><span class="toc-number">2.2.</span> <span class="toc-text">数据层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A2%86%E5%9F%9F%E5%B1%82"><span class="toc-number">2.3.</span> <span class="toc-text">领域层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%A8%E7%8E%B0%E5%B1%82"><span class="toc-number">2.4.</span> <span class="toc-text">表现层</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A9%BA%E5%AE%89%E5%85%A8"><span class="toc-number">3.</span> <span class="toc-text">空安全</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%9D%E8%80%83%E9%A2%98"><span class="toc-number">5.</span> <span class="toc-text">思考题</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2025 By Carl Su</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 6.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">学无止境</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !true) {
+    if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const disqusReset = conf => {
+    window.DISQUS && window.DISQUS.reset({
+      reload: true,
+      config: conf
+    })
+  }
+
+  const loadDisqus = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyDisqus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    window.disqus_identifier = isShuoshuo ? path : '/posts/58999c28/'
+    window.disqus_url = isShuoshuo ? location.origin + path : 'https://devsu.top/posts/58999c28/'
+
+    const disqus_config = function () {
+      this.page.url = disqus_url
+      this.page.identifier = disqus_identifier
+      this.page.title = 'Kotlin编程第一课--(Android项目篇)35  用Kotlin写一个GitHub Trending App'
+    }
+
+    if (window.DISQUS) disqusReset(disqus_config)
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://.disqus.com/embed.js'
+      script.setAttribute('data-timestamp', +new Date())
+      document.head.appendChild(script)
+    }
+
+    btf.addGlobalFn('themeChange', () => disqusReset(disqus_config), 'disqus')
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqus-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=&api_key=&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Disqus'
+      ? window.shuoshuoComment = { loadComment: loadDisqus }
+      : window.loadOtherComment = loadDisqus
+    return
+  }
+
+  if ('Valine' === 'Disqus' || !true) {
+    if (true) btf.loadComment(document.getElementById('disqus_thread'), loadDisqus)
+    else {
+      loadDisqus()
+      GLOBAL_CONFIG_SITE.pageType === 'post' && getCount()
+    }
+  } else {
+    window.loadOtherComment = loadDisqus
+  }
+})()</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

@@ -1,0 +1,454 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Kotlin编程第一课--(协程篇)23  异常：try-catch 坑！ | 码行</title><meta name="author" content="Carl Su"><meta name="copyright" content="Carl Su"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="这节课我们来学习 Kotlin 协程的异常处理。 其实到这里，我们就已经学完所有 Kotlin 协程的语法知识了。但在真正把 Kotlin 协程应用到生产环境之前，我们还需要掌握一个重要知识点，那就是异常处理。 比起 Kotlin 协程的语法知识点，协程的异常处理，其实更难掌握。在前面的课程中，我们已经了解到：协程就是互相协作的程序，协程是结构化的。正因为 Kotlin 协程有这两个特点，这就导致">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin编程第一课--(协程篇)23  异常：try-catch 坑！">
+<meta property="og:url" content="https://devsu.top/posts/a3460e51/index.html">
+<meta property="og:site_name" content="码行">
+<meta property="og:description" content="这节课我们来学习 Kotlin 协程的异常处理。 其实到这里，我们就已经学完所有 Kotlin 协程的语法知识了。但在真正把 Kotlin 协程应用到生产环境之前，我们还需要掌握一个重要知识点，那就是异常处理。 比起 Kotlin 协程的语法知识点，协程的异常处理，其实更难掌握。在前面的课程中，我们已经了解到：协程就是互相协作的程序，协程是结构化的。正因为 Kotlin 协程有这两个特点，这就导致">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://t15.baidu.com/it/u=2335792902,1551903918&fm=224&app=112&f=JPEG?w=500&h=445">
+<meta property="article:published_time" content="2022-06-03T02:40:44.000Z">
+<meta property="article:modified_time" content="2025-03-07T02:49:14.892Z">
+<meta property="article:author" content="Carl Su">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://t15.baidu.com/it/u=2335792902,1551903918&fm=224&app=112&f=JPEG?w=500&h=445"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Kotlin编程第一课--(协程篇)23  异常：try-catch 坑！",
+  "url": "https://devsu.top/posts/a3460e51/",
+  "image": "http://t15.baidu.com/it/u=2335792902,1551903918&fm=224&app=112&f=JPEG?w=500&h=445",
+  "datePublished": "2022-06-03T02:40:44.000Z",
+  "dateModified": "2025-03-07T02:49:14.892Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Carl Su",
+      "url": "https://devsu.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png"><link rel="canonical" href="https://devsu.top/posts/a3460e51/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const hour = new Date().getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (theme === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else theme === 'light' ? activateLightMode() : activateDarkMode()
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6243425e2ecb037931274c4ca1db3132";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Carl Su","link":"链接: ","source":"来源: 码行","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Kotlin编程第一课--(协程篇)23  异常：try-catch 坑！',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">193</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">41</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(http://t15.baidu.com/it/u=2335792902,1551903918&amp;fm=224&amp;app=112&amp;f=JPEG?w=500&amp;h=445);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png" alt="Logo"><span class="site-name">码行</span></a><a class="nav-page-title" href="/"><span class="site-name">Kotlin编程第一课--(协程篇)23  异常：try-catch 坑！</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Kotlin编程第一课--(协程篇)23  异常：try-catch 坑！</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-06-03T02:40:44.000Z" title="发表于 2022-06-03 10:40:44">2022-06-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-07T02:49:14.892Z" title="更新于 2025-03-07 10:49:14">2025-03-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/">Android</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/">Kotlin</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/Kotlin%E7%BC%96%E7%A8%8B%E7%AC%AC%E4%B8%80%E8%AF%BE/">Kotlin编程第一课</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>21分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>这节课我们来学习 Kotlin 协程的异常处理。</p>
+<p>其实到这里，我们就已经学完所有 Kotlin 协程的语法知识了。但在真正把 Kotlin 协程应用到生产环境之前，我们还需要掌握一个重要知识点，那就是异常处理。</p>
+<p>比起 Kotlin 协程的语法知识点，协程的异常处理，其实更难掌握。在前面的课程中，我们已经了解到：<strong>协程就是互相协作的程序，协程是结构化的</strong>。正因为 Kotlin 协程有这两个特点，这就导致它的异常处理机制与我们普通的程序完全不一样。</p>
+<p>换句话说：<strong>如果把 Java 里的那一套异常处理机制，照搬到 Kotlin 协程里来，你一定会四处碰壁</strong>。因为在普通的程序当中，你使用 try-catch 就能解决大部分的异常处理问题，但是在协程当中，根据不同的协程特性，它的异常处理策略是随之变化的。</p>
+<p>我自己在工作中就踩过很多这方面的坑，遇到过各种匪夷所思的问题：协程无法取消、try-catch 不起作用导致线上崩溃率突然大增、软件功能错乱却追踪不到任何异常信息，等等。说实话，Kotlin 协程的普及率之所以不高，很大一部分原因也是因为它的异常处理机制太复杂了，稍有不慎就可能会掉坑里去。</p>
+<p>那么今天这节课，我们就会来分析几个常见的协程代码模式，通过解决这些异常，我们可以总结出协程异常处理的 6 大准则。掌握了这些准则之后，你在以后遇到异常问题时，就能有所准备，也知道该怎么处理了。</p>
+<h2 id="为什么-cancel-不起作用？"><a href="#为什么-cancel-不起作用？" class="headerlink" title="为什么 cancel() 不起作用？"></a>为什么 cancel() 不起作用？</h2><p>在 Kotlin 协程当中，我们通常把异常分为两大类，一类是<strong>取消异常</strong>（CancellationException），另一类是<strong>其他异常</strong>。之所以要这么分类，是因为在 Kotlin 协程当中，这两种异常的处理方式是不一样的。或者说，在 Kotlin 协程所有的异常当中，我们需要把 CancellationException 单独拎出来，特殊对待。</p>
+<p>要知道，当协程任务被取消的时候，它的内部是会产生一个 CancellationException 的。而协程的结构化并发，最大的优势就在于：如果我们取消了父协程，子协程也会跟着被取消。但是我们也知道，很多初学者都会遇到一个问题，那就是协程无法被取消。</p>
+<p>这里，主要涉及了三个场景，我们一个个来分析下。</p>
+<h3 id="场景-1：cancel-不被响应"><a href="#场景-1：cancel-不被响应" class="headerlink" title="场景 1：cancel() 不被响应"></a>场景 1：cancel() 不被响应</h3><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段1</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line">    <span class="keyword">val</span> job = launch(Dispatchers.Default) &#123;</span><br><span class="line">        <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">        <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">            Thread.sleep(<span class="number">500L</span>)</span><br><span class="line">            i ++</span><br><span class="line">            println(<span class="string">&quot;i = <span class="variable">$i</span>&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">2000L</span>)</span><br><span class="line"></span><br><span class="line">    job.cancel()</span><br><span class="line">    job.join()</span><br><span class="line"></span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">i = 1</span></span><br><span class="line"><span class="comment">i = 2</span></span><br><span class="line"><span class="comment">i = 3</span></span><br><span class="line"><span class="comment">i = 4</span></span><br><span class="line"><span class="comment">i = 5</span></span><br><span class="line"><span class="comment">// 永远停不下来</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>在上面的代码中，我们启动了一个协程，在这个协程的内部，我们一直对 i 进行自增。过了 2000 毫秒以后，我们调用了 job.cancel()。但通过运行的结果，我们可以看到协程并不会被取消。这是为什么呢？</p>
+<p>其实前面课程里我们就讲过，协程是互相协作的程序。因此，对于协程任务的取消，也是需要互相协作的。协程外部取消，协程内部需要做出响应才行。具体来说，我们可以在协程体中加入状态判断：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段2</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line">    <span class="keyword">val</span> job = launch(Dispatchers.Default) &#123;</span><br><span class="line">        <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">        <span class="comment">// 变化在这里</span></span><br><span class="line">        <span class="keyword">while</span> (isActive) &#123;</span><br><span class="line">            Thread.sleep(<span class="number">500L</span>)</span><br><span class="line">            i ++</span><br><span class="line">            println(<span class="string">&quot;i = <span class="variable">$i</span>&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">2000L</span>)</span><br><span class="line"></span><br><span class="line">    job.cancel()</span><br><span class="line">    job.join()</span><br><span class="line"></span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment">i = 1</span></span><br><span class="line"><span class="comment">i = 2</span></span><br><span class="line"><span class="comment">i = 3</span></span><br><span class="line"><span class="comment">i = 4</span></span><br><span class="line"><span class="comment">i = 5</span></span><br><span class="line"><span class="comment">End</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>在这段代码里，我们把 while 循环的条件改成了 while (isActive)，这就意味着，只有协程处于活跃状态的时候，才会继续执行循环体内部的代码。</p>
+<p>这里，我们就可以进一步分析代码段 1 无法取消的原因了：当我们调用 job.cancel() 以后，协程任务已经不是活跃状态了，但代码并没有把 isActive 作为循环条件，因此协程无法真正取消。</p>
+<p>所以到这里，我们就可以总结出协程异常处理的第一准则了：<strong>协程的取消需要内部的配合</strong>。</p>
+<h3 id="场景-2：结构被破坏"><a href="#场景-2：结构被破坏" class="headerlink" title="场景 2：结构被破坏"></a>场景 2：结构被破坏</h3><p>我们都知道，协程是结构化的，当我们取消父协程的时候，子协程也会跟着被取消。比如，我们在第 16 讲当中，就看到过这张图：</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/9b/02/9bf8c808c91040e25fc62e468b7dfc02.gif?wh=1080x608" alt="img" style="zoom:50%;" />
+
+<p>但在某些情况下，我们嵌套创建的子协程并不会跟随父协程一起取消，比如下面这个案例：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段3</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> fixedDispatcher = Executors.newFixedThreadPool(<span class="number">2</span>) &#123;</span><br><span class="line">    Thread(it, <span class="string">&quot;MyFixedThread&quot;</span>).apply &#123; isDaemon = <span class="literal">false</span> &#125;</span><br><span class="line">&#125;.asCoroutineDispatcher()</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line">    <span class="comment">// 父协程</span></span><br><span class="line">    <span class="keyword">val</span> parentJob = launch(fixedDispatcher) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 1，注意这里</span></span><br><span class="line">        launch(Job()) &#123; <span class="comment">// 子协程1</span></span><br><span class="line">            <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">            <span class="keyword">while</span> (isActive) &#123;</span><br><span class="line">                Thread.sleep(<span class="number">500L</span>)</span><br><span class="line">                i ++</span><br><span class="line">                println(<span class="string">&quot;First i = <span class="variable">$i</span>&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        launch &#123; <span class="comment">// 子协程2</span></span><br><span class="line">            <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">            <span class="keyword">while</span> (isActive) &#123;</span><br><span class="line">                Thread.sleep(<span class="number">500L</span>)</span><br><span class="line">                i ++</span><br><span class="line">                println(<span class="string">&quot;Second i = <span class="variable">$i</span>&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">2000L</span>)</span><br><span class="line"></span><br><span class="line">    parentJob.cancel()</span><br><span class="line">    parentJob.join()</span><br><span class="line"></span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment">First i = 1</span></span><br><span class="line"><span class="comment">Second i = 1</span></span><br><span class="line"><span class="comment">First i = 2</span></span><br><span class="line"><span class="comment">Second i = 2</span></span><br><span class="line"><span class="comment">Second i = 3</span></span><br><span class="line"><span class="comment">First i = 3</span></span><br><span class="line"><span class="comment">First i = 4</span></span><br><span class="line"><span class="comment">Second i = 4</span></span><br><span class="line"><span class="comment">End</span></span><br><span class="line"><span class="comment">First i = 5</span></span><br><span class="line"><span class="comment">First i = 6</span></span><br><span class="line"><span class="comment">// 子协程1永远不会停下来</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>以上代码中，我们创建了一个 fixedDispatcher，它是由两个线程的线程池实现的。接着，我们通过 launch 创建了三个协程，其中 parentJob 是父协程，随后我们等待 2000 毫秒，然后取消父协程。</p>
+<p>不过，通过程序的运行结果，我们发现，虽然“子协程 1”当中使用了 while(isActive) 作为判断条件，它也仍然无法被取消。其实，这里的主要原因还是在注释 1 处，我们在创建子协程的时候，**使用了 launch(Job()){}**。而这种创建方式，就打破了原有的协程结构。</p>
+<p>为了方便你理解，我画了一张图，描述它们之间的父子关系。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/19/c2/191c4ffcf783a14a4aef9ca934dffec2.jpg?wh=2000x983" alt="img" style="zoom: 33%;" />
+
+<p>根据这张图，可以看到“子协程 1”已经不是 parentJob 的子协程了，而对应的，它的父 Job 是我们在 launch 当中传入的 Job() 对象。所以，在这种情况下，当我们调用 parentJob.cancel() 的时候，自然也就无法取消“子协程 1”了。</p>
+<p>其实这个时候，如果我们稍微改动一下上面的代码，不传入 Job()，程序就可以正常运行了。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段4</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line">    <span class="keyword">val</span> parentJob = launch(fixedDispatcher) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 变化在这里</span></span><br><span class="line">        launch &#123;</span><br><span class="line">            <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">            <span class="keyword">while</span> (isActive) &#123;</span><br><span class="line">                Thread.sleep(<span class="number">500L</span>)</span><br><span class="line">                i ++</span><br><span class="line">                println(<span class="string">&quot;First i = <span class="variable">$i</span>&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        launch &#123;</span><br><span class="line">            <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">            <span class="keyword">while</span> (isActive) &#123;</span><br><span class="line">                Thread.sleep(<span class="number">500L</span>)</span><br><span class="line">                i ++</span><br><span class="line">                println(<span class="string">&quot;Second i = <span class="variable">$i</span>&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">2000L</span>)</span><br><span class="line"></span><br><span class="line">    parentJob.cancel()</span><br><span class="line">    parentJob.join()</span><br><span class="line"></span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment">First i = 1</span></span><br><span class="line"><span class="comment">Second i = 1</span></span><br><span class="line"><span class="comment">First i = 2</span></span><br><span class="line"><span class="comment">Second i = 2</span></span><br><span class="line"><span class="comment">First i = 3</span></span><br><span class="line"><span class="comment">Second i = 3</span></span><br><span class="line"><span class="comment">First i = 4</span></span><br><span class="line"><span class="comment">Second i = 4</span></span><br><span class="line"><span class="comment">End</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>在上面的代码中，parentJob 与它内部的子协程 1、子协程 2 之间是父子关系，因此它们两个都是会响应协程取消的事件的。这时候，它们之间的关系就变成了下图这样：</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/fb/7d/fb2bf0b6f4307dcb9b678557cb1f027d.jpg?wh=2000x856" alt="img" style="zoom:33%;" />
+
+<p>那么到这里，我们其实就可以总结出第二条准则了：<strong>不要轻易打破协程的父子结构！</strong></p>
+<h3 id="场景-3：未正确处理-CancellationException"><a href="#场景-3：未正确处理-CancellationException" class="headerlink" title="场景 3：未正确处理 CancellationException"></a>场景 3：未正确处理 CancellationException</h3><p>其实，对于 Kotlin 提供的挂起函数，它们是可以自动响应协程的取消的，比如说，当我们把 Thread.sleep(500) 改为 delay(500) 以后，我们就不需要在 while 循环当中判断 isActive 了。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段5</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> parentJob = launch(Dispatchers.Default) &#123;</span><br><span class="line">        launch &#123;</span><br><span class="line">            <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">            <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">                <span class="comment">// 变化在这里</span></span><br><span class="line">                delay(<span class="number">500L</span>)</span><br><span class="line">                i ++</span><br><span class="line">                println(<span class="string">&quot;First i = <span class="variable">$i</span>&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        launch &#123;</span><br><span class="line">            <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">            <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">                <span class="comment">// 变化在这里</span></span><br><span class="line">                delay(<span class="number">500L</span>)</span><br><span class="line">                i ++</span><br><span class="line">                println(<span class="string">&quot;Second i = <span class="variable">$i</span>&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">2000L</span>)</span><br><span class="line"></span><br><span class="line">    parentJob.cancel()</span><br><span class="line">    parentJob.join()</span><br><span class="line"></span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment">First i = 1</span></span><br><span class="line"><span class="comment">Second i = 1</span></span><br><span class="line"><span class="comment">First i = 2</span></span><br><span class="line"><span class="comment">Second i = 2</span></span><br><span class="line"><span class="comment">First i = 3</span></span><br><span class="line"><span class="comment">Second i = 3</span></span><br><span class="line"><span class="comment">End</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>实际上，对于 delay() 函数来说，它可以自动检测当前的协程是否已经被取消，如果已经被取消的话，它会抛出一个 CancellationException，从而终止当前的协程。</p>
+<p>为了证明这一点，我们可以在以上代码的基础上，增加一个 try-catch。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段6</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> parentJob = launch(Dispatchers.Default) &#123;</span><br><span class="line">        launch &#123;</span><br><span class="line">            <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">            <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">                <span class="comment">// 1</span></span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    delay(<span class="number">500L</span>)</span><br><span class="line">                &#125; <span class="keyword">catch</span> (e: CancellationException) &#123;</span><br><span class="line">                    println(<span class="string">&quot;Catch CancellationException&quot;</span>)</span><br><span class="line">                    <span class="comment">// 2</span></span><br><span class="line">                    <span class="keyword">throw</span> e</span><br><span class="line">                &#125;</span><br><span class="line">                i ++</span><br><span class="line">                println(<span class="string">&quot;First i = <span class="variable">$i</span>&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        launch &#123;</span><br><span class="line">            <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">            <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">                delay(<span class="number">500L</span>)</span><br><span class="line">                i ++</span><br><span class="line">                println(<span class="string">&quot;Second i = <span class="variable">$i</span>&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">2000L</span>)</span><br><span class="line"></span><br><span class="line">    parentJob.cancel()</span><br><span class="line">    parentJob.join()</span><br><span class="line"></span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment">First i = 1</span></span><br><span class="line"><span class="comment">Second i = 1</span></span><br><span class="line"><span class="comment">First i = 2</span></span><br><span class="line"><span class="comment">Second i = 2</span></span><br><span class="line"><span class="comment">First i = 3</span></span><br><span class="line"><span class="comment">Second i = 3</span></span><br><span class="line"><span class="comment">Second i = 4</span></span><br><span class="line"><span class="comment">Catch CancellationException</span></span><br><span class="line"><span class="comment">End</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>请看注释 1，在用 try-catch 包裹了 delay() 以后，我们就可以在输出结果中，看到“Catch CancellationException”，这就说明 delay() 确实可以自动响应协程的取消，并且产生 CancellationException 异常。</p>
+<p>请看注释 1，在用 try-catch 包裹了 delay() 以后，我们就可以在输出结果中，看到“Catch CancellationException”，这就说明 delay() 确实可以自动响应协程的取消，并且产生 CancellationException 异常。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段7</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> parentJob = launch(Dispatchers.Default) &#123;</span><br><span class="line">        launch &#123;</span><br><span class="line">            <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">            <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    delay(<span class="number">500L</span>)</span><br><span class="line">                &#125; <span class="keyword">catch</span> (e: CancellationException) &#123;</span><br><span class="line">                    println(<span class="string">&quot;Catch CancellationException&quot;</span>)</span><br><span class="line">                    <span class="comment">// 1，注意这里</span></span><br><span class="line">                    <span class="comment">// throw e</span></span><br><span class="line">                &#125;</span><br><span class="line">                i ++</span><br><span class="line">                println(<span class="string">&quot;First i = <span class="variable">$i</span>&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        launch &#123;</span><br><span class="line">            <span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line">            <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">                delay(<span class="number">500L</span>)</span><br><span class="line">                i ++</span><br><span class="line">                println(<span class="string">&quot;Second i = <span class="variable">$i</span>&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">2000L</span>)</span><br><span class="line"></span><br><span class="line">    parentJob.cancel()</span><br><span class="line">    parentJob.join()</span><br><span class="line"></span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment">First i = 1</span></span><br><span class="line"><span class="comment">Second i = 1</span></span><br><span class="line"><span class="comment">First i = 2</span></span><br><span class="line"><span class="comment">Second i = 2</span></span><br><span class="line"><span class="comment">First i = 3</span></span><br><span class="line"><span class="comment">Second i = 3</span></span><br><span class="line"><span class="comment">Second i = 4</span></span><br><span class="line"><span class="comment">..</span></span><br><span class="line"><span class="comment">First i = 342825</span></span><br><span class="line"><span class="comment">Catch CancellationException</span></span><br><span class="line"><span class="comment">// 程序将永远无法终止</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>可见，在这段代码中，我们把“throw e”这行代码注释掉，重新运行之后，程序就永远无法终止了。这主要是因为，我们捕获了 CancellationException 以后没有重新抛出去，就导致子协程无法正常取消。所以到这里，</p>
+<p>我们就可以总结出第三条准则了：<strong>捕获了 CancellationException 以后，要考虑是否应该重新抛出来</strong>。</p>
+<p><code>题外话：很多开发者喜欢在代码里捕获 Exception 这个父类，比如这样：catch(e: Exception)&#123;&#125;，这也是很危险的。平时写 Demo 为了方便这样写没问题，但在生产环境则应该禁止。</code></p>
+<p>好，到这里，我们就通过协程取消异常的三个场景，总结了三条准则，来应对 CancellationException 这个特殊的异常。</p>
+<p>那么接下来，我们再来看看如何在协程当中处理普通的异常。</p>
+<h2 id="为什么-try-catch-不起作用？"><a href="#为什么-try-catch-不起作用？" class="headerlink" title="为什么 try-catch 不起作用？"></a>为什么 try-catch 不起作用？</h2><p>如果你有 Java 经验，那你一定会习惯性地把 try-catch 当做是解决所有异常的手段。但是，在 Kotlin 协程当中，try-catch 并非万能的。有时候，即使你用 try-catch 包裹了可能抛异常的代码，软件仍然会崩溃。比如下面这个例子：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段8</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        launch &#123;</span><br><span class="line">            delay(<span class="number">100L</span>)</span><br><span class="line">            <span class="number">1</span> / <span class="number">0</span> <span class="comment">// 故意制造异常</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e: ArithmeticException) &#123;</span><br><span class="line">        println(<span class="string">&quot;Catch: <span class="variable">$e</span>&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">500L</span>)</span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果：</span></span><br><span class="line"><span class="comment">崩溃</span></span><br><span class="line"><span class="comment">Exception in thread &quot;main&quot; ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>在这段代码中，我们使用 try-catch 包裹了 launch{}，在协程体内部，我们制造了一个异常。不过从运行结果这里，我们可以看到，try-catch 并没有成功捕获异常，程序等待了 100 毫秒左右，最终还是崩溃了。</p>
+<p>类似的，如果我们把代码段 8 当中的 launch 换成 async，结果也是差不多的：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段9</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line">    <span class="keyword">var</span> deferred: Deferred&lt;<span class="built_in">Unit</span>&gt;? = <span class="literal">null</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        deferred = async &#123;</span><br><span class="line">            delay(<span class="number">100L</span>)</span><br><span class="line">            <span class="number">1</span> / <span class="number">0</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e: ArithmeticException) &#123;</span><br><span class="line">        println(<span class="string">&quot;Catch: <span class="variable">$e</span>&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    deferred?.await()</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">500L</span>)</span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果：</span></span><br><span class="line"><span class="comment">崩溃</span></span><br><span class="line"><span class="comment">Exception in thread &quot;main&quot; ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>其实，对于这种 try-catch 失效的问题，如果你还记得在第 14 讲当中，我提到的 launch、async 的代码<strong>运行顺序</strong>的问题，那你就一定可以理解其中的原因。这主要就是因为，当协程体当中的“1&#x2F;0”执行的时候，我们的程序已经跳出 try-catch 的作用域了。</p>
+<p>当然，要解决这两个问题也很容易。对于代码段 8 来说，我们可以挪动一下 try-catch 的位置，比如说这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段11</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line">    <span class="keyword">var</span> deferred: Deferred&lt;<span class="built_in">Unit</span>&gt;? = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">    deferred = async &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            delay(<span class="number">100L</span>)</span><br><span class="line">            <span class="number">1</span> / <span class="number">0</span></span><br><span class="line">        &#125; <span class="keyword">catch</span> (e: ArithmeticException) &#123;</span><br><span class="line">            println(<span class="string">&quot;Catch: <span class="variable">$e</span>&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    deferred?.await()</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">500L</span>)</span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>OK，到这里，我们就可以总结出第四条准则了：<strong>不要用 try-catch 直接包裹 launch、async</strong>。</p>
+<p>接下来，我们再看看 async 的另外一种手段，其实这种方式网上有些博客也介绍过，我们可以使用 try-catch 包裹“deferred.await()”。让我们来看看是否可行：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段12</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line">    <span class="keyword">val</span> deferred = async &#123;</span><br><span class="line">        delay(<span class="number">100L</span>)</span><br><span class="line">        <span class="number">1</span> / <span class="number">0</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        deferred.await()</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e: ArithmeticException) &#123;</span><br><span class="line">        println(<span class="string">&quot;Catch: <span class="variable">$e</span>&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">500L</span>)</span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment">Catch: java.lang.ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">崩溃：</span></span><br><span class="line"><span class="comment">Exception in thread &quot;main&quot; ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>那么，根据以上程序的运行结果可以看到，这样做其实是行不通的。如果你看过一些其他博客，甚至还有种说法是：await() 如果不调用的话，async 当中的异常甚至不会发生。我们再来试试看：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段13</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line">    <span class="keyword">val</span> deferred = async &#123;</span><br><span class="line">        delay(<span class="number">100L</span>)</span><br><span class="line">        <span class="number">1</span> / <span class="number">0</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">500L</span>)</span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment">崩溃：</span></span><br><span class="line"><span class="comment">Exception in thread &quot;main&quot; ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>可见，async 当中产生异常，即使我们不调用 await() 同样是会导致程序崩溃的。那么，为什么会发生这样的情况？是不是我们忽略了什么？</p>
+<h2 id="SupervisorJob"><a href="#SupervisorJob" class="headerlink" title="SupervisorJob"></a>SupervisorJob</h2><p>实际上，如果我们要使用 try-catch 包裹“deferred.await()”的话，还需要配合 <strong>SupervisorJob</strong> 一起使用。也就是说，借助 SupervisorJob 来改造代码段 13 的话，我们就可以实现“不调用 await() 就不会产生异常而崩溃”。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段14</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line">    <span class="keyword">val</span> scope = CoroutineScope(SupervisorJob())</span><br><span class="line">    scope.async &#123;</span><br><span class="line">        delay(<span class="number">100L</span>)</span><br><span class="line">        <span class="number">1</span> / <span class="number">0</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">500L</span>)</span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment">End</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到，当我们使用 SupervisorJob 创建一个 scope 以后，用 scope.async{}启动协程后，只要不调用“deferred.await()”，程序就不会因为异常而崩溃。</p>
+<p>所以同样的，我们也能用类似的办法来改造代码段 12 当中的逻辑：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段15</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line">    <span class="keyword">val</span> scope = CoroutineScope(SupervisorJob())</span><br><span class="line">    <span class="comment">// 变化在这里</span></span><br><span class="line">    <span class="keyword">val</span> deferred = scope.async &#123;</span><br><span class="line">        delay(<span class="number">100L</span>)</span><br><span class="line">        <span class="number">1</span> / <span class="number">0</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        deferred.await()</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e: ArithmeticException) &#123;</span><br><span class="line">        println(<span class="string">&quot;Catch: <span class="variable">$e</span>&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">500L</span>)</span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment">Catch: java.lang.ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">End</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>在上面的代码中，我们仍然使用“scope.async {}”创建了协程，同时也用 try-catch 包裹“deferred.await()”，这样一来，这个异常就成功地被我们捕获了。</p>
+<p>那么，<strong>SupervisorJob 到底是何方神圣</strong>？让我们来看看它的源码定义：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段16</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="title">SupervisorJob</span><span class="params">(parent: <span class="type">Job</span>? = <span class="literal">null</span>)</span></span> : CompletableJob </span><br><span class="line">                    = SupervisorJobImpl(parent)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">CompletableJob</span> : <span class="type">Job</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="title">complete</span><span class="params">()</span></span>: <span class="built_in">Boolean</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="title">completeExceptionally</span><span class="params">(exception: <span class="type">Throwable</span>)</span></span>: <span class="built_in">Boolean</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据以上代码，我们可以看到，SupervisorJob() 其实不是构造函数，<strong>它只是一个普通的顶层函数</strong>。而这个方法返回的对象，是 Job 的子类。</p>
+<p>SupervisorJob 与 Job 最大的区别就在于，当它的子 Job 发生异常的时候，其他的子 Job 不会受到牵连。我这么说你可能会有点懵，下面我做了一个动图，来演示普通 Job 与 SupervisorJob 之间的差异。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/c0/64/c0eeea3b0b8b016df76ae7b3d9620264.gif?wh=1080x608" alt="img" style="zoom: 50%;" />
+
+<p>这个是普通 Job，对于子 Job 出现异常时的应对策略。可以看到，由于 parentJob 是一个普通的 Job 对象，当 job1 发生异常之后，它会导致 parentJob 取消，进而导致 job2、job3 也受到牵连。</p>
+<p>而这时候，如果我们把 parentJob 改为 SupervisorJob，job1 发生异常的的话，就不会影响到其他的 Job 了。</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/a4/cc/a482f7082d6d87dea51ffdb856e292cc.jpg?wh=2000x864" alt="img"></p>
+<p>所以到这里，我们就可以总结出第五条准则了：<strong>灵活使用 SupervisorJob，控制异常传播的范围</strong>。</p>
+<p><code>提示：并非所有情况下，我们都应该使用 SupervisorJob，有时候 Job 会更合适，这要结合实际场景分析。</code></p>
+<p>好，到目前为止，我们就已经了解了 try-catch 和 SupervisorJob 这两种处理异常的手段。但是，由于协程是结构化的，当我们的协程任务出现复杂的层级时，这两种手段其实都无法很好的应对。所以这个时候，我们就需要 CoroutineExceptionHandler 出场了。</p>
+<h2 id="CoroutineExceptionHandler"><a href="#CoroutineExceptionHandler" class="headerlink" title="CoroutineExceptionHandler"></a>CoroutineExceptionHandler</h2><p>对于 CoroutineExceptionHandler，我们其实在第 17 讲里也简单地提到过。它是 CoroutineContext 的元素之一，我们在创建协程的时候，可以指定对应的 CoroutineExceptionHandler。</p>
+<p>那么 CoroutineExceptionHandler 究竟适用于什么样的场景呢？让我们来看一个例子：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段17</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">val</span> scope = CoroutineScope(coroutineContext)</span><br><span class="line"></span><br><span class="line">    scope.launch &#123;</span><br><span class="line">        async &#123;</span><br><span class="line">            delay(<span class="number">100L</span>)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        launch &#123;</span><br><span class="line">            delay(<span class="number">100L</span>)</span><br><span class="line"></span><br><span class="line">            launch &#123;</span><br><span class="line">                delay(<span class="number">100L</span>)</span><br><span class="line">                <span class="number">1</span> / <span class="number">0</span> <span class="comment">// 故意制造异常</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        delay(<span class="number">100L</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">1000L</span>)</span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment">Exception in thread &quot;main&quot; ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>在上面的代码中，我模拟了一个复杂的协程嵌套场景。对于这样的情况，我们其实很难一个个在每个协程体里面去写 try-catch。所以这时候，为了捕获到异常，我们就可以使用 CoroutineExceptionHandler 了。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段18</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line">    <span class="keyword">val</span> myExceptionHandler = CoroutineExceptionHandler &#123; _, throwable -&gt;</span><br><span class="line">        println(<span class="string">&quot;Catch exception: <span class="variable">$throwable</span>&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注意这里</span></span><br><span class="line">    <span class="keyword">val</span> scope = CoroutineScope(coroutineContext + Job() + myExceptionHandler)</span><br><span class="line"></span><br><span class="line">    scope.launch &#123;</span><br><span class="line">        async &#123;</span><br><span class="line">            delay(<span class="number">100L</span>)</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        launch &#123;</span><br><span class="line">            delay(<span class="number">100L</span>)</span><br><span class="line"></span><br><span class="line">            launch &#123;</span><br><span class="line">                delay(<span class="number">100L</span>)</span><br><span class="line">                <span class="number">1</span> / <span class="number">0</span> <span class="comment">// 故意制造异常</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        delay(<span class="number">100L</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    delay(<span class="number">1000L</span>)</span><br><span class="line">    println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">Catch exception: ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">End</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>以上代码中，我们定义了一个 CoroutineExceptionHandler，然后把它传入了 scope 当中，这样一来，我们就可以捕获其中所有的异常了。</p>
+<p>看到这里，你也许松了一口气：终于有了一个简单处理协程异常的方式了。不过，你也别高兴得太早，因为我曾经就踩过 CoroutineExceptionHandler 的一个坑，最终导致 App 功能大面积异常。</p>
+<p>而出现这个问题的原因就是：CoroutineExceptionHandler 不起作用了！</p>
+<p><em><strong>为什么 CoroutineExceptionHandler 不起作用？</strong></em></p>
+<p>为了模拟我当时的业务场景，我把代码段 18 稍作改动。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段19</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line">   <span class="keyword">val</span> myExceptionHandler = CoroutineExceptionHandler &#123; _, throwable -&gt;</span><br><span class="line">       println(<span class="string">&quot;Catch exception: <span class="variable">$throwable</span>&quot;</span>)</span><br><span class="line">   &#125;</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 不再传入myExceptionHandler</span></span><br><span class="line">   <span class="keyword">val</span> scope = CoroutineScope(coroutineContext)</span><br><span class="line">   scope.launch &#123;</span><br><span class="line">       async &#123;</span><br><span class="line">           delay(<span class="number">100L</span>)</span><br><span class="line">       &#125;</span><br><span class="line">       launch &#123;</span><br><span class="line">           delay(<span class="number">100L</span>)</span><br><span class="line">           <span class="comment">// 变化在这里</span></span><br><span class="line">           launch(myExceptionHandler) &#123;</span><br><span class="line">               delay(<span class="number">100L</span>)</span><br><span class="line">               <span class="number">1</span> / <span class="number">0</span> </span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line">       delay(<span class="number">100L</span>)</span><br><span class="line">   &#125;</span><br><span class="line">   delay(<span class="number">1000L</span>)</span><br><span class="line">   println(<span class="string">&quot;End&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment">崩溃：</span></span><br><span class="line"><span class="comment">Exception in thread &quot;main&quot; ArithmeticException: / by zero</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>请你留意上面的注释，我们把自定义的 myExceptionHandler，放到出现异常的 launch 那里传了进去。按理说，程序的执行结果是不会发生变化才对的。但实际上，myExceptionHandler 并不会起作用，我们的异常不会被它捕获。</p>
+<p>如果你对比代码段 18 和代码段 19，你会发现，myExceptionHandler 直接定义在发生异常的位置反而不生效，而定义在最顶层却可以生效！你说它的作用域是不是很古怪？</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/22/13/22fyya9f9de13c8580b4508e7eabe813.gif?wh=1080x608" alt="img"></p>
+<p>其实，出现这种现象的原因，就是因为：CoroutineExceptionHandler 只在顶层的协程当中才会起作用。也就是说，当子协程当中出现异常以后，它们都会统一上报给顶层的父协程，然后顶层的父协程才会去调用 CoroutineExceptionHandler，来处理对应的异常。</p>
+<p>那么到这里，我们就可以总结出第六条准则了：<strong>使用 CoroutineExceptionHandler 处理复杂结构的协程异常，它仅在顶层协程中起作用</strong>。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>至此，这节课的内容就接近尾声了，我们来做一个简单的总结。</p>
+<p>在 Kotlin 协程当中，异常主要分为两大类，一类是协程取消异常（CancellationException），另一类是其他异常。为了处理这两大类问题，我们一共总结出了 6 大准则，这些我们都要牢记在心。</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/72/c5/72b96aa44f68fde40f626fe536eb36c5.jpg?wh=2000x763" alt="img"></p>
+<ul>
+<li>第一条准则：<strong>协程的取消需要内部的配合</strong>。</li>
+<li>第二条准则：<strong>不要轻易打破协程的父子结构</strong>！这一点，其实不仅仅只是针对协程的取消异常，而是要贯穿于整个协程的使用过程中。我们知道，协程的优势在于结构化并发，它的许多特性都是建立在这个特性之上的，如果我们无意中打破了它的父子结构，就会导致协程无法按照预期执行。</li>
+<li>第三条准则：<strong>捕获了 CancellationException 以后，要考虑是否应该重新抛出来</strong>。在协程体内部，协程是依赖于 CancellationException 来实现结构化取消的，有的时候我们出于某些目的需要捕获 CancellationException，但捕获完以后，我们还需要思考是否需要将其重新抛出来。</li>
+<li>第四条准则：不要用 try-catch 直接包裹 launch、async。这一点是很多初学者会犯的错误，考虑到协程代码的执行顺序与普通程序不一样，我们直接使用 try-catch 包裹 launch、async，是不会有任何效果的。</li>
+<li>第五条准则：<strong>灵活使用 SupervisorJob，控制异常传播的范围。</strong>SupervisorJob 是一种特殊的 Job，它可以控制异常的传播范围。普通的 Job，它会因为子协程当中的异常而取消自身，而 SupervisorJob 则不会受到子协程异常的影响。在很多业务场景下，我们都不希望子协程影响到父协程，所以 SupervisorJob 的应用范围也非常广。比如说 Android 当中的 viewModelScope，它就使用了 SupervisorJob，这样一来，我们的 App 就不会因为某个子协程的异常导致整个应用的功能出现紊乱。</li>
+<li>第六条准则：<strong>使用 CoroutineExceptionHandler 处理复杂结构的协程异常，它仅在顶层协程中起作用</strong>。我们都知道，传统的 try-catch 在协程当中并不能解决所有问题，尤其是在协程嵌套层级较深的情况下。这时候，Kotlin 官方为我们提供了 CoroutineExceptionHandler 作为补充。有了它，我们可以轻松捕获整个作用域内的所有异常。</li>
+</ul>
+<p>其实，这节课里我提到的这些案例，只是我平时工作中遇到的很小一部分。案例是讲不完的，在协程中处理异常，你将来肯定也会遇到千奇百怪的问题。但重要的是分析问题的思路，还有解决问题的手段。这节课我给你总结的 6 大准则呢，就是你将来遇到协程异常时，可以用的 6 种处理手段。</p>
+<p>当我们遇到问题的时候，首先要分析是 CancellationException 导致的，还是其他异常导致的。接着我们就可以根据实际情况去思考，该用哪种处理手段了。</p>
+<p>另外如果你足够细心的话，你会发现这节课总结出的 6 大准则，其实都跟协程的<strong>结构化并发</strong>有着密切联系。由于协程之间存在父子关系，因此它的异常处理也是遵循这一规律的。而协程的异常处理机制之所以这么复杂，也是因为它的结构化并发特性。</p>
+<p>所以，除了这 6 大准则以外，我们还可以总结出一个核心理念：<strong>因为协程是“结构化的”，所以异常传播也是“结构化的”</strong>。</p>
+<p>如果你能理解协程异常处理的核心理念，同时能够牢记前面的 6 大准则。我相信，将来不论你遇到什么样的古怪问题，你都可以分析出问题的根源，找到解决方案！</p>
+<h2 id="思考题"><a href="#思考题" class="headerlink" title="思考题"></a>思考题</h2><p>前面我们提到过，CoroutineExceptionHandler 可以一次性捕获整个作用域内所有协程的异常。那么，我们是不是可以抛弃 try-catch，只使用 CoroutineExceptionHandler 呢？为什么？</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://devsu.top">Carl Su</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://devsu.top/posts/a3460e51/">https://devsu.top/posts/a3460e51/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://devsu.top" target="_blank">码行</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Kotlin/">Kotlin</a></div><div class="post-share"><div class="social-share" data-image="http://t15.baidu.com/it/u=2335792902,1551903918&amp;fm=224&amp;app=112&amp;f=JPEG?w=500&amp;h=445" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/778b5847/" title="Kotlin编程第一课--(协程篇)22  并发：协程不需要处理同步吗？"><img class="cover" src="https://img.tt98.com/d/file/pic/2018060523545938/5b15f4a3092f0.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Kotlin编程第一课--(协程篇)22  并发：协程不需要处理同步吗？</div></div><div class="info-2"><div class="info-item-1"> 今天我们来讲讲协程的并发。 在大型软件的架构当中，并发也是一个不可避免的问题。然而，在传统的 Java 编程当中，并发却是个令人生畏的话题。因为 Java 的线程模型、内存模型、同步机制太复杂了，而当复杂的业务逻辑与复杂的并发模型混合在一起的时候，情况就更糟糕了！如果你用 Java 做过中大型软件，对此一定会深有体会。 我们都知道，Kotlin 的协程仍然是基于线程运行的。但是，经过一层封装以后，Kotlin 协程面对并发问题的时候，它的处理手段其实跟 Java 就大不一样。所以这节课，我们就来看看协程在并发问题上的处理，一起来探究下 Kotlin 协程的并发思路，从而真正解决并发的难题。 协程与并发在 Java 世界里，并发往往需要多个线程一起工作，而多线程往往就会有共享的状态，这时候程序就要处理同步问题了。很多初学者在这一步，都会把协程与线程的概念混淆在一起。比如你可以来看看下面这段代码，你觉得有多线程同步的问题吗？ // 代码段1fun main() = runBlocking &#123;    var i = 0    // Default 线程池   ...</div></div></div></a><a class="pagination-related" href="/posts/6532289/" title="Kotlin编程第一课--(协程篇)24  实战：让KtHttp支持Flow"><img class="cover" src="http://t15.baidu.com/it/u=1016075162,2061563941&amp;fm=224&amp;app=112&amp;f=JPEG?w=354&amp;h=500" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Kotlin编程第一课--(协程篇)24  实战：让KtHttp支持Flow</div></div><div class="info-2"><div class="info-item-1">Kotlin编程第一课–(协程篇)24 | 实战：让KtHttp支持Flow又到了熟悉的实战环节，这一次我们接着来改造 KtHttp，让它能够支持协程的 Flow API。 有了前面两次实战的基础，这次我们应该就轻车熟路了。在之前的4.0 版本中，为了让 KtHttp 支持挂起函数，我们有两种思路，一种是改造内部，另一种是扩展外部。同理，为了让 KtHttp 支持 Flow，这次的实战也是这两种思路。 因此，这节课我们仍然会分为两个版本。  5.0 版本，基于 4.0 版本的代码，从 KtHttp 的外部扩展出 Flow 的能力。  6.0 版本，修改 KtHttp 内部，让它支持 Flow API。   其实在实际的工作中，我们往往没有权限修改第三方提供的 SDK，那么这时候，如果想要让 SDK 获得 Flow 的能力，我们就只能借助 Kotlin 的扩展函数，为它扩展出 Flow 的能力。而对于工程内部的代码，我们希望某个功能模块获得 Flow 的能力，就可以直接修改它的源代码，让它直接支持 Flow。 那么在这节课里，我会同时用这两种手段来扩展并改造...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/85d82fa8/" title="Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？"><img class="cover" src="https://static001.geekbang.org/resource/image/b6/1c/b65feyy0bdc4764c6564a95912d7851c.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-06</div><div class="info-item-2">Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？</div></div><div class="info-2"><div class="info-item-1">Kotlin 的扩展（Extension），主要分为两种语法：第一个是扩展函数，第二个是扩展属性。从语法上看，扩展看起来就像是我们从类的外部为它扩展了新的成员。 这在实际编程当中是非常有用的功能。我们可以来想象一个场景：我们想修改 JDK 当中的 String，想在它的基础上增加一个方法“lastElement()”来获取末尾元素，如果使用 Java，我们是无法通过常规手段实现的，因为我们没办法修改 JDK 的源代码。任何第三方提供的 SDK，我们都无权修改。 不过，借助 Kotlin 的扩展函数，我们就完全可以在语义层面，来为第三方 SDK 的类扩展新的成员方法和成员属性。不管是为 JDK 的 String 增加新的成员方法，还是为 Android SDK 的 View 增加新成员属性，我们都可以实现。 Kotlin 的这个“扩展”功能看起来很神奇，它会不会很难学？其实不然，它的语法非常简洁。今天这节课，我们就一起来学习下 Kotlin...</div></div></div></a><a class="pagination-related" href="/posts/be9f17d6/" title="Kotlin编程第一课(目录)"><img class="cover" src="https://img2.baidu.com/it/u=3956021957,3313212296&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-10</div><div class="info-item-2">Kotlin编程第一课(目录)</div></div><div class="info-2"><div class="info-item-1">基础篇Kotlin编程第一课–(基础篇)01  Kotlin基础语法：正式开启学习之旅Kotlin编程第一课–(基础篇)02  面向对象：理解Kotlin设计者的良苦用心Kotlin编程第一课–(基础篇)03  Kotlin原理：编译器在幕后干了哪些“好事”？Kotlin编程第一课–(基础篇)04 | 实战：构建一个Kotlin版本的四则运算计算器Kotlin编程第一课–(基础篇)05  object关键字：你到底有多少种用法？Kotlin编程第一课–(基础篇)06  扩展：你的能力边界到底在哪里？Kotlin编程第一课–(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？Kotlin编程第一课–(基础篇)08  实战：用Kotlin写一个英语词频统计程序Kotlin编程第一课–(基础篇)加餐一  初识Kotlin函数式编程Kotlin编程第一课–(基础篇)09  委托：你为何总是被低估？Kotlin编程第一课–(基础篇)10  泛型：逆变or协变，傻傻分不清？Kotlin编程第一课–(基础篇)11 ...</div></div></div></a><a class="pagination-related" href="/posts/83a7144c/" title="2023-01-17-Kotlin协程 -  结构化并发"><img class="cover" src="https://s2.loli.net/2023/03/14/xEyFgn24zZPXe15.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-01-17</div><div class="info-item-2">2023-01-17-Kotlin协程 -  结构化并发</div></div><div class="info-2"><div class="info-item-1">CoroutineScope定义协程必须指定其 CoroutineScope，它会跟踪所有协程，同样它还可以取消由它所启动的所有协程。 常用的相关API有：  GlobalScope，生命周期是process级别的，及时Activity或Fragment已经被销毁，协程仍然在执行。 MainScope，在Activity中使用，可以在onDestroy()中取消协程。 viewModelScope，只能在ViewModel中使用，绑定ViewModel的生命周期。 lifecycleScope，只能在Activity、Fragment中使用，会绑定Activity和Fragment的生命周期  </div></div></div></a><a class="pagination-related" href="/posts/a20c9e06/" title="Kotlin协程"><img class="cover" src="https://s2.loli.net/2023/03/14/3MHPBy1Q4GncRlF.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-09</div><div class="info-item-2">Kotlin协程</div></div><div class="info-2"><div class="info-item-1">Kotlin协程协程的作用域构建器coroutineScope与runBlocking runBlocking是常规函数，而coroutineScope是挂起函数。 它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途  </div></div></div></a><a class="pagination-related" href="/posts/68bf7d20/" title="Kotlin函数"><img class="cover" src="https://img1.baidu.com/it/u=1546227440,2897989905&fm=253&fmt=auto&app=138&f=JPEG?w=889&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin函数</div></div><div class="info-2"><div class="info-item-1">函数类型作为返回类型fun main() &#123;	  println(show(&quot;Demo&quot;))      val lambdaFunction = showMethod(&quot;Jack&quot;) //注意lambdaFunction 这里的类型为(String,Int) -&gt; String    println(lambdaFunction(&quot;Carl&quot;,20))&#125;//普通函数fun show(name:String): String &#123;    return &quot;name is $name&quot;&#125;//返回类型为函数fun showMethod(name: String): (String,Int) -&gt; String &#123;    println(&quot;name is $name&quot;)    return &#123; name: String, age: Int -&gt;       ...</div></div></div></a><a class="pagination-related" href="/posts/8c331668/" title="Kotlin内置函数apply、let、run、with、also等区别"><img class="cover" src="https://s2.loli.net/2023/03/14/OpxWcuy2ktMzoQD.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin内置函数apply、let、run、with、also等区别</div></div><div class="info-2"><div class="info-item-1">Applyapply函数可看作一个配置函数，可以传入一个接收者，然后调用一系列函数来配置它以便使用，如果提供lambda给apply函数执行，它会返回配置好的接受者 val file1 = File(&quot;/User/geowin/hello.txt&quot;)file1.apply &#123; // this: File   setWritable(true)   setReadable(true)   setExecutable(false)&#125;  可以看到，调用一个个函数类配置接受者时，变量名就省略了，这是因为，在lambda表达式中，apply能让每个配置函数都作用于接受者，这种行为有时又叫做相关作用域,因为lambda表达式里的所有函数调用都是针对接收者的，或者说，它们是针对接受者的隐式调用. letlet函数能使某个变量作用于lambda表达式里，让it关键字能引用它。let与apply比较，let会把接受者传给lambda，而apply什么都不传，匿名函数执行完，apply会返回当前接受者，而let会返回lambda的最后一行。 fun...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Valine</span><span id="switch-btn"></span><span class="second-comment">Disqus</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div><div><div id="disqus_thread"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-cancel-%E4%B8%8D%E8%B5%B7%E4%BD%9C%E7%94%A8%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">为什么 cancel() 不起作用？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-1%EF%BC%9Acancel-%E4%B8%8D%E8%A2%AB%E5%93%8D%E5%BA%94"><span class="toc-number">1.1.</span> <span class="toc-text">场景 1：cancel() 不被响应</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-2%EF%BC%9A%E7%BB%93%E6%9E%84%E8%A2%AB%E7%A0%B4%E5%9D%8F"><span class="toc-number">1.2.</span> <span class="toc-text">场景 2：结构被破坏</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-3%EF%BC%9A%E6%9C%AA%E6%AD%A3%E7%A1%AE%E5%A4%84%E7%90%86-CancellationException"><span class="toc-number">1.3.</span> <span class="toc-text">场景 3：未正确处理 CancellationException</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-try-catch-%E4%B8%8D%E8%B5%B7%E4%BD%9C%E7%94%A8%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">为什么 try-catch 不起作用？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SupervisorJob"><span class="toc-number">3.</span> <span class="toc-text">SupervisorJob</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CoroutineExceptionHandler"><span class="toc-number">4.</span> <span class="toc-text">CoroutineExceptionHandler</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%9D%E8%80%83%E9%A2%98"><span class="toc-number">6.</span> <span class="toc-text">思考题</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2025 By Carl Su</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 6.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">学无止境</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !true) {
+    if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const disqusReset = conf => {
+    window.DISQUS && window.DISQUS.reset({
+      reload: true,
+      config: conf
+    })
+  }
+
+  const loadDisqus = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyDisqus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    window.disqus_identifier = isShuoshuo ? path : '/posts/a3460e51/'
+    window.disqus_url = isShuoshuo ? location.origin + path : 'https://devsu.top/posts/a3460e51/'
+
+    const disqus_config = function () {
+      this.page.url = disqus_url
+      this.page.identifier = disqus_identifier
+      this.page.title = 'Kotlin编程第一课--(协程篇)23  异常：try-catch 坑！'
+    }
+
+    if (window.DISQUS) disqusReset(disqus_config)
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://.disqus.com/embed.js'
+      script.setAttribute('data-timestamp', +new Date())
+      document.head.appendChild(script)
+    }
+
+    btf.addGlobalFn('themeChange', () => disqusReset(disqus_config), 'disqus')
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqus-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=&api_key=&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Disqus'
+      ? window.shuoshuoComment = { loadComment: loadDisqus }
+      : window.loadOtherComment = loadDisqus
+    return
+  }
+
+  if ('Valine' === 'Disqus' || !true) {
+    if (true) btf.loadComment(document.getElementById('disqus_thread'), loadDisqus)
+    else {
+      loadDisqus()
+      GLOBAL_CONFIG_SITE.pageType === 'post' && getCount()
+    }
+  } else {
+    window.loadOtherComment = loadDisqus
+  }
+})()</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

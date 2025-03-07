@@ -1,0 +1,525 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Kotlin编程第一课--(基础篇)11  注解与反射：进阶必备技能 | 码行</title><meta name="author" content="Carl Su"><meta name="copyright" content="Carl Su"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="今天这节课，我们来学习一下 Kotlin 的注解（Annotation）和反射（Reflection）。 注解和反射，是 Kotlin 当中比较难理解的内容了。和前面我们学习的泛型一样，注解与反射都是比较抽象的概念。我们现在已经知道，Kotlin 的泛型，就是在代码架构的层面进行的一种抽象，从而达到代码逻辑尽可能复用的目的。那么，注解与反射，它们存在的意义是什么呢？ 答案是：提高代码的灵活性。 灵">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin编程第一课--(基础篇)11  注解与反射：进阶必备技能">
+<meta property="og:url" content="https://devsu.top/posts/f3ad1558/index.html">
+<meta property="og:site_name" content="码行">
+<meta property="og:description" content="今天这节课，我们来学习一下 Kotlin 的注解（Annotation）和反射（Reflection）。 注解和反射，是 Kotlin 当中比较难理解的内容了。和前面我们学习的泛型一样，注解与反射都是比较抽象的概念。我们现在已经知道，Kotlin 的泛型，就是在代码架构的层面进行的一种抽象，从而达到代码逻辑尽可能复用的目的。那么，注解与反射，它们存在的意义是什么呢？ 答案是：提高代码的灵活性。 灵">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img2.baidu.com/it/u=923478948,106462584&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=281">
+<meta property="article:published_time" content="2022-05-12T03:29:13.000Z">
+<meta property="article:modified_time" content="2025-03-07T02:49:14.887Z">
+<meta property="article:author" content="Carl Su">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img2.baidu.com/it/u=923478948,106462584&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=281"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Kotlin编程第一课--(基础篇)11  注解与反射：进阶必备技能",
+  "url": "https://devsu.top/posts/f3ad1558/",
+  "image": "https://img2.baidu.com/it/u=923478948,106462584&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=281",
+  "datePublished": "2022-05-12T03:29:13.000Z",
+  "dateModified": "2025-03-07T02:49:14.887Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Carl Su",
+      "url": "https://devsu.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png"><link rel="canonical" href="https://devsu.top/posts/f3ad1558/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const hour = new Date().getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (theme === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else theme === 'light' ? activateLightMode() : activateDarkMode()
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6243425e2ecb037931274c4ca1db3132";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Carl Su","link":"链接: ","source":"来源: 码行","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Kotlin编程第一课--(基础篇)11  注解与反射：进阶必备技能',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">193</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">41</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://img2.baidu.com/it/u=923478948,106462584&amp;fm=253&amp;fmt=auto&amp;app=138&amp;f=JPEG?w=500&amp;h=281);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png" alt="Logo"><span class="site-name">码行</span></a><a class="nav-page-title" href="/"><span class="site-name">Kotlin编程第一课--(基础篇)11  注解与反射：进阶必备技能</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Kotlin编程第一课--(基础篇)11  注解与反射：进阶必备技能</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-05-12T03:29:13.000Z" title="发表于 2022-05-12 11:29:13">2022-05-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-07T02:49:14.887Z" title="更新于 2025-03-07 10:49:14">2025-03-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/">Android</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/">Kotlin</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/Kotlin%E7%BC%96%E7%A8%8B%E7%AC%AC%E4%B8%80%E8%AF%BE/">Kotlin编程第一课</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6.2k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>20分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>今天这节课，我们来学习一下 Kotlin 的<strong>注解</strong>（Annotation）和<strong>反射</strong>（Reflection）。</p>
+<p>注解和反射，是 Kotlin 当中比较难理解的内容了。和前面我们学习的泛型一样，注解与反射都是比较抽象的概念。我们现在已经知道，Kotlin 的泛型，就是在代码架构的层面进行的一种抽象，从而达到代码逻辑尽可能复用的目的。那么，注解与反射，它们存在的意义是什么呢？</p>
+<p>答案是：提高代码的<strong>灵活性</strong>。</p>
+<p>灵活性，就让注解与反射同样有着举足轻重的地位，借助这两种技术，我们可以做许多有趣的事情。Kotlin 与 Java 领域，有许多著名的开源库，比如大名鼎鼎的<a target="_blank" rel="noopener" href="https://spring.io/projects/spring-boot">Spring Boot</a>、Retrofit、Gson等，都会用到这两种技术。</p>
+<p>所以，只有深刻理解了注解和反射，我们才可能理解那些著名开源库的设计思路，也才可能读懂这些世界顶级开发者的代码。</p>
+<p>当然，课程进行到这里，学习的难度也越来越高了，不过你也不要因此产生畏难的情绪，只要你能多思考、多练习，把对知识点的理解都落实到代码上，那我相信你对 Kotlin 的掌握情况、代码能力甚至架构能力，都会有一个质的飞跃。并且，在课程中我也会尽量用通俗易懂的语言、例子来给你介绍这些陌生的概念知识，让你在学习的过程中可以轻松一些。</p>
+<p>好，下面我们就正式开始吧。</p>
+<h2 id="认识注解"><a href="#认识注解" class="headerlink" title="认识注解"></a>认识注解</h2><p>注解，可能是我们眼里<strong>最熟悉的陌生人</strong>。虽然经常见面，但我们并不真的认识它。</p>
+<p>实际上，注解几乎无处不在，比如说，我们经常能在 Kotlin 标准库当中看见“@Deprecated”这样的注解，它代表了被标注的代码“已废弃”。如果你有 Java 的编程经验，你一定见过“@Override”这个注解，它代表了重写。</p>
+<p>而就算你没有任何编程经验，你也已经在前面的课程中见到过注解了。比如我们在第 4 讲的单元测试代码当中，就用到了 @Test 这个注解；在第 8 讲的性能测试代码中，我们用到了 @Benchmark 这个注解。</p>
+<p>其实，要理解 Kotlin 的注解也并不困难，因为在我们的生活当中也有类似的概念，那就是<strong>便利贴</strong>。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/14/CtvZ9EerRDTlbq5.png" alt="img" style="zoom: 33%;" />
+
+<p>比如在学习的时候，你看到书本里的某个知识点有了新的感悟，就会拿起便利贴，写下来你当时的想法，然后贴到书本当中去。</p>
+<p>另一个例子就是，我们经常会在论文或者维基百科当中看到的“注解”。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/14/3FCaw82V7gfZXxG.png" alt="img" style="zoom: 50%;" />
+
+<p>所以，从这个角度来看，我们很容易就能想清楚注解到底是什么。其实，它就是“对已有数据进行补充的一种数据”。这话读起来有点绕，让我用更通俗的语言来解释一下：</p>
+<ul>
+<li>我们学习的时候，写下来的便利贴注解，其实就是对知识点的补充。</li>
+<li>维基百科当中的注解，其实就是对它描述内容的一种补充。</li>
+</ul>
+<p>因此<strong>，Kotlin 当中的注解，其实就是“程序代码的一种补充”</strong>。</p>
+<p>现在我们就拿第 4 讲中的单元测试代码为例，来看看它的作用。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TestCalculatorV3</span> &#123;</span><br><span class="line"><span class="comment">//   注解</span></span><br><span class="line"><span class="comment">//    ↓</span></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">testCalculate</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">val</span> calculator = CalculatorV3()</span><br><span class="line"></span><br><span class="line">        <span class="keyword">val</span> res1 = calculator.calculate(<span class="string">&quot;2333333333333332+1&quot;</span>)</span><br><span class="line">        assertEquals(<span class="string">&quot;2333333333333333&quot;</span>, res1)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面这段代码中的“@Test”，它的作用是告诉我们的 IDE，testCalculate() 这个方法是一个测试方法。IDE 检测到这个注解以后，就会在旁边的工具栏展示出一个绿色的三角形按钮，方便我们直接运行这个测试方法。</p>
+<p>如果我们删掉“@Test”这个注解，这段代码就会变成一段普通的 Kotlin 代码，而旁边工具栏的绿色三角形按钮也会消失。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/14/eiY3K5aygnlLRfs.gif" alt="img" style="zoom:67%;" />
+
+<p>从这个例子里，我们其实就能体会到注解的灵活性。我们开发者只需要用 Kotlin 的语法写代码即可，至于代码是不是用来做单元测试，我们用一个简单的“@Test”注解就可以搞定。这中间有<strong>解耦</strong>的思想在里面。</p>
+<p>认识到注解是什么以后，我们后面的学习就很简单了。接下来，我们就来看看注解的定义还有使用。</p>
+<h3 id="注解的定义"><a href="#注解的定义" class="headerlink" title="注解的定义"></a>注解的定义</h3><p>首先，让我们来看看注解是如何定义的。Kotlin 的源代码当中，提供了很多内置的注解，比如 @Deprecated、@JvmStatic、@JvmOverloads 等等。除了 Kotlin 默认就有的注解以外，我们也可以定义自己的注解。</p>
+<p>比如说，如果我们想定义一个 @Deprecated 注解，应该怎么做呢？其实非常简单，总体结构和定义一个普通的 Kotlin 类差不多，只是多了一些额外的东西。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">@Target(CLASS, FUNCTION, PROPERTY, ANNOTATION_CLASS, CONSTRUCTOR, PROPERTY_SETTER, PROPERTY_GETTER, TYPEALIAS)</span></span><br><span class="line"><span class="meta">@MustBeDocumented</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">annotation</span> <span class="keyword">class</span> <span class="title class_">Deprecated</span>(</span><br><span class="line">    <span class="keyword">val</span> message: String,</span><br><span class="line">    <span class="keyword">val</span> replaceWith: ReplaceWith = ReplaceWith(<span class="string">&quot;&quot;</span>),</span><br><span class="line">    <span class="keyword">val</span> level: DeprecationLevel = DeprecationLevel.WARNING</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码里，我们可以看到，@Deprecated 这个注解的定义上面，还有其他的注解 @Target、@MustBeDocumented。这样的注解，我们叫做<strong>元注解</strong>，即它本身是注解的同时，还可以用来修饰其他注解。</p>
+<p>Kotlin 常见的元注解有四个：</p>
+<ul>
+<li><strong>@Target</strong>，这个注解是指定了被修饰的注解都可以用在什么地方，也就是目标；</li>
+<li><strong>@Retention</strong>，这个注解是指定了被修饰的注解是不是编译后可见、是不是运行时可见，也就是保留位置；</li>
+<li><strong>@Repeatable</strong>，这个注解是允许我们在同一个地方，多次使用相同的被修饰的注解，使用场景比较少；</li>
+<li><strong>@MustBeDocumented</strong>，指定被修饰的注解应该包含在生成的 API 文档中显示，这个注解一般用于 SDK 当中。</li>
+</ul>
+<p>这里，你需要注意的是 Target 和 Retention 的取值：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> <span class="keyword">class</span> <span class="title class_">AnnotationTarget</span> &#123;</span><br><span class="line">    <span class="comment">// 类、接口、object、注解类</span></span><br><span class="line">    CLASS,</span><br><span class="line">    <span class="comment">// 注解类</span></span><br><span class="line">    ANNOTATION_CLASS,</span><br><span class="line">    <span class="comment">// 泛型参数</span></span><br><span class="line">    TYPE_PARAMETER,</span><br><span class="line">    <span class="comment">// 属性</span></span><br><span class="line">    PROPERTY,</span><br><span class="line">    <span class="comment">// 字段、幕后字段</span></span><br><span class="line">    FIELD,</span><br><span class="line">    <span class="comment">// 局部变量</span></span><br><span class="line">    LOCAL_VARIABLE,</span><br><span class="line">    <span class="comment">// 函数参数</span></span><br><span class="line">    VALUE_PARAMETER,</span><br><span class="line">    <span class="comment">// 构造器</span></span><br><span class="line">    CONSTRUCTOR,</span><br><span class="line">    <span class="comment">// 函数</span></span><br><span class="line">    FUNCTION,</span><br><span class="line">    <span class="comment">// 属性的getter</span></span><br><span class="line">    PROPERTY_GETTER,</span><br><span class="line">    <span class="comment">// 属性的setter</span></span><br><span class="line">    PROPERTY_SETTER,</span><br><span class="line">    <span class="comment">// 类型</span></span><br><span class="line">    TYPE,</span><br><span class="line">    <span class="comment">// 表达式</span></span><br><span class="line">    EXPRESSION,</span><br><span class="line">    <span class="comment">// 文件</span></span><br><span class="line">    FILE,</span><br><span class="line">    <span class="comment">// 类型别名</span></span><br><span class="line">    TYPEALIAS</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> <span class="keyword">class</span> <span class="title class_">AnnotationRetention</span> &#123;</span><br><span class="line">    <span class="comment">// 注解只存在于源代码，编译后不可见</span></span><br><span class="line">    SOURCE,</span><br><span class="line">    <span class="comment">// 注解编译后可见，运行时不可见</span></span><br><span class="line">    BINARY,</span><br><span class="line">    <span class="comment">// 编译后可见，运行时可见</span></span><br><span class="line">    RUNTIME</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这段代码的注释当中，我详细解释了 Target 和 Retention 的取值，以及它们各自代表的意义。现在我们就可以回过头，来看看我们定义的“@Deprecated”到底是什么含义。</p>
+<p>通过 @Target 的取值，我们可以看到，@Deprecated 只能作用于这些地方：类、 函数、 属性、注解类、构造器、属性 getter、属性 setter、类型别名。此外，@Deprecated 这个类当中还包含了几个成员：message 代表了废弃的提示信息；replaceWith 代表了应该用什么来替代废弃的部分；level 代表警告的程度，分别是 WARNING、ERROR、HIDDEN。</p>
+<p>OK，现在我们已经知道如何定义注解了，接下来看看如何用它。我们仍然以 @Deprecated 注解为例。</p>
+<h3 id="注解的使用"><a href="#注解的使用" class="headerlink" title="注解的使用"></a>注解的使用</h3><p>假设现在我们要开发一个计算器，第一个版本的 Calculator 代码出现了问题，然后这个问题在 CalculatorV3 当中修复了。这时候，我们希望所有的调用方都将 Calculator 改为 CalculatorV3。这种情况，@Deprecated 这个注解就恰好符合我们的需求。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">@Deprecated(</span></span><br><span class="line"><span class="meta">    message = <span class="string">&quot;Use CalculatorV3 instead.&quot;</span>,</span></span><br><span class="line"><span class="meta">    replaceWith = ReplaceWith(<span class="string">&quot;CalculatorV3&quot;</span>),</span></span><br><span class="line"><span class="meta">    level = DeprecationLevel.ERROR</span></span><br><span class="line"><span class="meta">)</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Calculator</span> &#123;</span><br><span class="line">    <span class="comment">// 错误逻辑</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">add</span><span class="params">(a: <span class="type">Int</span>, b: <span class="type">Int</span>)</span></span>: <span class="built_in">Int</span> = a - b</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">CalculatorV3</span> &#123;</span><br><span class="line">    <span class="comment">// 正确逻辑</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">add</span><span class="params">(a: <span class="type">Int</span>, b: <span class="type">Int</span>)</span></span>: <span class="built_in">Int</span> = a + b</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上面的代码中，我们使用 @Deprecated 修饰了 Calculator 这个类。message 代表了报错的提示信息；replaceWith 代表了正确的解决方案；DeprecationLevel.ERROR 则代表了 IDE 会把这个问题当作是错误的来看待。</p>
+<p>现在，我们再来看看 @Deprecated 的实际效果：</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/62/89/6212fddyy950855b67c6f267c5351e89.gif?wh=2102x1754" alt="img" style="zoom: 33%;" />
+
+<p>可以看到，当我们在代码当中使用了 Calculator 的时候，IDE 会报错，鼠标挪到报错处后，IDE 会显示 message 当中的内容“Use CalculatorV3 instead.”。另外，IDE 还会提供一个快速修复的选项“Replace with CalculatorV3”，只要我们点击那个选项，我们的 Calculator 就会被直接替换成 CalculatorV3，从而达到修复错误的目的。</p>
+<p>还有，由于我们使用的 level 是 DeprecationLevel.ERROR，所以 IDE 会直接报错。而如果我们使用的是 DeprecationLevel.WARNING，IDE 就只会提示一个警告，而不是错误了。</p>
+<p>好了，到这里，我们就了解了注解要如何定义和使用。其实啊，只要我们真正理解了 Kotlin 的注解到底是什么东西，前面的这些注解的语法是很容易就能记住的。不过，Kotlin 注解在使用的时候，还有一个细节需要注意，那就是注解的<strong>精确使用目标</strong>。</p>
+<p>我们看一个具体的例子，比如Dagger当中的 @Inject 注解：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">object</span> Singleton &#123;</span><br><span class="line"><span class="comment">//    ①</span></span><br><span class="line"><span class="comment">//    ↓</span></span><br><span class="line">    <span class="meta">@set:Inject</span></span><br><span class="line">    <span class="keyword">lateinit</span> <span class="keyword">var</span> person: Person</span><br><span class="line"><span class="comment">//     ↑</span></span><br><span class="line"><span class="comment">//     ②</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码，是一个简单的 Dagger 使用场景。如果你不熟悉 Dagger，那也没关系，你只需要关注一下上面的两个注释。</p>
+<ul>
+<li><strong>注释①</strong>：如果去掉 set 这个标记，直接使用 @Inject 这个注解，我们的程序将无法正常工作。这是因为 Kotlin 当中的一个 var 修饰的属性，它会有多种含义：这个属性背后的字段（field）、这个属性对应的 setter、还有这个属性对应的 getter，在没有明确标注出来要用哪个的时候，@Inject 根本不知道该如何决定。因此，这里的“@set:Inject”的作用，就是明确标记出注解的精确使用目标（Use-site targets）。</li>
+<li><strong>注释②</strong>：如果没有 lateinit 这个关键字，person 这个属性是必须要有初始值的，要么直接赋值，要么在构造函数当中被赋值。因为如果它不被初始化，person 这个属性将为空，而这个就和它的类型“不可为空的 Person 类型”冲突了。而加上 lateinit 修饰的属性，即使它是不可为空的，编译器也会允许它无初始值。但当我们需要依赖注入的时候，常常需要与 lateinit 结合使用。</li>
+</ul>
+<p>实际上，注解的精确使用目标，一般是和注解一起使用的，在上面的例子当中，set 就是和 @Inject 一起使用的。而除了 set 以外，Kotlin 当中还有其他的使用目标：</p>
+<ul>
+<li>file，作用于文件；</li>
+<li>property，作用于属性；</li>
+<li>field，作用于字段；</li>
+<li>get，作用于属性 getter；</li>
+<li>set，作用于属性 setter；</li>
+<li>receiver，作用于扩展的接受者参数；</li>
+<li>param，作用于构造函数参数；</li>
+<li>setparam，作用于函数参数；</li>
+<li>delegate，作用于委托字段。</li>
+</ul>
+<p>好，理解了注解这个特性之后，我们再来看看 Kotlin 的反射。</p>
+<h2 id="认识反射"><a href="#认识反射" class="headerlink" title="认识反射"></a>认识反射</h2><p>反射，是 Kotlin 当中另一个比较抽象的概念。如果说注解是<strong>最熟悉的陌生人</strong>，那反射就<strong>单纯只是个陌生人</strong>了。因为，我们很少会在平时的业务开发当中直接用到反射。但是，在架构设计的时候，反射却可以极大地提升架构的灵活性。很多热门的开源库，也都喜欢用反射来做一些不同寻常的事情。因此，反射也是极其重要的一个语法特性。</p>
+<p>所有的计算机程序其实都是服务于真实世界，用来解决实际问题的。所以，其实我们也通过一些真实世界的例子来理解反射的本质。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/03/14/tOfu6y2Q5gTEWBN.png" alt="img" style="zoom:33%;" />
+
+<p>古人云：吾日三省吾身，指的是人的自我反省能力<strong>。反射，则是程序自我反省的能力</strong>。人的自我反省的能力，跟程序的反射，它们之间有许多相似之处。</p>
+<ul>
+<li>人类可以<strong>反省自己当前的状态</strong>，比如说，我们随时可以知道自己是不是困了。而在 Kotlin 当中，程序可以通过反射来检查代码自身的状态，比如说，判断某个变量，它是不是可变的。</li>
+<li>另外，人类反省自己的状态以后，还可以<strong>主动改变自己的状态</strong>。比如说，困了就休息一会儿、饿了就吃饭、渴了就喝点水。而在 Kotlin 当中，我们可以在运行时，用反射来查看变量的值是否符合预期，如果不符合预期，我们就可以动态修改这个变量的值，即使这个变量是 private 的甚至是 final 的。</li>
+<li>还有，人类可以<strong>根据状态作出不同的决策</strong>。比如说，上班的路上，如果快迟到了，我们就会走快点，如果时间很充足，就可以走慢一点。而在程序世界里，JSON 解析经常会用到 @SerializedName 这个注解，如果属性有 @SerializedName 修饰的话，它就以指定的名称为准，如果没有，那就直接使用属性的名称来解析。</li>
+</ul>
+<p>所以，总的来看，Kotlin 反射具备这三个特质：</p>
+<ul>
+<li><strong>感知</strong>程序的状态，包含程序的运行状态，还有源代码结构；</li>
+<li><strong>修改</strong>程序的状态；</li>
+<li>根据程序的状态，<strong>调整</strong>自身的决策行为。</li>
+</ul>
+<h3 id="反射的应用"><a href="#反射的应用" class="headerlink" title="反射的应用"></a>反射的应用</h3><p>在 Kotlin 当中，反射库并没有直接集成到标准库当中。这是为了方便一些对程序安装包敏感的应用，可以根据实际需求来选择是否要用 Kotlin 反射。比如，在 Android 开发当中，我们对安装包体积就十分敏感，如果没有反射的需求，就完全不需要多引入这个依赖。</p>
+<p>而对应的，如果我们需要用到反射，就必须要引入这个依赖：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">implementation <span class="string">&quot;org.jetbrains.kotlin:kotlin-reflect&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>前面我们刚了解过 Kotlin 反射的三个特质，那么在这里，我们就用代码来探索下这三种特质。</p>
+<p>在正常情况下，我们写出来的程序，其实也可以感知自身部分的状态。比如，我们前面课程中写的计算器程序，还有词频统计程序，本质上都是对输入数据状态的感知。不过，它们感知的状态十分有限。</p>
+<p>假设，现在有一个待实现的函数 readMembers。这个函数的参数 obj 可能是任何的类型，我们需要读取 obj 当中所有的成员属性的名称和值，那么具体该怎么做呢？</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> student = Student(<span class="string">&quot;Tom&quot;</span>, <span class="number">99.5</span>, <span class="number">170</span>)</span><br><span class="line">    <span class="keyword">val</span> school = School(<span class="string">&quot;PKU&quot;</span>, <span class="string">&quot;Beijing...&quot;</span>)</span><br><span class="line"></span><br><span class="line">    readMembers(student)</span><br><span class="line">    readMembers(school)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">readMembers</span><span class="params">(obj: <span class="type">Any</span>)</span></span> &#123;</span><br><span class="line">    <span class="comment">// 读取obj的所有成员属性的名称和值</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Student</span>(</span><br><span class="line">    <span class="keyword">val</span> name: String,</span><br><span class="line">    <span class="keyword">val</span> score: <span class="built_in">Double</span>,</span><br><span class="line">    <span class="keyword">val</span> height: <span class="built_in">Int</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">School</span>(</span><br><span class="line">    <span class="keyword">val</span> name: String,</span><br><span class="line">    <span class="keyword">var</span> address: String</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 要求readMembers函数能够输出以下内容：</span></span><br><span class="line"></span><br><span class="line">Student.height=<span class="number">170</span></span><br><span class="line">Student.name=Tom</span><br><span class="line">Student.score=<span class="number">99.5</span></span><br><span class="line">School.address=Beijing...</span><br><span class="line">School.name=PKU</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码，我们可以看到，readMembers() 这个函数无法提前知道参数是什么类型，但是，在这个函数当中，我们还是要能够准确找到 obj 的所有成员属性，然后输出它们的名称和值。</p>
+<p>对于这样的问题，也许你会第一时间想到用 when 表达式，写出类似这样的代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">readMembers</span><span class="params">(obj: <span class="type">Any</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">when</span>(obj) &#123;</span><br><span class="line">        <span class="keyword">is</span> Student -&gt; &#123; <span class="comment">/*...*/</span> &#125;</span><br><span class="line">        <span class="keyword">is</span> School -&gt; &#123; <span class="comment">/*...*/</span>&#125;</span><br><span class="line">        <span class="keyword">else</span> -&gt; &#123; <span class="comment">/*...*/</span>&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是，在这个例子里，我们是只有 Student、School 这两种情况，而在实际情况下，obj 可能的类型是成千上万的，我们根本无法用 when 的方式提前硬编码进行预测。比如你可以再看看下面这段示例：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">readMembers</span><span class="params">(obj: <span class="type">Any</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">when</span>(obj) &#123;</span><br><span class="line">        <span class="keyword">is</span> Student -&gt; &#123; <span class="comment">/*...*/</span> &#125;</span><br><span class="line">        <span class="keyword">is</span> School -&gt; &#123; <span class="comment">/*...*/</span>&#125;</span><br><span class="line">        <span class="comment">// 硬编码的话，这里要写成千上万个逻辑分支，根本不可能做到</span></span><br><span class="line">        <span class="keyword">else</span> -&gt; &#123; <span class="comment">/*...*/</span>&#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可见，即使我们有心想要写上万个逻辑分支，那当中的代码量也是不可想象的。因此，对于类似这样的问题，我们就可以考虑使用反射了。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">readMembers</span><span class="params">(obj: <span class="type">Any</span>)</span></span> &#123;</span><br><span class="line">    obj::<span class="keyword">class</span>.memberProperties.forEach &#123;</span><br><span class="line">        println(<span class="string">&quot;<span class="subst">$&#123;obj::class.simpleName&#125;</span>.<span class="subst">$&#123;it.name&#125;</span>=<span class="subst">$&#123;it.getter.call(obj)&#125;</span>&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看，通过反射，简单的几行代码就搞定了这个需求。如果你是第一次接触反射，可能会觉得上面的代码有点难懂，我来带你分析一下。</p>
+<p>首先，是 <strong>obj::class</strong>，这是 Kotlin 反射的语法，我们叫做<strong>类引用</strong>，通过这样的语法，我们就可以读取一个变量的“类型信息”，并且就能拿到这个变量的类型，它的类型是 KClass。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">actual</span> <span class="keyword">interface</span> <span class="title class_">KClass</span>&lt;<span class="type">T : Any</span>&gt; : <span class="type">KDeclarationContainer</span>, <span class="type">KAnnotatedElement</span>, <span class="type">KClassifier</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">actual</span> <span class="keyword">val</span> simpleName: String?</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">actual</span> <span class="keyword">val</span> qualifiedName: String?</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="keyword">val</span> members: Collection&lt;KCallable&lt;*&gt;&gt;</span><br><span class="line">    <span class="comment">// 省略部分代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个 KClass 其实就代表了一个 Kotlin 类，通过 obj::class，我们就可以拿到这个类型的所有信息，比如说，类的名称“obj::class.simpleName”。而如果要获取类的所有成员属性，我们访问它的扩展属性 memberProperties 就可以了。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">val</span> &lt;T : Any&gt; KClass&lt;T&gt;.memberProperties: Collection&lt;KProperty1&lt;T, *&gt;&gt;</span><br><span class="line">    <span class="keyword">get</span>() = (<span class="keyword">this</span> <span class="keyword">as</span> KClassImpl&lt;T&gt;).<span class="keyword">data</span>().allNonStaticMembers.filter &#123; it.isNotExtension &amp;&amp; it <span class="keyword">is</span> KProperty1&lt;*, *&gt; &#125; <span class="keyword">as</span> Collection&lt;KProperty1&lt;T, *&gt;&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在拿到所有的成员属性以后，我们可以通过 <strong>forEach</strong> 遍历所有的属性，它的类型是 KProperty1，同时也是 KCallable 的子类，我们通过调用属性的 getter.call()，就可以拿到 obj 属性的值了。</p>
+<p>这样，到目前为止，我们的程序就已经可以感知到自身的状态了，接下来我们来尝试修改自身的状态，这是反射的第二个特质。</p>
+<p>具体需求是这样的：如果传入的参数当中，存在 String 类型的 address 变量，我们就将其改为 China。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> student = Student(<span class="string">&quot;Tom&quot;</span>, <span class="number">99.5</span>, <span class="number">170</span>)</span><br><span class="line">    <span class="keyword">val</span> school = School(<span class="string">&quot;PKU&quot;</span>, <span class="string">&quot;Beijing...&quot;</span>)</span><br><span class="line"></span><br><span class="line">    readMembers(student)</span><br><span class="line">    readMembers(school)</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 修改其中的address属性</span></span><br><span class="line">    modifyAddressMember(school)</span><br><span class="line"></span><br><span class="line">    readMembers(school)</span><br><span class="line">    readMembers(student)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">modifyAddressMember</span><span class="params">(obj: <span class="type">Any</span>)</span></span> &#123;</span><br><span class="line">    obj::<span class="keyword">class</span>.memberProperties.forEach &#123;</span><br><span class="line">        <span class="keyword">if</span> (it.name == <span class="string">&quot;address&quot;</span> &amp;&amp; <span class="comment">// ①</span></span><br><span class="line">            it <span class="keyword">is</span> KMutableProperty1 &amp;&amp; <span class="comment">// ②</span></span><br><span class="line">            it.setter.parameters.size == <span class="number">2</span> &amp;&amp; <span class="comment">// ③</span></span><br><span class="line">            it.getter.returnType.classifier == String::<span class="keyword">class</span> <span class="comment">// ④</span></span><br><span class="line">        ) &#123;</span><br><span class="line">            <span class="comment">// ⑤</span></span><br><span class="line">            it.setter.call(obj, <span class="string">&quot;China&quot;</span>)</span><br><span class="line">            println(<span class="string">&quot;====Address changed.====&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 运行结果：</span></span><br><span class="line">Student.height=<span class="number">170</span></span><br><span class="line">Student.name=Tom</span><br><span class="line">Student.score=<span class="number">99.5</span></span><br><span class="line"><span class="comment">// 注意这里</span></span><br><span class="line">School.address=Beijing...</span><br><span class="line">School.name=PKU</span><br><span class="line">====Address changed.====</span><br><span class="line"><span class="comment">// 注意这里</span></span><br><span class="line">School.address=China</span><br><span class="line">School.name=PKU</span><br><span class="line">Student.height=<span class="number">170</span></span><br><span class="line">Student.name=Tom</span><br><span class="line">Student.score=<span class="number">99.5</span></span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码中，我们可以看到，当我们运行了 modifyAddressMember(school) 这行代码以后，反射代码就会检查传入的变量当中，是否存在 String 类型的 address，如果存在，就会将它的值修改为“China”。</p>
+<p>这里你可以关注下我在其中标出来的四个注释，它们就代表了关键的逻辑：</p>
+<ul>
+<li>注释①，判断属性的名称是否为 address，如果不是，则跳过；</li>
+<li>注释②，判断属性是否可变，在我们的例子当中 address 是用 var 修饰的，因此它的类型是 KMutableProperty1；</li>
+<li>注释③，我们在后面要调用属性的 setter，所以我们要先判断 setter 的参数是否符合预期，这里 setter 的参数个数应该是 2，第一个参数是 obj 自身，第二个是实际的值；</li>
+<li>注释④，根据属性的 getter 的返回值类型 returnType，来判断属性的类型是不是 String 类型；</li>
+<li>注释⑤，调用属性的 setter 方法，传入 obj，还有“China”，来完成属性的赋值。</li>
+</ul>
+<p>好，到这里，我们就已经了解了反射的两种特质，分别是感知程序的状态和修改程序的状态。现在只剩下第三种，根据程序状态作出不同决策。这个其实非常容易做到。</p>
+<p>假如在前面的例子的基础上，我们想要增加一个功能：如果传入的参数没有符合需求的 address 属性，我们就输出一行错误日志。这其实也就代表了根据程序的状态，作出不同的行为。比如，我们可以看看下面这段示例，其中的 else 分支就是我们的决策行为“输出错误日志”：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">modifyAddressMember</span><span class="params">(obj: <span class="type">Any</span>)</span></span> &#123;</span><br><span class="line">    obj::<span class="keyword">class</span>.memberProperties.forEach &#123;</span><br><span class="line">        <span class="keyword">if</span> (it.name == <span class="string">&quot;address&quot;</span> &amp;&amp;</span><br><span class="line">            it <span class="keyword">is</span> KMutableProperty1 &amp;&amp;</span><br><span class="line">            it.getter.returnType.classifier == String::<span class="keyword">class</span></span><br><span class="line">        ) &#123;</span><br><span class="line">            it.setter.call(obj, <span class="string">&quot;China&quot;</span>)</span><br><span class="line">            println(<span class="string">&quot;====Address changed.====&quot;</span>)</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 差别在这里</span></span><br><span class="line">            println(<span class="string">&quot;====Wrong type.====&quot;</span>)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出结果：</span></span><br><span class="line">Student.height=<span class="number">170</span></span><br><span class="line">Student.name=Tom</span><br><span class="line">Student.score=<span class="number">99.5</span></span><br><span class="line">School.address=Beijing...</span><br><span class="line">School.name=PKU</span><br><span class="line">====Address changed.====</span><br><span class="line">====Wrong type.====  <span class="comment">// 差别在这里</span></span><br><span class="line">School.address=China</span><br><span class="line">School.name=PKU</span><br><span class="line">Student.height=<span class="number">170</span></span><br><span class="line">Student.name=Tom</span><br><span class="line">Student.score=<span class="number">99.5</span></span><br></pre></td></tr></table></figure>
+
+<p>在前面的几个案例当中，我们用到了 Kotlin 反射的几个关键的反射 Api 和类：KClass、KCallable、KParameter、KType。现在，我们来进一步看看它们的关键成员。</p>
+<p><strong>KClass 代表了一个 Kotlin 的类，下面是它的重要成员：</strong></p>
+<ul>
+<li>simpleName，类的名称，对于匿名内部类，则为 null；</li>
+<li>qualifiedName，完整的类名；</li>
+<li>members，所有成员属性和方法，类型是Collection&gt;；</li>
+<li>constructors，类的所有构造函数，类型是Collection&gt;&gt;；</li>
+<li>nestedClasses，类的所有嵌套类，类型是Collection&gt;；</li>
+<li>visibility，类的可见性，类型是KVisibility?，分别是这几种情况，PUBLIC、PROTECTED、INTERNAL、PRIVATE；</li>
+<li>isFinal，是不是 final；</li>
+<li>isOpen，是不是 open；</li>
+<li>isAbstract，是不是抽象的；</li>
+<li>isSealed，是不是密封的；</li>
+<li>isData，是不是数据类；</li>
+<li>isInner，是不是内部类；</li>
+<li>isCompanion，是不是伴生对象；</li>
+<li>isFun，是不是函数式接口；</li>
+<li>isValue，是不是 Value Class。</li>
+</ul>
+<p><strong>KCallable 代表了 Kotlin 当中的所有可调用的元素，比如函数、属性、甚至是构造函数。下面是 KCallable 的重要成员：</strong></p>
+<ul>
+<li><p>name，名称，这个很好理解，属性和函数都有名称；</p>
+</li>
+<li><p>parameters，所有的参数，类型是List，指的是调用这个元素所需的所有参数；</p>
+</li>
+<li><p>returnType，返回值类型，类型是 KType；</p>
+</li>
+<li><p>typeParameters，所有的类型参数 (比如泛型)，类型是List；</p>
+</li>
+<li><p>call()，KCallable 对应的调用方法，在前面的例子中，我们就调用过 setter、getter 的 call() 方法。</p>
+</li>
+<li><p>visibility，可见性；</p>
+</li>
+<li><p>isSuspend，是不是挂起函数。</p>
+</li>
+</ul>
+<p><strong>KParameter，代表了KCallable当中的参数，它的重要成员如下：</strong></p>
+<ul>
+<li>index，参数的位置，下标从 0 开始；</li>
+<li>name，参数的名称，源码当中参数的名称；</li>
+<li>type，参数的类型，类型是 KType；</li>
+<li>kind，参数的种类，对应三种情况：INSTANCE 是对象实例、EXTENSION_RECEIVER 是扩展接受者、VALUE 是实际的参数值。</li>
+</ul>
+<p><strong>KType，代表了 Kotlin 当中的类型，它重要的成员如下：</strong></p>
+<ul>
+<li>classifier，类型对应的 Kotlin 类，即 KClass，我们前面的例子中，就是用的 classifier &#x3D;&#x3D; String::class 来判断它是不是 String 类型的；</li>
+<li>arguments，类型的类型参数，看起来好像有点绕，其实它就是这个类型的泛型参数；</li>
+<li>isMarkedNullable，是否在源代码中标记为可空类型，即这个类型的后面有没有“?”修饰。</li>
+</ul>
+<p>所以，归根结底，<strong>反射，其实就是 Kotlin 为我们开发者提供的一个工具</strong>，通过这个工具，我们可以让程序在运行的时候“自我反省”。这里的“自我反省”一共有三种情况，其实跟我们的现实生活类似。</p>
+<ul>
+<li>第一种情况，程序在运行的时候，可以通过反射来查看自身的状态。</li>
+<li>第一种情况，程序在运行的时候，可以通过反射来查看自身的状态。</li>
+<li>第一种情况，程序在运行的时候，可以通过反射来查看自身的状态。</li>
+</ul>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>好了，让我们来做个简单的总结吧。</p>
+<p>注解和反射，是 Kotlin 当中十分重要的特性，它们可以极大地提升程序的灵活性。那么，在使用注解和反射的时候，你要知道，<strong>注解，其实就是“程序代码的一种补充”，而反射，其实就是“程序代码自我反省的一种方式”。</strong></p>
+<p>在这节课当中，我们已经分别见识了注解与反射的威力。那么，如果我们将它们两者结合起来使用会产生什么样的反应呢？我们将在下节课当中揭晓！</p>
+<h2 id="思考题"><a href="#思考题" class="headerlink" title="思考题"></a>思考题</h2><p>这节课，我们学习了 Kotlin 的注解、反射，其实 Java 当中也是有注解与反射的。那么你知道 Kotlin 和 Java 之间有哪些异同点吗？欢迎给我留言，我们一起交流探讨。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://devsu.top">Carl Su</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://devsu.top/posts/f3ad1558/">https://devsu.top/posts/f3ad1558/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://devsu.top" target="_blank">码行</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Kotlin/">Kotlin</a></div><div class="post-share"><div class="social-share" data-image="https://img2.baidu.com/it/u=923478948,106462584&amp;fm=253&amp;fmt=auto&amp;app=138&amp;f=JPEG?w=500&amp;h=281" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/91ec5a6c/" title="Kotlin编程第一课--(基础篇)10  泛型：逆变or协变，傻傻分不清？"><img class="cover" src="https://static001.geekbang.org/resource/image/ec/51/ec8567b665dafcb6ac69d3fdbcfd6251.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Kotlin编程第一课--(基础篇)10  泛型：逆变or协变，傻傻分不清？</div></div><div class="info-2"><div class="info-item-1"> 这节课我们来学习 Kotlin 的泛型（Generics），包括泛型基础、使用处型变、声明处型变以及星投影。 泛型，这个概念在很多编程语言里面都存在。在中大型软件开发当中，我们对泛型的使用也十分频繁，因为它可以让我们在不同类型之间复用相似的逻辑代码。 不管是 Android 领域，还是后端领域，泛型在软件的架构当中都有着举足轻重的地位。只有透彻理解了泛型，我们才能理解各种设计模式，进而才可能设计出合理的软件架构。 然而，想要学好泛型却不是一件容易的事情。这是因为，泛型实在太抽象了。 我们都知道，程序其实是对真实世界的抽象，比如我们在前面实战课里写的计算器程序，现实生活当中就有计算器这个东西，我们想要在电脑里写一个抽象的计算器程序，也不会那么难理解，因为它和现实生活相关。可是泛型，它是对程序的抽象。程序本来就已经够抽象了，我们还要在它的基础上再做一次抽象。 这样一来，泛型和我们真实的物理世界差了两层抽象，因此，泛型对于我们人类来说，会显得尤为虚无缥缈。   不过，程序其实也是源自于生活的。所以在这节课里，我会尽量用生活中的例子来给你解释下 Kotlin...</div></div></div></a><a class="pagination-related" href="/posts/e45ff726/" title="Kotlin编程第一课--(基础篇)12  实战：用Kotlin实现一个网络请求框架KtHttp"><img class="cover" src="https://static001.geekbang.org/resource/image/98/14/98bb006b524561dae4e80a864ae2c814.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Kotlin编程第一课--(基础篇)12  实战：用Kotlin实现一个网络请求框架KtHttp</div></div><div class="info-2"><div class="info-item-1">在前面几节课当中，我们一起学习了 Kotlin 的委托、泛型、注解、反射这几个高级特性。那么今天这节课，我们将会运用这些特性，来写一个 Kotlin 版本的 HTTP 网络请求框架。由于它是纯 Kotlin 开发的，我们就把它叫做是 KtHttp 吧。 事实上，在 Java 和 Kotlin 领域，有许多出色的网络请求框架，比如 OkHttp、Retrofit、Fuel。而我们今天要实现的 KtHttp，它的灵感来自于 Retrofit。之所以选择 Retrofit 作为借鉴的对象，是因为它的底层使用了大量的泛型、注解和反射的技术。如果你能跟着我一起用泛型、注解、反射来实现一个简单的网络请求框架，相信你对这几个知识点的认识也会更加透彻。 在这节课当中，我会带你从 0 开始实现这个网络请求框架。和往常一样，为了方便你理解，我们的代码会分为两个版本：  1.0 版本，我们会用 Java 思维，以最简单直白的方式来实现 KtHttp 的基础功能——同步式的 GET 网络请求； 2.0 版本，我们会用函数式思维来重构代码。  另外，在正式开始学习之前，我也建议你去 clone 我...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/85d82fa8/" title="Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？"><img class="cover" src="https://static001.geekbang.org/resource/image/b6/1c/b65feyy0bdc4764c6564a95912d7851c.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-06</div><div class="info-item-2">Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？</div></div><div class="info-2"><div class="info-item-1">Kotlin 的扩展（Extension），主要分为两种语法：第一个是扩展函数，第二个是扩展属性。从语法上看，扩展看起来就像是我们从类的外部为它扩展了新的成员。 这在实际编程当中是非常有用的功能。我们可以来想象一个场景：我们想修改 JDK 当中的 String，想在它的基础上增加一个方法“lastElement()”来获取末尾元素，如果使用 Java，我们是无法通过常规手段实现的，因为我们没办法修改 JDK 的源代码。任何第三方提供的 SDK，我们都无权修改。 不过，借助 Kotlin 的扩展函数，我们就完全可以在语义层面，来为第三方 SDK 的类扩展新的成员方法和成员属性。不管是为 JDK 的 String 增加新的成员方法，还是为 Android SDK 的 View 增加新成员属性，我们都可以实现。 Kotlin 的这个“扩展”功能看起来很神奇，它会不会很难学？其实不然，它的语法非常简洁。今天这节课，我们就一起来学习下 Kotlin...</div></div></div></a><a class="pagination-related" href="/posts/be9f17d6/" title="Kotlin编程第一课(目录)"><img class="cover" src="https://img2.baidu.com/it/u=3956021957,3313212296&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-10</div><div class="info-item-2">Kotlin编程第一课(目录)</div></div><div class="info-2"><div class="info-item-1">基础篇Kotlin编程第一课–(基础篇)01  Kotlin基础语法：正式开启学习之旅Kotlin编程第一课–(基础篇)02  面向对象：理解Kotlin设计者的良苦用心Kotlin编程第一课–(基础篇)03  Kotlin原理：编译器在幕后干了哪些“好事”？Kotlin编程第一课–(基础篇)04 | 实战：构建一个Kotlin版本的四则运算计算器Kotlin编程第一课–(基础篇)05  object关键字：你到底有多少种用法？Kotlin编程第一课–(基础篇)06  扩展：你的能力边界到底在哪里？Kotlin编程第一课–(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？Kotlin编程第一课–(基础篇)08  实战：用Kotlin写一个英语词频统计程序Kotlin编程第一课–(基础篇)加餐一  初识Kotlin函数式编程Kotlin编程第一课–(基础篇)09  委托：你为何总是被低估？Kotlin编程第一课–(基础篇)10  泛型：逆变or协变，傻傻分不清？Kotlin编程第一课–(基础篇)11 ...</div></div></div></a><a class="pagination-related" href="/posts/83a7144c/" title="2023-01-17-Kotlin协程 -  结构化并发"><img class="cover" src="https://s2.loli.net/2023/03/14/xEyFgn24zZPXe15.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-01-17</div><div class="info-item-2">2023-01-17-Kotlin协程 -  结构化并发</div></div><div class="info-2"><div class="info-item-1">CoroutineScope定义协程必须指定其 CoroutineScope，它会跟踪所有协程，同样它还可以取消由它所启动的所有协程。 常用的相关API有：  GlobalScope，生命周期是process级别的，及时Activity或Fragment已经被销毁，协程仍然在执行。 MainScope，在Activity中使用，可以在onDestroy()中取消协程。 viewModelScope，只能在ViewModel中使用，绑定ViewModel的生命周期。 lifecycleScope，只能在Activity、Fragment中使用，会绑定Activity和Fragment的生命周期  </div></div></div></a><a class="pagination-related" href="/posts/a20c9e06/" title="Kotlin协程"><img class="cover" src="https://s2.loli.net/2023/03/14/3MHPBy1Q4GncRlF.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-09</div><div class="info-item-2">Kotlin协程</div></div><div class="info-2"><div class="info-item-1">Kotlin协程协程的作用域构建器coroutineScope与runBlocking runBlocking是常规函数，而coroutineScope是挂起函数。 它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途  </div></div></div></a><a class="pagination-related" href="/posts/68bf7d20/" title="Kotlin函数"><img class="cover" src="https://img1.baidu.com/it/u=1546227440,2897989905&fm=253&fmt=auto&app=138&f=JPEG?w=889&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin函数</div></div><div class="info-2"><div class="info-item-1">函数类型作为返回类型fun main() &#123;	  println(show(&quot;Demo&quot;))      val lambdaFunction = showMethod(&quot;Jack&quot;) //注意lambdaFunction 这里的类型为(String,Int) -&gt; String    println(lambdaFunction(&quot;Carl&quot;,20))&#125;//普通函数fun show(name:String): String &#123;    return &quot;name is $name&quot;&#125;//返回类型为函数fun showMethod(name: String): (String,Int) -&gt; String &#123;    println(&quot;name is $name&quot;)    return &#123; name: String, age: Int -&gt;       ...</div></div></div></a><a class="pagination-related" href="/posts/8c331668/" title="Kotlin内置函数apply、let、run、with、also等区别"><img class="cover" src="https://s2.loli.net/2023/03/14/OpxWcuy2ktMzoQD.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin内置函数apply、let、run、with、also等区别</div></div><div class="info-2"><div class="info-item-1">Applyapply函数可看作一个配置函数，可以传入一个接收者，然后调用一系列函数来配置它以便使用，如果提供lambda给apply函数执行，它会返回配置好的接受者 val file1 = File(&quot;/User/geowin/hello.txt&quot;)file1.apply &#123; // this: File   setWritable(true)   setReadable(true)   setExecutable(false)&#125;  可以看到，调用一个个函数类配置接受者时，变量名就省略了，这是因为，在lambda表达式中，apply能让每个配置函数都作用于接受者，这种行为有时又叫做相关作用域,因为lambda表达式里的所有函数调用都是针对接收者的，或者说，它们是针对接受者的隐式调用. letlet函数能使某个变量作用于lambda表达式里，让it关键字能引用它。let与apply比较，let会把接受者传给lambda，而apply什么都不传，匿名函数执行完，apply会返回当前接受者，而let会返回lambda的最后一行。 fun...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Valine</span><span id="switch-btn"></span><span class="second-comment">Disqus</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div><div><div id="disqus_thread"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A4%E8%AF%86%E6%B3%A8%E8%A7%A3"><span class="toc-number">1.</span> <span class="toc-text">认识注解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E8%A7%A3%E7%9A%84%E5%AE%9A%E4%B9%89"><span class="toc-number">1.1.</span> <span class="toc-text">注解的定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E8%A7%A3%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="toc-number">1.2.</span> <span class="toc-text">注解的使用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%A4%E8%AF%86%E5%8F%8D%E5%B0%84"><span class="toc-number">2.</span> <span class="toc-text">认识反射</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E5%B0%84%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">2.1.</span> <span class="toc-text">反射的应用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%9D%E8%80%83%E9%A2%98"><span class="toc-number">4.</span> <span class="toc-text">思考题</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2025 By Carl Su</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 6.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">学无止境</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !true) {
+    if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const disqusReset = conf => {
+    window.DISQUS && window.DISQUS.reset({
+      reload: true,
+      config: conf
+    })
+  }
+
+  const loadDisqus = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyDisqus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    window.disqus_identifier = isShuoshuo ? path : '/posts/f3ad1558/'
+    window.disqus_url = isShuoshuo ? location.origin + path : 'https://devsu.top/posts/f3ad1558/'
+
+    const disqus_config = function () {
+      this.page.url = disqus_url
+      this.page.identifier = disqus_identifier
+      this.page.title = 'Kotlin编程第一课--(基础篇)11  注解与反射：进阶必备技能'
+    }
+
+    if (window.DISQUS) disqusReset(disqus_config)
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://.disqus.com/embed.js'
+      script.setAttribute('data-timestamp', +new Date())
+      document.head.appendChild(script)
+    }
+
+    btf.addGlobalFn('themeChange', () => disqusReset(disqus_config), 'disqus')
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqus-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=&api_key=&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Disqus'
+      ? window.shuoshuoComment = { loadComment: loadDisqus }
+      : window.loadOtherComment = loadDisqus
+    return
+  }
+
+  if ('Valine' === 'Disqus' || !true) {
+    if (true) btf.loadComment(document.getElementById('disqus_thread'), loadDisqus)
+    else {
+      loadDisqus()
+      GLOBAL_CONFIG_SITE.pageType === 'post' && getCount()
+    }
+  } else {
+    window.loadOtherComment = loadDisqus
+  }
+})()</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

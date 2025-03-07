@@ -1,0 +1,338 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>2023-03-27-Hilt基本用法 | 码行</title><meta name="author" content="Carl Su"><meta name="copyright" content="Carl Su"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="添加依赖项首先，将 hilt-android-gradle-plugin 插件添加到项目的根级 build.gradle 文件中： GroovyKotlinplugins &amp;#123;  ...  id &amp;#x27;com.google.dagger.hilt.android&amp;#x27; version &amp;#x27;2.44&amp;#x27; apply false&amp;#125;plugins &amp;#123">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2023-03-27-Hilt基本用法">
+<meta property="og:url" content="https://devsu.top/posts/bf1f0a14/index.html">
+<meta property="og:site_name" content="码行">
+<meta property="og:description" content="添加依赖项首先，将 hilt-android-gradle-plugin 插件添加到项目的根级 build.gradle 文件中： GroovyKotlinplugins &amp;#123;  ...  id &amp;#x27;com.google.dagger.hilt.android&amp;#x27; version &amp;#x27;2.44&amp;#x27; apply false&amp;#125;plugins &amp;#123">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png">
+<meta property="article:published_time" content="2023-03-27T09:14:16.000Z">
+<meta property="article:modified_time" content="2025-03-07T02:49:14.875Z">
+<meta property="article:author" content="Carl Su">
+<meta property="article:tag" content="Android">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "2023-03-27-Hilt基本用法",
+  "url": "https://devsu.top/posts/bf1f0a14/",
+  "image": "https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png",
+  "datePublished": "2023-03-27T09:14:16.000Z",
+  "dateModified": "2025-03-07T02:49:14.875Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Carl Su",
+      "url": "https://devsu.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png"><link rel="canonical" href="https://devsu.top/posts/bf1f0a14/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const hour = new Date().getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (theme === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else theme === 'light' ? activateLightMode() : activateDarkMode()
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6243425e2ecb037931274c4ca1db3132";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Carl Su","link":"链接: ","source":"来源: 码行","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '2023-03-27-Hilt基本用法',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">193</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">41</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png" alt="Logo"><span class="site-name">码行</span></a><a class="nav-page-title" href="/"><span class="site-name">2023-03-27-Hilt基本用法</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">2023-03-27-Hilt基本用法</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-03-27T09:14:16.000Z" title="发表于 2023-03-27 17:14:16">2023-03-27</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-07T02:49:14.875Z" title="更新于 2025-03-07 10:49:14">2025-03-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/">Android</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">284</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>1分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="添加依赖项"><a href="#添加依赖项" class="headerlink" title="添加依赖项"></a>添加依赖项</h2><p>首先，将 <code>hilt-android-gradle-plugin</code> 插件添加到项目的根级 <code>build.gradle</code> 文件中：</p>
+<div class="tabs"><div class="nav-tabs"><button type="button" class="tab active">Groovy</button><button type="button" class="tab">Kotlin</button></div><div class="tab-contents"><div class="tab-item-content active"><figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">plugins &#123;</span><br><span class="line">  ...</span><br><span class="line">  id <span class="string">&#x27;com.google.dagger.hilt.android&#x27;</span> version <span class="string">&#x27;2.44&#x27;</span> apply <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div><div class="tab-item-content"><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">plugins &#123;</span><br><span class="line">  ...</span><br><span class="line">  id(<span class="string">&quot;com.google.dagger.hilt.android&quot;</span>) version <span class="string">&quot;2.44&quot;</span> apply <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div></div><div class="tab-to-top"><button type="button" aria-label="scroll to top"><i class="fas fa-arrow-up"></i></button></div></div>
+
+<p>然后，应用 Gradle 插件并在 <code>app/build.gradle</code> 文件中添加以下依赖项：</p>
+<div class="tabs"><div class="nav-tabs"><button type="button" class="tab active">Groovy</button><button type="button" class="tab">Kotlin</button></div><div class="tab-contents"><div class="tab-item-content active"><figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">...</span><br><span class="line">plugins &#123;</span><br><span class="line">  id <span class="string">&#x27;kotlin-kapt&#x27;</span></span><br><span class="line">  id <span class="string">&#x27;com.google.dagger.hilt.android&#x27;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">android &#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">  implementation <span class="string">&quot;com.google.dagger:hilt-android:2.44&quot;</span></span><br><span class="line">  kapt <span class="string">&quot;com.google.dagger:hilt-compiler:2.44&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Allow references to generated code</span></span><br><span class="line">kapt &#123;</span><br><span class="line">  correctErrorTypes <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div><div class="tab-item-content"><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">plugins &#123;</span><br><span class="line">  kotlin(<span class="string">&quot;kapt&quot;</span>)</span><br><span class="line">  id(<span class="string">&quot;com.google.dagger.hilt.android&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">android &#123;</span><br><span class="line">  ...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">dependencies &#123;</span><br><span class="line">  implementation(<span class="string">&quot;com.google.dagger:hilt-android:2.44&quot;</span>)</span><br><span class="line">  kapt(<span class="string">&quot;com.google.dagger:hilt-android-compiler:2.44&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Allow references to generated code</span></span><br><span class="line">kapt &#123;</span><br><span class="line">  correctErrorTypes = <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div></div><div class="tab-to-top"><button type="button" aria-label="scroll to top"><i class="fas fa-arrow-up"></i></button></div></div>
+
+<blockquote>
+<p><strong>注意</strong>：同时使用 Hilt 和<a target="_blank" rel="noopener" href="https://developer.android.com/topic/libraries/data-binding?hl=zh-cn">数据绑定</a>的项目需要 Android Studio 4.0 或更高版本。</p>
+</blockquote>
+<p>Hilt 使用 <a target="_blank" rel="noopener" href="https://developer.android.com/studio/write/java8-support?hl=zh-cn">Java 8 功能</a>。如需在项目中启用 Java 8，请将以下代码添加到 <code>app/build.gradle</code> 文件中：</p>
+<div class="tabs"><div class="nav-tabs"><button type="button" class="tab active">Groovy</button><button type="button" class="tab">Kotlin</button></div><div class="tab-contents"><div class="tab-item-content active"><figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">  ...</span><br><span class="line">  compileOptions &#123;</span><br><span class="line">    sourceCompatibility JavaVersion.VERSION_1_8</span><br><span class="line">    targetCompatibility JavaVersion.VERSION_1_8</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div><div class="tab-item-content"><figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">android &#123;</span><br><span class="line">  ...</span><br><span class="line">  compileOptions &#123;</span><br><span class="line">    sourceCompatibility = JavaVersion.VERSION_1_8</span><br><span class="line">    targetCompatibility = JavaVersion.VERSION_1_8</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></div></div><div class="tab-to-top"><button type="button" aria-label="scroll to top"><i class="fas fa-arrow-up"></i></button></div></div>
+
+<p>如果配置有异常，可以参考 <a target="_blank" rel="noopener" href="https://dagger.dev/hilt/gradle-setup">Gradle Build Setup</a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://devsu.top">Carl Su</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://devsu.top/posts/bf1f0a14/">https://devsu.top/posts/bf1f0a14/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://devsu.top" target="_blank">码行</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Android/">Android</a></div><div class="post-share"><div class="social-share" data-image="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/6f434e78/" title="2023-03-23-CentOS新建定时任务"><img class="cover" src="https://s2.loli.net/2023/03/23/KLmkEbpJArO4z1H.webp" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">2023-03-23-CentOS新建定时任务</div></div><div class="info-2"><div class="info-item-1">模拟场景  在CentOS中，新建一个定时任务，在每天的8、12、14、18点自动执行shell脚本 可以使用crontab命令来  打开终端，输入以下命令来编辑crontab文件  crontab -e# 如果不是root用户，需要使用 sudo crontab -e   在编辑器中添加以下命令：  0 8,12,14,18 * * * /path/to/your/script.sh  如果你想每隔6个小时执行一次，可以使用以下方式: 0 */6 * * * /path/to/your/script.sh  这个语句的含义是每隔6小时执行一次 /path/to/your/script.sh 脚本。0表示每次执行的开始时间是整点，*/6表示每隔6小时执行一次，* * *表示每天、每月、每周都执行。  /path/to/your/script.sh 这里最好使用你的shell脚本的绝对路径  script.sh pwd # /rootcd /var/lib/jenkins/workspace/IMCS echo $(date) &gt;&gt;...</div></div></div></a><a class="pagination-related" href="/posts/7028d55e/" title="2023-03-29-CE修改器加速百度网盘下载"><img class="cover" src="https://img1.mydrivers.com/img/20210916/ecbb517f-6cd5-438f-9efc-98e9973eece3.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">2023-03-29-CE修改器加速百度网盘下载</div></div><div class="info-2"><div class="info-item-1">操作环境 Windows 10 (这个无所谓) Cheat Engine 7.5 百度网盘 7.26.0以及以下   这个是我已经测试过的版本，不要随便升级百度网盘，以免软件不可用  安装软件Cheat Engine,找到旁边的Releases，获取最新版本的CE  如果不能访问github，可以使用我的阿里网盘链接下载  Cheat Engine https://www.aliyundrive.com/s/nVngFfgNE1c 提取码: 11av 点击链接保存，或者复制本段内容，打开「阿里云盘」APP ，无需下载极速在线查看，视频原画倍速播放。  在最近添加里面找到  CE加速我们先来看一下未使用CE加速之前百度网盘的下载速度  可以看到是龟速下载，言归正传，我们开始加速  上图的gif已经展示了如何使用CE来加速的过程，下面我们来详细介绍。 打开CE加速器,按照下图的顺序找到baidunetdiskhost.exe的进程。可以看到这里有两个baidunetdiskhost.exe，只有一个是有用的，这里我们把两个都进行同样的操作。  我们打开进程后，勾选Enable...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/e911a731/" title="2023-03-30-Android-使用Chrome调试WebView"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-03-30</div><div class="info-item-2">2023-03-30-Android-使用Chrome调试WebView</div></div><div class="info-2"><div class="info-item-1">为了调试WebView，需要在应用程序中启用WebView的调试模式。可以通过在应用程序的Java代码中添加以下代码实现： javaCopy codeif(Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.KITKAT) &#123;    WebView.setWebContentsDebuggingEnabled(true);&#125;  此外，在WebView中打开的网页也可以通过Chrome开发者工具进行调试。具体步骤如下：  在手机上打开应用程序并进入WebView页面。 在电脑上打开Chrome浏览器。 在地址栏输入 chrome://inspect 并回车。 点击 “设备” 按钮，会列出连接到电脑上的所有设备。 找到相应的应用程序并点击 “检查” 按钮，即可打开Chrome开发者工具进行WebView的调试。  需要注意的是，Chrome开发者工具只能调试已经加载的网页，无法调试WebView中的本地HTML文件。 </div></div></div></a><a class="pagination-related" href="/posts/935bce3/" title="2023-05-12-Hilt的使用"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-05-12</div><div class="info-item-2">2023-05-12-Hilt的使用</div></div><div class="info-2"><div class="info-item-1">Hilt的作用Hilt是Dagger的最强辅助  Hilt简化了Dagger使用，大量减少了使用Dagger时编写的模板代码。 Hilt提供一套标准组件和作用域注解：不必再自定义组件和作用域。 Hilt提供几种预定义的的绑定(提供对象实例的获取称为绑定)：如Application和Activity。 Hilt提供集中预定义的限定符(Qualifier)： @ApplicationContext和@ActivityContext。  添加依赖项首先，将hilt-android-gradle-plugi添加到Project级的build.gradle文件中： plugins &#123;    id(&quot;com.google.dagger.hilt.android&quot;) version &quot;2.44&quot; apply false&#125;  然后，应用 Gradle 插件并在 app/build.gradle 文件中添加以下依赖项： plugins &#123;  kotlin(&quot;kapt&quot;) //报错的话使用  id...</div></div></div></a><a class="pagination-related" href="/posts/409df144/" title="2023-07-08-Android手动升级AGP"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-07-08</div><div class="info-item-2">2023-07-08-Android手动升级AGP</div></div><div class="info-2"><div class="info-item-1">打开Android Studio工程，有些项目会弹出升级AGP的提示，有些项目又不会。 最近因为升级了工程的某些依赖库，需要将 compileSdk 和targetSdk升级到33，同时工程会报错，显示AGP版本低了，需要升级。 操作方法  在AS里面搜索Upgrade Assistant ![截屏2023-07-08 22.48.45](&#x2F;Users&#x2F;carl&#x2F;Library&#x2F;Application Support&#x2F;typora-user-images&#x2F;截屏2023-07-08 22.48.45.png) </div></div></div></a><a class="pagination-related" href="/posts/7c600644/" title="2024-05-21-Mapbox for Android - 本地化地图"><img class="cover" src="https://s2.loli.net/2024/05/21/m5X46WwBKfZEgJp.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2024-05-21</div><div class="info-item-2">2024-05-21-Mapbox for Android - 本地化地图</div></div><div class="info-2"><div class="info-item-1">加载地图private val mapboxMap by lazy &#123;	mapView.mapboxMap &#125;mapboxMap.apply &#123;    loadStyle(Style.MAPBOX_STREETS)    setCamera(        CameraOptions.Builder()        .center(Point.fromLngLat(LONGITUDE, LATITUDE))        .zoom(15.0)        .build()    )&#125;  可以看到地图的效果是  如何将这些注记用中文展示，需要修改mapboxMap的style private lateinit var locale: Localelocale = resources.configuration.locales.get(0)mapboxMap.apply &#123;    loadStyle(Style.MAPBOX_STREETS)&#123;        //或者这里的local...</div></div></div></a><a class="pagination-related" href="/posts/be1a9334/" title="Android-在Activity中使用Menu"><img class="cover" src="https://img10.51tietu.net/pic/20191030/k2hqdmpfendk2hqdmpfend.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Android-在Activity中使用Menu</div></div><div class="info-2"><div class="info-item-1">在Activity中使用Menu资源文件​	首先在 res 目录下新建一个menu文件夹，右击res目录–&gt;New–&gt;Android Resource Directory，输入文件夹名menu，在弹出的菜单中Directory Name输入Menu，Resource type 选择Menu，然后在此文件夹下新建一个 main.xml的菜单文件，右击menu–&gt;New–&gt;Menu Resource File。    最后添加 Item的 id和title即可. &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;&lt;menu xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;&gt;&lt;item    android:id=&quot;@+id/add_item&quot;    android:title=&quot;@string/add&quot; /&gt;&lt;item   ...</div></div></div></a><a class="pagination-related" href="/posts/f305e41/" title="Android 11 分区存储"><img class="cover" src="https://img9.51tietu.net/pic/20190921/idxelngfttlidxelngfttl.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Android 11 分区存储</div></div><div class="info-2"><div class="info-item-1">场景从微信打开KML文件，选择自家开发的App打开，发现能够读取读取文件路径，但是在操作的时候显示错误 java.io.FileNotFoundException: /storage/emulated/0/Android/data/com.tencent.mm/MicroMsg/Download/xxx.kml: open failed: EACCES (Permission denied)  其中AS工程已经正确配置存储权限，并且application已经配置android:requestLegacyExternalStorage=&quot;true&quot; 因项目在Android10上能够正确运行，但是在Android 11及以上有异常，猜想是因为Android 11做了一些限制。 因此采用另外一种方法：先把真实路径从获取到的Uri对象中解析出来，然后把文件拷贝一份到App目录下面，再对这个文件进行解析 /**     *  从Uri获取真实路径     * @param context     * @param uri     * @return     */   ...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Valine</span><span id="switch-btn"></span><span class="second-comment">Disqus</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div><div><div id="disqus_thread"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E4%BE%9D%E8%B5%96%E9%A1%B9"><span class="toc-number">1.</span> <span class="toc-text">添加依赖项</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2025 By Carl Su</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 6.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">学无止境</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !true) {
+    if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const disqusReset = conf => {
+    window.DISQUS && window.DISQUS.reset({
+      reload: true,
+      config: conf
+    })
+  }
+
+  const loadDisqus = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyDisqus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    window.disqus_identifier = isShuoshuo ? path : '/posts/bf1f0a14/'
+    window.disqus_url = isShuoshuo ? location.origin + path : 'https://devsu.top/posts/bf1f0a14/'
+
+    const disqus_config = function () {
+      this.page.url = disqus_url
+      this.page.identifier = disqus_identifier
+      this.page.title = '2023-03-27-Hilt基本用法'
+    }
+
+    if (window.DISQUS) disqusReset(disqus_config)
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://.disqus.com/embed.js'
+      script.setAttribute('data-timestamp', +new Date())
+      document.head.appendChild(script)
+    }
+
+    btf.addGlobalFn('themeChange', () => disqusReset(disqus_config), 'disqus')
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqus-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=&api_key=&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Disqus'
+      ? window.shuoshuoComment = { loadComment: loadDisqus }
+      : window.loadOtherComment = loadDisqus
+    return
+  }
+
+  if ('Valine' === 'Disqus' || !true) {
+    if (true) btf.loadComment(document.getElementById('disqus_thread'), loadDisqus)
+    else {
+      loadDisqus()
+      GLOBAL_CONFIG_SITE.pageType === 'post' && getCount()
+    }
+  } else {
+    window.loadOtherComment = loadDisqus
+  }
+})()</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

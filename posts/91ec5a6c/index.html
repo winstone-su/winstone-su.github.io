@@ -1,0 +1,501 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Kotlin编程第一课--(基础篇)10  泛型：逆变or协变，傻傻分不清？ | 码行</title><meta name="author" content="Carl Su"><meta name="copyright" content="Carl Su"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="这节课我们来学习 Kotlin 的泛型（Generics），包括泛型基础、使用处型变、声明处型变以及星投影。 泛型，这个概念在很多编程语言里面都存在。在中大型软件开发当中，我们对泛型的使用也十分频繁，因为它可以让我们在不同类型之间复用相似的逻辑代码。 不管是 Android 领域，还是后端领域，泛型在软件的架构当中都有着举足轻重的地位。只有透彻理解了泛型，我们才能理解各种设计模式，进而才可能设计">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin编程第一课--(基础篇)10  泛型：逆变or协变，傻傻分不清？">
+<meta property="og:url" content="https://devsu.top/posts/91ec5a6c/index.html">
+<meta property="og:site_name" content="码行">
+<meta property="og:description" content="这节课我们来学习 Kotlin 的泛型（Generics），包括泛型基础、使用处型变、声明处型变以及星投影。 泛型，这个概念在很多编程语言里面都存在。在中大型软件开发当中，我们对泛型的使用也十分频繁，因为它可以让我们在不同类型之间复用相似的逻辑代码。 不管是 Android 领域，还是后端领域，泛型在软件的架构当中都有着举足轻重的地位。只有透彻理解了泛型，我们才能理解各种设计模式，进而才可能设计">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://static001.geekbang.org/resource/image/ec/51/ec8567b665dafcb6ac69d3fdbcfd6251.jpg">
+<meta property="article:published_time" content="2022-05-11T02:34:36.000Z">
+<meta property="article:modified_time" content="2025-03-07T02:49:14.887Z">
+<meta property="article:author" content="Carl Su">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://static001.geekbang.org/resource/image/ec/51/ec8567b665dafcb6ac69d3fdbcfd6251.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Kotlin编程第一课--(基础篇)10  泛型：逆变or协变，傻傻分不清？",
+  "url": "https://devsu.top/posts/91ec5a6c/",
+  "image": "https://static001.geekbang.org/resource/image/ec/51/ec8567b665dafcb6ac69d3fdbcfd6251.jpg",
+  "datePublished": "2022-05-11T02:34:36.000Z",
+  "dateModified": "2025-03-07T02:49:14.887Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Carl Su",
+      "url": "https://devsu.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png"><link rel="canonical" href="https://devsu.top/posts/91ec5a6c/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const hour = new Date().getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (theme === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else theme === 'light' ? activateLightMode() : activateDarkMode()
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6243425e2ecb037931274c4ca1db3132";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Carl Su","link":"链接: ","source":"来源: 码行","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Kotlin编程第一课--(基础篇)10  泛型：逆变or协变，傻傻分不清？',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">193</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">41</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://static001.geekbang.org/resource/image/ec/51/ec8567b665dafcb6ac69d3fdbcfd6251.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png" alt="Logo"><span class="site-name">码行</span></a><a class="nav-page-title" href="/"><span class="site-name">Kotlin编程第一课--(基础篇)10  泛型：逆变or协变，傻傻分不清？</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Kotlin编程第一课--(基础篇)10  泛型：逆变or协变，傻傻分不清？</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-05-11T02:34:36.000Z" title="发表于 2022-05-11 10:34:36">2022-05-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-07T02:49:14.887Z" title="更新于 2025-03-07 10:49:14">2025-03-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/">Android</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/">Kotlin</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/Kotlin%E7%BC%96%E7%A8%8B%E7%AC%AC%E4%B8%80%E8%AF%BE/">Kotlin编程第一课</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>22分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p><audio src="http://rpheez113.hn-bkt.clouddn.com/course/kotlin/kotlin-first-lesson/audio10%20_%20%E6%B3%9B%E5%9E%8B%EF%BC%9A%E9%80%86%E5%8F%98or%E5%8D%8F%E5%8F%98%EF%BC%8C%E5%82%BB%E5%82%BB%E5%88%86%E4%B8%8D%E6%B8%85%EF%BC%9F.m4a"></audio></p>
+<p>这节课我们来学习 Kotlin 的泛型（Generics），包括泛型基础、使用处型变、声明处型变以及星投影。</p>
+<p>泛型，这个概念在很多编程语言里面都存在。在中大型软件开发当中，我们对泛型的使用也十分频繁，因为它可以让我们<strong>在不同类型之间复用相似的逻辑代码。</strong></p>
+<p>不管是 Android 领域，还是后端领域，泛型在软件的架构当中都有着举足轻重的地位。只有透彻理解了泛型，我们才能理解各种设计模式，进而才可能设计出合理的软件架构。</p>
+<p>然而，想要学好泛型却不是一件容易的事情。这是因为，泛型实在太抽象了。</p>
+<p>我们都知道，程序其实是对真实世界的抽象，比如我们在前面实战课里写的计算器程序，现实生活当中就有计算器这个东西，我们想要在电脑里写一个抽象的计算器程序，也不会那么难理解，因为它和现实生活相关。可是泛型，它是对<strong>程序的抽象</strong>。程序本来就已经够抽象了，我们还要在它的基础上再做一次抽象。</p>
+<p>这样一来，泛型和我们真实的物理世界差了两层抽象，因此，泛型对于我们人类来说，会显得尤为虚无缥缈。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/14/d0/14f371f5352321cb32d085d7ab25dbd0.jpg?wh=2000x797" alt="img" style="zoom:50%;" />
+
+<p>不过，程序其实也是源自于生活的。所以在这节课里，我会尽量用生活中的例子来给你解释下 Kotlin 的泛型概念，让你能更直观、更立体地感知到泛型与现实生活的联系，然后，你也能够从这些生活的场景中，更深刻地理解并掌握 Kotlin 的泛型，从而为你将来构建大型软件打好基础。</p>
+<p>好，那么下面，我们就拿“遥控器”这个生活中常见的物件儿，来聊聊它跟“泛型”之间，都能产生哪些联系。</p>
+<h2 id="掌握泛型基础"><a href="#掌握泛型基础" class="headerlink" title="掌握泛型基础"></a>掌握泛型基础</h2><p>在现实生活中，我们能看到各式各样的电视机遥控器，比如小米就有 1S、2S、3S、4S 电视遥控器。</p>
+<p>那么，如果我们将遥控器的概念迁移到程序的世界，我们就需要定义各种各样的“遥控器类”，比如说：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 小米1S电视机遥控</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TvMi1SController</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOn</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOff</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 小米2S电视机遥控</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TvMi2SController</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOn</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOff</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 小米3S电视机遥控</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TvMi3SController</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOn</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOff</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 小米4S电视机遥控</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">TvMi4SController</span> &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOn</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOff</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line">省略几千种不同的遥控器</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码我们可以看到，如果我们为每一个型号的电视机都创建一个对应的遥控器类，然后在里面重复编写“开机”“关机”的方法，我们的工作量会很大，而且没有意义。</p>
+<p>这个时候，我们其实需要一个<strong>万能遥控器</strong>，而借助 Kotlin 的泛型，我们就可以很容易地实现了。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">//          T代表泛型的形参</span></span><br><span class="line"><span class="comment">//               ↓</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Controller</span>&lt;<span class="type">T</span>&gt; &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOn</span><span class="params">(tv: <span class="type">T</span>)</span></span> &#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOff</span><span class="params">(tv: <span class="type">T</span>)</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line"><span class="comment">//                                泛型的实参</span></span><br><span class="line"><span class="comment">//                                   ↓</span></span><br><span class="line">    <span class="keyword">val</span> mi1Controller = Controller&lt;XiaoMiTV1&gt;()</span><br><span class="line">    mi1Controller.turnOn()</span><br><span class="line"></span><br><span class="line"><span class="comment">//                                  泛型的实参</span></span><br><span class="line"><span class="comment">//                                     ↓</span></span><br><span class="line">    <span class="keyword">val</span> mi2Controller = Controller&lt;XiaoMiTV2&gt;()</span><br><span class="line">    mi2Controller.turnOn()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这段代码里，我们定义了一个“万能遥控器类”Controller，它当中的字母 T 代表了，这个遥控器可以控制很多种型号的电视，至于我们到底想要控制哪种型号，在使用的时候，只需要把 T 替换成实际的电视机型号即可。在上面的 main 函数当中，我们是传入了“XiaoMi1S”“XiaoMi2S”这两个型号。</p>
+<p>可见，使用泛型的好处就在于，我们可以复用程序代码的逻辑，借助这个特性，我们可以在程序的基础上再做一次抽象。这样，通过这个Controller，<strong>不管将来有多少型号的电视机，我们都可以用这一个类来搞定</strong>。</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/c1/e7/c1248f3042f62b3ddb74618bb43e38e7.jpg?wh=2000x856" alt="img"></p>
+<p>另外，我们在定义泛型的时候，其实还可以为它的泛型参数增加一些<strong>边界限制</strong>，比如说，强制要求传入的泛型参数，必须是 TV 或者是它的子类。这叫做泛型的<strong>上界</strong>。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">//               差别在这里</span></span><br><span class="line"><span class="comment">//                   ↓</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Controller</span>&lt;<span class="type">T: TV</span>&gt; &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOn</span><span class="params">(tv: <span class="type">T</span>)</span></span> &#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOff</span><span class="params">(tv: <span class="type">T</span>)</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>和 Kotlin 的继承语法一样，我们是使用冒号来表示泛型的边界。注意，当我们定义了边界之后，如果我们传入 Controller 的类型不是 TV 的子类，那么编译器是会报错的。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 报错，因为Car不是TV的子类</span></span><br><span class="line">    <span class="keyword">val</span> controller = Controller&lt;Car&gt;()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>还有一点你也需要注意，由于函数是 Kotlin 当中的一等公民，所以你也可以用两个简单的函数 turnOn() 和 turnOff()，来解决前面所说的“遥控器的问题”：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">//     函数的泛型参数</span></span><br><span class="line"><span class="comment">//   ↓             ↓</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> <span class="title">turnOn</span><span class="params">(tv: <span class="type">T</span>)</span></span>&#123; ... &#125;</span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> <span class="title">turnOff</span><span class="params">(tv: <span class="type">T</span>)</span></span>&#123; ... &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">turnOnAll</span><span class="params">(mi1: <span class="type">XiaoMiTV1</span>, mi2: <span class="type">XiaoMiTV2</span>)</span></span> &#123;</span><br><span class="line"><span class="comment">//      泛型实参自动推导</span></span><br><span class="line"><span class="comment">//          ↓</span></span><br><span class="line">    turnOn(mi1)</span><br><span class="line">    turnOn(mi2)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码里我们可以看到，我们直接在 fun 关键字的后面加上用尖括号包起来的 T，就可以为函数增加泛型支持。这里我们选择用字母“T”，完全是因为约定俗成，你将 T 改为其他英文字母也是不会影响编译的。</p>
+<p>好了，泛型是什么、使用的好处、如何表示等问题，现在我们就都搞清楚了。下面我们再来看看学习泛型的一大难点：型变。</p>
+<h2 id="型变（Variance）"><a href="#型变（Variance）" class="headerlink" title="型变（Variance）"></a>型变（Variance）</h2><p>首先，型变是什么呢？</p>
+<p>简单来说，它就是为了解决泛型的<strong>不变性</strong>问题。事实上，型变讨论的是：在已知 Cat 是 Animal 的子类的情况下，MutableList与MutableList之间是什么关系。</p>
+<p>在正常情况下，编译器会认为它们两者是没有任何关系的。换句话，也就是说，<strong>泛型是不变的</strong>。Kotlin 编译器会这样处理的原因也很简单，这里我们可以先来假设一下：如果编译器不阻止我们用MutableList来替代MutableList，代码会出什么问题呢？</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 需要父类集合，传入子类集合</span></span><br><span class="line"></span><br><span class="line">foo(list: MutableList&lt;Animal&gt;) &#123;</span><br><span class="line">    <span class="comment">// 出错，Cat集合不能存Dog对象</span></span><br><span class="line">    list.add(Dog())</span><br><span class="line">    <span class="comment">// 通过</span></span><br><span class="line">    <span class="keyword">val</span> animal: Animal = list[<span class="number">0</span>] <span class="comment">// 取出的Cat对象</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 需要MutableList&lt;Animal&gt;，实际传MutableList&lt;Cat&gt;</span></span><br><span class="line">    foo(mutableListOf&lt;Cat&gt;(Cat()))</span><br><span class="line">    <span class="comment">// 实际上，编译器在这里就会提示错误，我们现在假设编译器不阻止我们，会出什么问题</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从这段代码的注释中，我们能看到，当程序需要 Animal 的集合时，如果我们传入的是 Cat 的集合，<strong>我们就可以往 list 里添加其他类型的动物</strong>，比如 Dog。然而，Dog 是无法存入 Cat 的集合的。</p>
+<p>那么如果我们反过来呢？</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 需要子类集合，传入父类集合</span></span><br><span class="line"></span><br><span class="line">foo(list: MutableList&lt;Cat&gt;) &#123;</span><br><span class="line">    <span class="comment">// 通过</span></span><br><span class="line">    list.add(Cat())</span><br><span class="line">    <span class="comment">// 出错</span></span><br><span class="line">    <span class="keyword">val</span> cat: Cat = list[<span class="number">0</span>] <span class="comment">// 实际取出来的是Animal对象</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="comment">// 需要MutableList&lt;Cat&gt;，实际传MutableList&lt;Animal&gt;</span></span><br><span class="line">    foo(mutableListOf(Animal()))</span><br><span class="line">    <span class="comment">// 实际上，编译器在这里就会提示错误，我们现在假设编译器不阻止我们，会出什么问题</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们会发现，反过来之后，当需要子类集合传入父类集合的时候，我们在函数体内部存储的行为是不会受到影响的，存储 Cat、Animal 类型都没问题。可是，一旦我们想从集合当中取出 Cat 对象的时候，会发现取出来的是 Animal 对象，这时候又错了。</p>
+<p>所以，在默认情况下，编译器会认为MutableList与MutableList之间不存在任何继承关系，它们也无法互相替代，这样就不会出现前面提到的两种问题。这就是泛型的<strong>不变性</strong>。</p>
+<p>但是啊，在某些特定场景下，编译器这种行为还是会给我们带来麻烦的。而这个时候，就需要<strong>泛型的逆变与协变</strong>了。具体是什么特定场景呢？别着急，下面我带你来看个例子。</p>
+<h2 id="逆变（Contravariant）"><a href="#逆变（Contravariant）" class="headerlink" title="逆变（Contravariant）"></a>逆变（Contravariant）</h2><p>让我们继续以前面的遥控器为例：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">open</span> <span class="keyword">class</span> <span class="title class_">TV</span> &#123;</span><br><span class="line">    <span class="keyword">open</span> <span class="function"><span class="keyword">fun</span> <span class="title">turnOn</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">XiaoMiTV1</span>: <span class="type">TV</span>() &#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">turnOn</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Controller</span>&lt;<span class="type">T</span>&gt; &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOn</span><span class="params">(tv: <span class="type">T</span>)</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这里，我们有一个电视机的父类，叫做 TV，另外还有一个子类，叫做 XiaoMiTV1。它们两者是继承关系。由于它们是父子的关系，当函数的参数需要 TV 这个父类的时候，我们是可以传入子类作为参数的。这很好理解，我们接着往下看：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">foo</span><span class="params">(tv: <span class="type">TV</span>)</span></span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line"><span class="comment">// 要求父类，可以传入子类</span></span><br><span class="line">    foo(XiaoMiTV1())</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>现在问题来了，Controller和Controller之间是什么关系呢？让我们来设想一个<strong>买遥控器的场景</strong>：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//                      需要一个小米电视1的遥控器</span></span><br><span class="line"><span class="comment">//                                ↓</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">buy</span><span class="params">(controller: <span class="type">Controller</span>&lt;<span class="type">XiaoMiTV1</span>&gt;)</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> xiaoMiTV1 = XiaoMiTV1()</span><br><span class="line">    <span class="comment">// 打开小米电视1</span></span><br><span class="line">    controller.turnOn(xiaoMiTV1)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上面的代码中，我们的函数需要一个“小米电视 1 的遥控器”，在函数的内部，我们需要打开一台小米电视机。那么，当我们需要打开一台小米电视机的时候，我们是否可以用一个“万能的遥控器”呢？当然可以！所以，我们可以写出下面这样的代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line"><span class="comment">//                             实参</span></span><br><span class="line"><span class="comment">//                              ↓</span></span><br><span class="line">    <span class="keyword">val</span> controller = Controller&lt;TV&gt;()</span><br><span class="line">    <span class="comment">// 传入万能遥控器，报错</span></span><br><span class="line">    buy(controller)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这段代码中，由于我们传入的泛型实参是 TV，它是所有电视机的父类。因此，Controller 内部将会处理所有电视机型号的开机、关机。这时候，<strong>它就相当于一个万能遥控器</strong>，万能遥控器当然也可以打开小米电视 1。</p>
+<p>从道理上来讲，我们的推理是没有错的，不过 Kotlin 编译器会报错，报错的内容是说“类型不匹配”，需要的是小米遥控器Controller，你却买了个万能遥控器Controller。在默认情况下，Kotlin 编译器就是这么认死理。</p>
+<p>所以，为了让我们的代码通过编译，我们需要主动告诉编译器一些额外的信息，具体的做法有两种。</p>
+<p><strong>第一种做法</strong>，是修改泛型参数的使用处代码，它叫做使用处型变。具体做法就是修改 buy 函数的声明，在 XiaoMiTV1 的前面增加一个 in 关键字：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//                         变化在这里</span></span><br><span class="line"><span class="comment">//                             ↓</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">buy</span><span class="params">(controller: <span class="type">Controller</span>&lt;<span class="type">in</span> <span class="type">XiaoMiTV1</span>&gt;)</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> xiaoMiTV1 = XiaoMiTV1()</span><br><span class="line">    <span class="comment">// 打开小米电视1</span></span><br><span class="line">    controller.turnOn(xiaoMiTV1)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>第二种做法</strong>，是修改 Controller 的源代码，这叫声明处型变。具体做法就是，在泛型形参 T 的前面增加一个关键字 in：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//            变化在这里</span></span><br><span class="line"><span class="comment">//               ↓</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Controller</span>&lt;<span class="type">in T</span>&gt; &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOn</span><span class="params">(tv: <span class="type">T</span>)</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们使用以上任意一种方式修改后，代码就能够通过 Kotlin 编译了。这样修改之后，我们就可以使用Controller来替代Controller，也就是说，Controller是Controller的子类。</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/6a/22/6acd7ea7c06df0fd2f25626965ac6022.jpg?wh=2000x517" alt="img"></p>
+<p>如果你足够细心，你会发现：在这个场景下，遥控器与电视机之间的父子关系颠倒了。“小米电视”是“电视”的子类，但是，“万能遥控”成了“小米遥控”的子类。这种父子关系颠倒的现象，我们就叫做“<strong>泛型的逆变</strong>”。上面这两种修改方式，就分别叫做<strong>使用处逆变和声明处逆变</strong>。</p>
+<p>而除了父子关系颠倒的现象，泛型当中还存在一种父子关系一致的现象，也就是<strong>泛型的协变</strong>。</p>
+<h2 id="协变（Covariant）"><a href="#协变（Covariant）" class="headerlink" title="协变（Covariant）"></a>协变（Covariant）</h2><p>这次，我们仍然以一个生活中的场景来做分析。现在，请你想象一个点外卖的场景。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/37/68/37fd3346e8de26327b0e09768378fa68.png?wh=1280x765" alt="img" style="zoom:67%;" />
+
+<p>为了模拟这个场景，我们需要用代码来描述其中的几个角色：普通的食物、肯德基的食物，它们两者之间是父子关系。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">open</span> <span class="keyword">class</span> <span class="title class_">Food</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">KFC</span>: <span class="type">Food</span>() &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>除此之外呢，我们还有一个饭店的角色：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Restaurant</span>&lt;<span class="type">T</span>&gt; &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">orderFood</span><span class="params">()</span></span>: T &#123; <span class="comment">/*..*/</span> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上面的 Restaurant 泛型参数处，我们传入不同的食物类型，就代表了不同类型的饭店。接下来，就是我们的点外卖方法了：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">//                      这里需要一家普通的饭店，随便什么饭店都行</span></span><br><span class="line"><span class="comment">//                                     ↓</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">orderFood</span><span class="params">(restaurant: <span class="type">Restaurant</span>&lt;<span class="type">Food</span>&gt;)</span></span> &#123;</span><br><span class="line">    <span class="comment">// 从这家饭店，点一份外卖</span></span><br><span class="line">    <span class="keyword">val</span> food = restaurant.orderFood()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line"><span class="comment">//                  找到一家肯德基</span></span><br><span class="line"><span class="comment">//                        ↓</span></span><br><span class="line">    <span class="keyword">val</span> kfc = Restaurant&lt;KFC&gt;()</span><br><span class="line"><span class="comment">// 需要普通饭店，传入了肯德基，编译器报错</span></span><br><span class="line">    orderFood(kfc)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果我们直接运行上面的代码，会发现编译器提示最后一行代码报错，报错的原因同样是：“类型不匹配”，我们需要的是一家随便类型的饭店Restaurant，而传入的是肯德基Restaurant，不匹配。</p>
+<p>是不是觉得很荒谬？既然随便找一家饭店就能点外卖，为什么肯德基不可以呢？</p>
+<p>不过，有了上次的经验，这次我们就轻车熟路了，由于编译器认死理，我们必须额外提供一些信息给编译器，让它知道我们是在特殊场景使用泛型。具体的做法呢，还是有两种。</p>
+<p><strong>第一种做法</strong>，还是修改泛型参数的使用处，也就是使用处型变。具体的做法就是修改 orderFood() 函数的声明，在 Food 的前面增加一个 out 关键字：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">//                                变化在这里</span></span><br><span class="line"><span class="comment">//                                    ↓</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">orderFood</span><span class="params">(restaurant: <span class="type">Restaurant</span>&lt;<span class="type">out</span> <span class="type">Food</span>&gt;)</span></span> &#123;</span><br><span class="line">    <span class="comment">// 从这家饭店，点一份外卖</span></span><br><span class="line">    <span class="keyword">val</span> food = restaurant.orderFood()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>第二种做法</strong>，是修改 Restaurant 的源代码，也就是声明处型变。具体做法就是，在它泛型形参 T 的前面增加一个关键字 out：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">//            变化在这里</span></span><br><span class="line"><span class="comment">//                ↓</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Restaurant</span>&lt;<span class="type">out T</span>&gt; &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">orderFood</span><span class="params">()</span></span>: T &#123; <span class="comment">/*..*/</span> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在做完以上任意一种修改以后，代码就可以通过编译了。这也就意味着，在这种情况下，我们可以使用Restaurant替代Restaurant，也就意味着Restaurant可以看作是Restaurant的子类。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/8f/c0/8f9yyb56537bf5f5248b9a484e26b6c0.jpg?wh=2000x533" alt="img" style="zoom:50%;" />
+
+<p>到了这时候，你会发现，食物与饭店它们之间的父子关系一致了。这种现象，我们称之为“<strong>泛型的协变</strong>”。上面两种修改的方式，就分别叫做<strong>使用处协变</strong>和<strong>声明处协变</strong>。</p>
+<p>需要特别注意的是，虽然 Java 当中也有型变的概念，但是呢，Java 当中是没有声明处型变的。Java 里面只有使用处型变，下面是它们的语法对比：</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/3d/ca/3d3a24ffff462a6019c42e43b7e4f3ca.jpg?wh=2000x622" alt="img" style="zoom:50%;" />
+
+<p>而通过对比，你也会发现，Java 的型变语法十分抽象，远不如 Kotlin 来得简洁。</p>
+<p>好了，到这里，我们就差不多把 Kotlin 的泛型这个特性理解清楚了，那么是不是就说明，我们可以开始实战了呢？其实还不行，我们还需要了解另一个跟泛型相关的概念，也就是星投影。</p>
+<h2 id="星投影（Star-Projections）"><a href="#星投影（Star-Projections）" class="headerlink" title="星投影（Star-Projections）"></a>星投影（Star-Projections）</h2><p>Kotlin 当中还有一个概念叫做“星投影”。虽然你听起来可能会觉得这个词很吓人，但其实它的概念很简单。所谓的星投影，其实就是<strong>用“星号”作为泛型的实参</strong>。</p>
+<p>那么，什么情况下，我们需要用星号作为泛型实参呢？答案其实也很简单，<strong>当我们不关心实参到底是什么的时候</strong>。</p>
+<p>举个例子，我们现在需要开发一个“找饭店”的功能，借助泛型，我们可以写出这样的代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> <span class="title">findRestaurant</span><span class="params">()</span></span>: Restaurant&lt;T&gt; &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不过，如果我们并不关心找到的饭店到底是什么类型，不管它是肯德基还是麦当劳的话，那么，我们就完全可以把“星号”作为泛型的实参，比如这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Restaurant</span>&lt;<span class="type">out T</span>&gt; &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">orderFood</span><span class="params">()</span></span>: T &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//                        把星号作为泛型实参</span></span><br><span class="line"><span class="comment">//                               ↓</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">findRestaurant</span><span class="params">()</span></span>: Restaurant&lt;*&gt; &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> restaurant = findRestaurant()</span><br><span class="line">    <span class="comment">// 注意这里</span></span><br><span class="line">    <span class="keyword">val</span> food: Any? = restaurant.orderFood() <span class="comment">// 返回值可能是：任意类型</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上面的代码当中，我们没有传递任何具体的类型给 Restaurant，而是使用了“星号”作为 Restaurant 的泛型实参，因此，我们就无法知道饭店到底是什么类型。</p>
+<p>相应的，当我们调用 restaurant.orderFood() 的时候，就无法确定它返回的值到底是什么类型。这时候，变量 food 的实际类型可能是任意的，比如 String、Int、Food、KFC，甚至可能是 null，因此，在这里我们只能将其看作是“Any?”类型。</p>
+<p>那么，对于上面的这种 food 可能是任意类型的情况，我们有没有办法让 food 的类型更加精确一些呢？当然是有的。如果我们为 Restaurant 的泛型类型加上边界的话，food 的类型就可以更精确一些。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//                   区别在这里</span></span><br><span class="line"><span class="comment">//                       ↓</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Restaurant</span>&lt;<span class="type">out T: Food</span>&gt; &#123;</span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">orderFood</span><span class="params">()</span></span>: T &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">findRestaurant</span><span class="params">()</span></span>: Restaurant&lt;*&gt; &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> restaurant = findRestaurant()</span><br><span class="line">    <span class="comment">//       注意这里</span></span><br><span class="line">    <span class="comment">//          ↓</span></span><br><span class="line">    <span class="keyword">val</span> food: Food = restaurant.orderFood() <span class="comment">// 返回值是：Food或其子类</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从这个例子我们能看到，当我们为 Restaurant 泛型类型增加了上界 Food 以后，即使我们使用了“星投影”，也仍然可以通过调用 restaurant.orderFood()，来拿到 Food 类型的变量。在这里，food 的实际类型肯定是 Food 或者是 Food 的子类，因此我们可以将其看作是 Food 类型。</p>
+<p>泛型虽然很抽象，但它存在的目的，仍然是为了解决我们生活的实际问题。所以，当我们将泛型应用到实际的生活场景时，它就显得不是那么抽象了。</p>
+<h2 id="实战与思考"><a href="#实战与思考" class="headerlink" title="实战与思考"></a>实战与思考</h2><p>在学完型变以后，也许你会有点迷惑：<strong>到底什么时候用逆变，什么时候用协变</strong>？如果你看过 Kotlin 的官方文档，你会看到一句这样的话：</p>
+<p><code>Consumer in, Producer out !</code></p>
+<p>直译的话，大概意思就是：消费者 in，生产者 out。不过，这个对我们中国人的说话语境而言，不是那么好理解。让我们继续根据前面的遥控器、点外卖两个场景，来做个说明。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//              逆变</span></span><br><span class="line"><span class="comment">//               ↓</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Controller</span>&lt;<span class="type">in T</span>&gt; &#123;</span><br><span class="line"><span class="comment">//                 ①</span></span><br><span class="line"><span class="comment">//                 ↓</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">turnOn</span><span class="params">(tv: <span class="type">T</span>)</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//               协变</span></span><br><span class="line"><span class="comment">//                ↓</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Restaurant</span>&lt;<span class="type">out T</span>&gt; &#123;</span><br><span class="line"><span class="comment">//                   ②</span></span><br><span class="line"><span class="comment">//                   ↓</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">orderFood</span><span class="params">()</span></span>: T &#123; <span class="comment">/*..*/</span> &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这段代码中，分别是我们前面提到的逆变、协变的例子。把它们两个放到一起后，你应该就能很容易地发现它们两个的差别了。需要特别留意的地方，我都在注释当中标记出来了，让我来解释给你听：</p>
+<ul>
+<li>对于逆变的情况，我们模拟的是买遥控器的场景。请注意注释①的地方，我们的泛型 T，它最终会以函数的参数的形式，被<strong>传入</strong>函数的<strong>里面</strong>，这往往是一种<strong>写入</strong>行为，这时候，我们使用关键字 <strong>in</strong>。</li>
+<li>对于协变的情况，我们模拟的是点外卖的场景。请注意注释②的地方，我们的泛型 T，它最终会以返回值的形式，被<strong>传出</strong>函数的<strong>外面</strong>，这往往是一种<strong>读取</strong>行为，这时候，我们使用关键字 out。</li>
+</ul>
+<p>所以，如果要以更加通俗的语言来解释逆变与协变的使用场景的话，我们可以将其总结为：<strong>传入 in，传出 out</strong>。或者，我们也可以说：泛型作为参数的时候，用 in，泛型作为<strong>返回值</strong>的时候，用 out。</p>
+<p>我们再来看一下 Kotlin 源码当中型变的应用。首先，是逆变的应用。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//                          逆变</span></span><br><span class="line"><span class="comment">//                           ↓</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Comparable</span>&lt;<span class="type">in T</span>&gt; &#123;</span><br><span class="line"><span class="comment">//                                   泛型作为参数</span></span><br><span class="line"><span class="comment">//                                       ↓</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">compareTo</span><span class="params">(other: <span class="type">T</span>)</span></span>: <span class="built_in">Int</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在以上代码中，由于泛型是作为了 compareTo 方法的<strong>参数</strong>传入的，因此，对于 Comparable 的泛型 T，我们应该使用 <strong>in</strong> 来修饰，这就是<strong>逆变</strong>的实际应用。</p>
+<p>我们再来看看协变在 Kotlin 源码当中的应用。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//                        协变</span></span><br><span class="line"><span class="comment">//                         ↓</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Iterator</span>&lt;<span class="type">out T</span>&gt; &#123;</span><br><span class="line"><span class="comment">//                         泛型作为返回值</span></span><br><span class="line"><span class="comment">//                              ↓    </span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">next</span><span class="params">()</span></span>: T</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">hasNext</span><span class="params">()</span></span>: <span class="built_in">Boolean</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码里我们可以看到，由于泛型是作为 next 方法的<strong>返回值</strong>的，因此，对于 Iterator 的泛型 T，我们应该使用 <strong>out</strong> 来修饰，这就是<strong>协变</strong>的应用。</p>
+<p>我们再来看看第 2 讲当中密封类的代码案例，一起回顾下当中的泛型细节：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">sealed</span> <span class="keyword">class</span> <span class="title class_">Result</span>&lt;<span class="type">out R</span>&gt; &#123;</span><br><span class="line"><span class="comment">//                     协变    ①</span></span><br><span class="line"><span class="comment">//                      ↓      ↓</span></span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Success</span>&lt;<span class="type">out T</span>&gt;(<span class="keyword">val</span> <span class="keyword">data</span>: T, <span class="keyword">val</span> message: String = <span class="string">&quot;&quot;</span>) : Result&lt;T&gt;()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Error</span>(<span class="keyword">val</span> exception: Exception) : Result&lt;<span class="built_in">Nothing</span>&gt;()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Loading</span>(<span class="keyword">val</span> time: <span class="built_in">Long</span> = System.currentTimeMillis()) : Result&lt;<span class="built_in">Nothing</span>&gt;()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码里，我们对 Success 这个数据类的泛型参数使用了 out 来修饰，这就代表了协变。看到这里，如果你足够细心，就会觉得奇怪：这里为什么可以使用协变呢？前面我们不是说过：“泛型作为参数，用 in；泛型作为返回值，用 out”吗？<strong>这里并没有任何函数参数或者返回值啊</strong>？</p>
+<p>其实，这里就又体现出了我们<strong>对 Kotlin 底层理解的重要性了</strong>。请注意我在上面标记的注释①，val 在 Kotlin 当中，代表不可变的变量，当它修饰类成员属性的时候，代表它只有 getter，没有 setter。当我们看到这样的代码时，我们要能自动脑补出 Success 反编译后的 Java 结构：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> static <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">Success</span> <span class="title">extends</span> <span class="title">Result</span> &#123;</span><br><span class="line">   <span class="keyword">private</span> <span class="keyword">final</span> Object <span class="keyword">data</span>;</span><br><span class="line">   </span><br><span class="line"><span class="comment">// Success 这个类当中，是会有getter方法的</span></span><br><span class="line">   <span class="keyword">public</span> <span class="keyword">final</span> Object getData() &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">this</span>.<span class="keyword">data</span>;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line"><span class="comment">// 省略其他代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>所以，我们可以用 out 修饰 Success 泛型的原因，是因为 data 的 getter 方法，它本质上是一个返回 T 类型的方法。这时候，如果我们将注释①处的 val 改为 var，那么代码就会立马报错。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">sealed</span> <span class="keyword">class</span> <span class="title class_">Result</span>&lt;<span class="type">out R</span>&gt; &#123;</span><br><span class="line"><span class="comment">//                 改为var后，编译器就会立马报错</span></span><br><span class="line"><span class="comment">//                             ↓</span></span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Success</span>&lt;<span class="type">out T</span>&gt;(<span class="keyword">var</span> <span class="keyword">data</span>: T, <span class="keyword">val</span> message: String = <span class="string">&quot;&quot;</span>) : Result&lt;T&gt;()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Error</span>(<span class="keyword">val</span> exception: Exception) : Result&lt;<span class="built_in">Nothing</span>&gt;()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">data</span> <span class="keyword">class</span> <span class="title class_">Loading</span>(<span class="keyword">val</span> time: <span class="built_in">Long</span> = System.currentTimeMillis()) : Result&lt;<span class="built_in">Nothing</span>&gt;()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>到这里，有了前面的铺垫，我想你应该很快就能反应过来，编译器报错的原因是由于 var 修饰的成员属性，Kotlin 编译器会在背后生成对应 getter 和 setter，这个时候泛型参数<strong>既是“参数”也是“返回值”</strong>。所以，如果此时我们还用 out 修饰泛型 T，编译器就会报错了。</p>
+<p>也就是说，如果泛型的 T，既是函数的参数类型，又是函数的返回值类型，那么，我们就无法直接使用 in 或者 out 来修饰泛型 T。</p>
+<p>不过，<strong>函数传入参数的时候，并不一定就意味着写入</strong>，这时候，即使泛型 T 是作为参数类型，我们也仍然要想一些办法来用 out 修饰泛型。让我们拿一段官方源码来举例说明一下：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//                   协变    </span></span><br><span class="line"><span class="comment">//                    ↓      </span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">List</span>&lt;<span class="type">out E</span>&gt; : <span class="type">Collection</span>&lt;<span class="type">E</span>&gt; &#123;</span><br><span class="line"><span class="comment">//                                泛型作为返回值</span></span><br><span class="line"><span class="comment">//                                       ↓    </span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">operator</span> <span class="function"><span class="keyword">fun</span> <span class="title">get</span><span class="params">(index: <span class="type">Int</span>)</span></span>: E</span><br><span class="line"><span class="comment">//                                           泛型作为参数</span></span><br><span class="line"><span class="comment">//                                                 ↓    </span></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">contains</span><span class="params">(element: @<span class="type">UnsafeVariance</span> <span class="type">E</span>)</span></span>: <span class="built_in">Boolean</span></span><br><span class="line"><span class="comment">//                                        泛型作为参数</span></span><br><span class="line"><span class="comment">//                                              ↓   </span></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="title">indexOf</span><span class="params">(element: @<span class="type">UnsafeVariance</span> <span class="type">E</span>)</span></span>: <span class="built_in">Int</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Kotlin 官方源码当中的 List，也就是这里的泛型 E，它既作为了返回值类型，又作为了参数类型。在正常情况下，如果我们用 out 修饰 E，那编译器是会报错的。但我们其实很清楚，对于 contains、indexOf 这样的方法，它们虽然以 E 作为参数类型，但本质上并没有产生写入的行为。所以，我们用 out 修饰 E 并不会带来实际的问题。</p>
+<p>所以这个时候，我们就可以通过 @UnsafeVariance 这样的注解，来让编译器忽略这个型变冲突的问题。</p>
+<p>另外，让我们再来看看第 5 讲当中提到过的单例抽象模板，一起回顾下当中的泛型细节：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//                           逆变   协变</span></span><br><span class="line"><span class="comment">//                            ↓     ↓</span></span><br><span class="line"><span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">BaseSingleton</span>&lt;<span class="type">in P, out T</span>&gt; &#123;</span><br><span class="line"><span class="comment">//                        ①</span></span><br><span class="line">    <span class="meta">@Volatile</span><span class="comment">//           ↓</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> instance: T? = <span class="literal">null</span></span><br><span class="line">    <span class="comment">//                              参数  返回值</span></span><br><span class="line">    <span class="comment">//                               ↓    ↓</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">abstract</span> <span class="keyword">val</span> creator: (P)-&gt; T</span><br><span class="line"></span><br><span class="line">    <span class="comment">//                    参数 返回值</span></span><br><span class="line">    <span class="comment">//                     ↓   ↓</span></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">getInstance</span><span class="params">(param: <span class="type">P</span>)</span></span>: T =</span><br><span class="line">        instance ?: synchronized(<span class="keyword">this</span>) &#123;</span><br><span class="line">            instance ?: creator(param).also &#123; instance = it &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这个单例模板的例子当中，P 一直作为参数，而 T 则是作为返回值。因此我们用 in 来修饰 P，这就是逆变；对应的我们用 out 修饰 T，这就是协变。</p>
+<p>不过，如果你足够细心的话，会发现注释①处还有一个 instance 是用泛型 T 修饰的。而它是 var 定义的成员变量，这就意味着，它既有 getter，又有 setter。那它为什么可以用协变的泛型 T 呢？其实，<strong>这是因为它是 private 的</strong>，如果你把 private 关键字删掉的话，上面的代码就会报错了。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>最后，让我们来做一个总结吧。</p>
+<ul>
+<li><strong>泛型，是对程序的一种抽象</strong>。通过泛型，我们可以实现代码逻辑复用的目的，Kotlin 标准库当中很多源代码也都是借助泛型来实现的。</li>
+<li>从<strong>型变的位置</strong>来分类的话，分为使用处型变和声明处型变。</li>
+<li>从<strong>型变的父子关系</strong>来分类的话，分为逆变和协变。逆变表示父子关系颠倒了，而协变表示父子关系和原来一致。</li>
+<li>型变的口诀：<strong>泛型作为参数，用 in；泛型作为返回值，用 out</strong>。在特殊场景下，同时作为参数和返回值的泛型参数，我们可以用 @UnsafeVariance 来解决型变冲突。</li>
+<li><strong>星投影</strong>，就是当我们对泛型的具体类型不感兴趣的时候，直接传入一个“星号”作为泛型的实参。</li>
+</ul>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/0e/2c/0e115b3b553ddf6c0bb3yyf7827fe42c.jpg?wh=2000x1528" alt="img" style="zoom:50%;" />
+
+<p>最后，我还想和你分享一下我学习 Kotlin 泛型的方法论。正如开头我提到的：程序是对真实世界的抽象，而泛型是对程序的抽象。由于泛型与我们真实世界差了两层抽象，这就导致我们很难理解泛型的本质。</p>
+<p>所以，为了让泛型更加易懂，我的思路就是让泛型与我们的真实世界建立一种关联：<strong>直接拿泛型来模拟真实世界的场景</strong>，建立类比的关系。就比如我们今天所讲的：</p>
+<ul>
+<li>用万能遥控器，类比泛型；</li>
+<li>用买遥控器的场景，类比逆变；</li>
+<li>用点外卖的场景，类比协变、星投影。</li>
+</ul>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/10/7a/102062dfdc96a48ae4f8c4671ff42e7a.jpg?wh=2000x808" alt="img" style="zoom:50%;" />
+
+<p>希望我的学习方法可以对你有所启发。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://devsu.top">Carl Su</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://devsu.top/posts/91ec5a6c/">https://devsu.top/posts/91ec5a6c/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://devsu.top" target="_blank">码行</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Kotlin/">Kotlin</a></div><div class="post-share"><div class="social-share" data-image="https://static001.geekbang.org/resource/image/ec/51/ec8567b665dafcb6ac69d3fdbcfd6251.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/5db0fd8d/" title="Kotlin编程第一课--(基础篇)09  委托：你为何总是被低估？"><img class="cover" src="https://static001.geekbang.org/resource/image/e4/28/e40a36643b3ce20ae963d0cyyb48a228.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Kotlin编程第一课--(基础篇)09  委托：你为何总是被低估？</div></div><div class="info-2"><div class="info-item-1">今天我们来学习 Kotlin 的委托特性。 Kotlin 的委托主要有两个应用场景，一个是委托类，另一个是委托属性。对比第 6 讲我们学过的扩展来看的话，Kotlin 委托这个特性就没有那么“神奇”了。 因为扩展可以从类的外部，为一个类“添加”成员方法和属性，因此 Kotlin 扩展的应用场景也十分明确，而 Kotlin 委托的应用场景就没那么清晰了。这也是很多人会“重视扩展”，而“轻视委托”的原因。 然而，我要告诉你的是，Kotlin“委托”的重要性一点也不比“扩展”低。Kotlin 委托在软件架构中可以发挥巨大的作用，在掌握了 Kotlin 委托特性后，你不仅可以改善应用的架构，还可以大大提升开发效率。 另外，如果你是 Android 工程师，你会发现 Jetpack Compose 当中大量使用了 Kotlin 委托特性。可以说，如果你不理解委托，你就无法真正理解 Jetpack Compose。 看到这里，想必你也已经知道 Kotlin...</div></div></div></a><a class="pagination-related" href="/posts/f3ad1558/" title="Kotlin编程第一课--(基础篇)11  注解与反射：进阶必备技能"><img class="cover" src="https://img2.baidu.com/it/u=923478948,106462584&amp;fm=253&amp;fmt=auto&amp;app=138&amp;f=JPEG?w=500&amp;h=281" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Kotlin编程第一课--(基础篇)11  注解与反射：进阶必备技能</div></div><div class="info-2"><div class="info-item-1">今天这节课，我们来学习一下 Kotlin 的注解（Annotation）和反射（Reflection）。 注解和反射，是 Kotlin 当中比较难理解的内容了。和前面我们学习的泛型一样，注解与反射都是比较抽象的概念。我们现在已经知道，Kotlin 的泛型，就是在代码架构的层面进行的一种抽象，从而达到代码逻辑尽可能复用的目的。那么，注解与反射，它们存在的意义是什么呢？ 答案是：提高代码的灵活性。 灵活性，就让注解与反射同样有着举足轻重的地位，借助这两种技术，我们可以做许多有趣的事情。Kotlin 与 Java 领域，有许多著名的开源库，比如大名鼎鼎的Spring Boot、Retrofit、Gson等，都会用到这两种技术。 所以，只有深刻理解了注解和反射，我们才可能理解那些著名开源库的设计思路，也才可能读懂这些世界顶级开发者的代码。 当然，课程进行到这里，学习的难度也越来越高了，不过你也不要因此产生畏难的情绪，只要你能多思考、多练习，把对知识点的理解都落实到代码上，那我相信你对 Kotlin...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/85d82fa8/" title="Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？"><img class="cover" src="https://static001.geekbang.org/resource/image/b6/1c/b65feyy0bdc4764c6564a95912d7851c.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-06</div><div class="info-item-2">Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？</div></div><div class="info-2"><div class="info-item-1">Kotlin 的扩展（Extension），主要分为两种语法：第一个是扩展函数，第二个是扩展属性。从语法上看，扩展看起来就像是我们从类的外部为它扩展了新的成员。 这在实际编程当中是非常有用的功能。我们可以来想象一个场景：我们想修改 JDK 当中的 String，想在它的基础上增加一个方法“lastElement()”来获取末尾元素，如果使用 Java，我们是无法通过常规手段实现的，因为我们没办法修改 JDK 的源代码。任何第三方提供的 SDK，我们都无权修改。 不过，借助 Kotlin 的扩展函数，我们就完全可以在语义层面，来为第三方 SDK 的类扩展新的成员方法和成员属性。不管是为 JDK 的 String 增加新的成员方法，还是为 Android SDK 的 View 增加新成员属性，我们都可以实现。 Kotlin 的这个“扩展”功能看起来很神奇，它会不会很难学？其实不然，它的语法非常简洁。今天这节课，我们就一起来学习下 Kotlin...</div></div></div></a><a class="pagination-related" href="/posts/be9f17d6/" title="Kotlin编程第一课(目录)"><img class="cover" src="https://img2.baidu.com/it/u=3956021957,3313212296&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-10</div><div class="info-item-2">Kotlin编程第一课(目录)</div></div><div class="info-2"><div class="info-item-1">基础篇Kotlin编程第一课–(基础篇)01  Kotlin基础语法：正式开启学习之旅Kotlin编程第一课–(基础篇)02  面向对象：理解Kotlin设计者的良苦用心Kotlin编程第一课–(基础篇)03  Kotlin原理：编译器在幕后干了哪些“好事”？Kotlin编程第一课–(基础篇)04 | 实战：构建一个Kotlin版本的四则运算计算器Kotlin编程第一课–(基础篇)05  object关键字：你到底有多少种用法？Kotlin编程第一课–(基础篇)06  扩展：你的能力边界到底在哪里？Kotlin编程第一课–(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？Kotlin编程第一课–(基础篇)08  实战：用Kotlin写一个英语词频统计程序Kotlin编程第一课–(基础篇)加餐一  初识Kotlin函数式编程Kotlin编程第一课–(基础篇)09  委托：你为何总是被低估？Kotlin编程第一课–(基础篇)10  泛型：逆变or协变，傻傻分不清？Kotlin编程第一课–(基础篇)11 ...</div></div></div></a><a class="pagination-related" href="/posts/83a7144c/" title="2023-01-17-Kotlin协程 -  结构化并发"><img class="cover" src="https://s2.loli.net/2023/03/14/xEyFgn24zZPXe15.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-01-17</div><div class="info-item-2">2023-01-17-Kotlin协程 -  结构化并发</div></div><div class="info-2"><div class="info-item-1">CoroutineScope定义协程必须指定其 CoroutineScope，它会跟踪所有协程，同样它还可以取消由它所启动的所有协程。 常用的相关API有：  GlobalScope，生命周期是process级别的，及时Activity或Fragment已经被销毁，协程仍然在执行。 MainScope，在Activity中使用，可以在onDestroy()中取消协程。 viewModelScope，只能在ViewModel中使用，绑定ViewModel的生命周期。 lifecycleScope，只能在Activity、Fragment中使用，会绑定Activity和Fragment的生命周期  </div></div></div></a><a class="pagination-related" href="/posts/a20c9e06/" title="Kotlin协程"><img class="cover" src="https://s2.loli.net/2023/03/14/3MHPBy1Q4GncRlF.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-09</div><div class="info-item-2">Kotlin协程</div></div><div class="info-2"><div class="info-item-1">Kotlin协程协程的作用域构建器coroutineScope与runBlocking runBlocking是常规函数，而coroutineScope是挂起函数。 它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途  </div></div></div></a><a class="pagination-related" href="/posts/68bf7d20/" title="Kotlin函数"><img class="cover" src="https://img1.baidu.com/it/u=1546227440,2897989905&fm=253&fmt=auto&app=138&f=JPEG?w=889&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin函数</div></div><div class="info-2"><div class="info-item-1">函数类型作为返回类型fun main() &#123;	  println(show(&quot;Demo&quot;))      val lambdaFunction = showMethod(&quot;Jack&quot;) //注意lambdaFunction 这里的类型为(String,Int) -&gt; String    println(lambdaFunction(&quot;Carl&quot;,20))&#125;//普通函数fun show(name:String): String &#123;    return &quot;name is $name&quot;&#125;//返回类型为函数fun showMethod(name: String): (String,Int) -&gt; String &#123;    println(&quot;name is $name&quot;)    return &#123; name: String, age: Int -&gt;       ...</div></div></div></a><a class="pagination-related" href="/posts/8c331668/" title="Kotlin内置函数apply、let、run、with、also等区别"><img class="cover" src="https://s2.loli.net/2023/03/14/OpxWcuy2ktMzoQD.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin内置函数apply、let、run、with、also等区别</div></div><div class="info-2"><div class="info-item-1">Applyapply函数可看作一个配置函数，可以传入一个接收者，然后调用一系列函数来配置它以便使用，如果提供lambda给apply函数执行，它会返回配置好的接受者 val file1 = File(&quot;/User/geowin/hello.txt&quot;)file1.apply &#123; // this: File   setWritable(true)   setReadable(true)   setExecutable(false)&#125;  可以看到，调用一个个函数类配置接受者时，变量名就省略了，这是因为，在lambda表达式中，apply能让每个配置函数都作用于接受者，这种行为有时又叫做相关作用域,因为lambda表达式里的所有函数调用都是针对接收者的，或者说，它们是针对接受者的隐式调用. letlet函数能使某个变量作用于lambda表达式里，让it关键字能引用它。let与apply比较，let会把接受者传给lambda，而apply什么都不传，匿名函数执行完，apply会返回当前接受者，而let会返回lambda的最后一行。 fun...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Valine</span><span id="switch-btn"></span><span class="second-comment">Disqus</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div><div><div id="disqus_thread"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8E%8C%E6%8F%A1%E6%B3%9B%E5%9E%8B%E5%9F%BA%E7%A1%80"><span class="toc-number">1.</span> <span class="toc-text">掌握泛型基础</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9E%8B%E5%8F%98%EF%BC%88Variance%EF%BC%89"><span class="toc-number">2.</span> <span class="toc-text">型变（Variance）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%80%86%E5%8F%98%EF%BC%88Contravariant%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">逆变（Contravariant）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%8F%E5%8F%98%EF%BC%88Covariant%EF%BC%89"><span class="toc-number">4.</span> <span class="toc-text">协变（Covariant）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%98%9F%E6%8A%95%E5%BD%B1%EF%BC%88Star-Projections%EF%BC%89"><span class="toc-number">5.</span> <span class="toc-text">星投影（Star-Projections）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E6%88%98%E4%B8%8E%E6%80%9D%E8%80%83"><span class="toc-number">6.</span> <span class="toc-text">实战与思考</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">小结</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2025 By Carl Su</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 6.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">学无止境</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !true) {
+    if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const disqusReset = conf => {
+    window.DISQUS && window.DISQUS.reset({
+      reload: true,
+      config: conf
+    })
+  }
+
+  const loadDisqus = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyDisqus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    window.disqus_identifier = isShuoshuo ? path : '/posts/91ec5a6c/'
+    window.disqus_url = isShuoshuo ? location.origin + path : 'https://devsu.top/posts/91ec5a6c/'
+
+    const disqus_config = function () {
+      this.page.url = disqus_url
+      this.page.identifier = disqus_identifier
+      this.page.title = 'Kotlin编程第一课--(基础篇)10  泛型：逆变or协变，傻傻分不清？'
+    }
+
+    if (window.DISQUS) disqusReset(disqus_config)
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://.disqus.com/embed.js'
+      script.setAttribute('data-timestamp', +new Date())
+      document.head.appendChild(script)
+    }
+
+    btf.addGlobalFn('themeChange', () => disqusReset(disqus_config), 'disqus')
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqus-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=&api_key=&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Disqus'
+      ? window.shuoshuoComment = { loadComment: loadDisqus }
+      : window.loadOtherComment = loadDisqus
+    return
+  }
+
+  if ('Valine' === 'Disqus' || !true) {
+    if (true) btf.loadComment(document.getElementById('disqus_thread'), loadDisqus)
+    else {
+      loadDisqus()
+      GLOBAL_CONFIG_SITE.pageType === 'post' && getCount()
+    }
+  } else {
+    window.loadOtherComment = loadDisqus
+  }
+})()</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

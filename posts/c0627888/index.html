@@ -1,0 +1,436 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Kotlin编程第一课--(源码篇)29  Dispatchers是如何工作的？ | 码行</title><meta name="author" content="Carl Su"><meta name="copyright" content="Carl Su"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="今天，我们来分析 Kotlin 协程当中的 Dispatchers。 上节课里，我们分析了 launch 的源代码，从中我们知道，Kotlin 的 launch 会调用 startCoroutineCancellable()，接着又会调用 createCoroutineUnintercepted()，最终会调用编译器帮我们生成 SuspendLambda 实现类当中的 create() 方法。这样">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin编程第一课--(源码篇)29  Dispatchers是如何工作的？">
+<meta property="og:url" content="https://devsu.top/posts/c0627888/index.html">
+<meta property="og:site_name" content="码行">
+<meta property="og:description" content="今天，我们来分析 Kotlin 协程当中的 Dispatchers。 上节课里，我们分析了 launch 的源代码，从中我们知道，Kotlin 的 launch 会调用 startCoroutineCancellable()，接着又会调用 createCoroutineUnintercepted()，最终会调用编译器帮我们生成 SuspendLambda 实现类当中的 create() 方法。这样">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://pic.rmb.bdstatic.com/18ec2a58fd6a2bac0c819d31ee46e2a3.jpeg">
+<meta property="article:published_time" content="2022-06-26T09:06:40.000Z">
+<meta property="article:modified_time" content="2025-03-07T02:49:14.894Z">
+<meta property="article:author" content="Carl Su">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic.rmb.bdstatic.com/18ec2a58fd6a2bac0c819d31ee46e2a3.jpeg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Kotlin编程第一课--(源码篇)29  Dispatchers是如何工作的？",
+  "url": "https://devsu.top/posts/c0627888/",
+  "image": "https://pic.rmb.bdstatic.com/18ec2a58fd6a2bac0c819d31ee46e2a3.jpeg",
+  "datePublished": "2022-06-26T09:06:40.000Z",
+  "dateModified": "2025-03-07T02:49:14.894Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Carl Su",
+      "url": "https://devsu.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png"><link rel="canonical" href="https://devsu.top/posts/c0627888/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const hour = new Date().getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (theme === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else theme === 'light' ? activateLightMode() : activateDarkMode()
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6243425e2ecb037931274c4ca1db3132";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Carl Su","link":"链接: ","source":"来源: 码行","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Kotlin编程第一课--(源码篇)29  Dispatchers是如何工作的？',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">193</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">41</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://pic.rmb.bdstatic.com/18ec2a58fd6a2bac0c819d31ee46e2a3.jpeg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png" alt="Logo"><span class="site-name">码行</span></a><a class="nav-page-title" href="/"><span class="site-name">Kotlin编程第一课--(源码篇)29  Dispatchers是如何工作的？</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Kotlin编程第一课--(源码篇)29  Dispatchers是如何工作的？</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-06-26T09:06:40.000Z" title="发表于 2022-06-26 17:06:40">2022-06-26</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-07T02:49:14.894Z" title="更新于 2025-03-07 10:49:14">2025-03-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/">Android</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/">Kotlin</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/Kotlin%E7%BC%96%E7%A8%8B%E7%AC%AC%E4%B8%80%E8%AF%BE/">Kotlin编程第一课</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">4.1k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>16分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>今天，我们来分析 Kotlin 协程当中的 Dispatchers。</p>
+<p>上节课里，我们分析了 launch 的源代码，从中我们知道，Kotlin 的 launch 会调用 startCoroutineCancellable()，接着又会调用 createCoroutineUnintercepted()，最终会调用编译器帮我们生成 SuspendLambda 实现类当中的 create() 方法。这样，协程就创建出来了。不过，协程是创建出来了，可它是如何运行的呢？</p>
+<p>另外我们也都知道，协程无法脱离线程运行，Kotlin 当中所有的协程，最终都是运行在线程之上的。那么，<strong>协程创建出来以后，它又是如何跟线程产生关联的</strong>？这节课，我们将进一步分析 launch 的启动流程，去发掘上节课我们忽略掉的代码分支。</p>
+<p>我相信，经过这节课的学习，你会对协程与线程之间的关系有一个更加透彻的认识。</p>
+<h2 id="Dispatchers"><a href="#Dispatchers" class="headerlink" title="Dispatchers"></a>Dispatchers</h2><p>在上节课里我们学习过，launch{}本质上是调用了 startCoroutineCancellable() 当中的 createCoroutineUnintercepted() 方法创建了协程。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段1</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> <span class="params">(<span class="keyword">suspend</span> ()</span></span> -&gt; T).startCoroutineCancellable(completion: Continuation&lt;T&gt;): <span class="built_in">Unit</span> = runSafely(completion) &#123;</span><br><span class="line">    <span class="comment">//                                        注意这里</span></span><br><span class="line">    <span class="comment">//                                           ↓</span></span><br><span class="line">    createCoroutineUnintercepted(completion).intercepted().resumeCancellableWith(Result.success(<span class="built_in">Unit</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么下面，我们就接着上节课的流程，继续分析 createCoroutineUnintercepted(completion) 之后的 <strong>intercepted() 方法</strong>。</p>
+<p>不过，在正式分析 intercepted() 之前，我们还需要弄清楚 Dispatchers、CoroutineDispatcher、ContinuationInterceptor、CoroutineContext 之间的关系。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段2</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">actual</span> <span class="keyword">object</span> Dispatchers &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">actual</span> <span class="keyword">val</span> Default: CoroutineDispatcher = DefaultScheduler</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">actual</span> <span class="keyword">val</span> Main: MainCoroutineDispatcher <span class="keyword">get</span>() = MainDispatcherLoader.dispatcher</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">actual</span> <span class="keyword">val</span> Unconfined: CoroutineDispatcher = kotlinx.coroutines.Unconfined</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">val</span> IO: CoroutineDispatcher = DefaultIoScheduler</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="title">shutdown</span><span class="params">()</span></span> &#123;    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">CoroutineDispatcher</span> :</span><br><span class="line">    <span class="type">AbstractCoroutineContextElement</span>(ContinuationInterceptor), ContinuationInterceptor &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">ContinuationInterceptor</span> : <span class="type">CoroutineContext.Element</span> &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Element</span> : <span class="type">CoroutineContext</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在第 17 讲当中，我们曾经分析过它们之间的继承关系。Dispatchers 是一个单例对象，它当中的 Default、Main、Unconfined、IO，类型都是 CoroutineDispatcher，而它本身就是 CoroutineContext。所以，它们之间的关系就可以用下面这个图来描述。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/2c/d1/2cf4c3c45b6f6838e5fyy16a4fce02d1.jpg?wh=2000x1125" alt="img" style="zoom: 50%;" />
+
+<p>让我们结合这张图，来看看下面这段代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段3</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    testLaunch()</span><br><span class="line">    Thread.sleep(<span class="number">2000L</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">testLaunch</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> scope = CoroutineScope(Job())</span><br><span class="line">    scope.launch&#123;</span><br><span class="line">        logX(<span class="string">&quot;Hello!&quot;</span>)</span><br><span class="line">        delay(<span class="number">1000L</span>)</span><br><span class="line">        logX(<span class="string">&quot;World!&quot;</span>)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 控制台输出带协程信息的log</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">logX</span><span class="params">(any: <span class="type">Any</span>?)</span></span> &#123;</span><br><span class="line">    println(</span><br><span class="line">        <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">================================</span></span><br><span class="line"><span class="string"><span class="variable">$any</span></span></span><br><span class="line"><span class="string">Thread:<span class="subst">$&#123;Thread.currentThread().name&#125;</span></span></span><br><span class="line"><span class="string">================================&quot;&quot;&quot;</span>.trimIndent()</span><br><span class="line">    )</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">输出结果</span></span><br><span class="line"><span class="comment">================================</span></span><br><span class="line"><span class="comment">Hello!</span></span><br><span class="line"><span class="comment">Thread:DefaultDispatcher-worker-1 @coroutine#1</span></span><br><span class="line"><span class="comment">================================</span></span><br><span class="line"><span class="comment">================================</span></span><br><span class="line"><span class="comment">World!</span></span><br><span class="line"><span class="comment">Thread:DefaultDispatcher-worker-1 @coroutine#1</span></span><br><span class="line"><span class="comment">================================</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>在这段代码中，我们没有为 launch() 传入任何 CoroutineContext 参数，但通过执行结果，我们发现协程代码居然执行在 DefaultDispatcher，并没有运行在 main 线程之上。这是为什么呢？</p>
+<p>我们可以回过头来分析下 launch 的源代码，去看看上节课中我们刻意忽略的地方。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段4</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> CoroutineScope.<span class="title">launch</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    context: <span class="type">CoroutineContext</span> = EmptyCoroutineContext,</span></span></span><br><span class="line"><span class="params"><span class="function">    start: <span class="type">CoroutineStart</span> = CoroutineStart.DEFAULT,</span></span></span><br><span class="line"><span class="params"><span class="function">    block: <span class="type">suspend</span> <span class="type">CoroutineScope</span>.() -&gt; <span class="type">Unit</span></span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>: Job &#123;</span><br><span class="line">    <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">val</span> newContext = newCoroutineContext(context)</span><br><span class="line">    <span class="keyword">val</span> coroutine = <span class="keyword">if</span> (start.isLazy)</span><br><span class="line">        LazyStandaloneCoroutine(newContext, block) <span class="keyword">else</span></span><br><span class="line">        StandaloneCoroutine(newContext, active = <span class="literal">true</span>)</span><br><span class="line">    coroutine.start(start, coroutine, block)</span><br><span class="line">    <span class="keyword">return</span> coroutine</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>首先，请留意 launch 的第一个参数，context，它的默认值是 EmptyCoroutineContext。在第 17 讲里，我曾提到过，CoroutineContext 就相当于 Map，而 EmptyCoroutineContext 则相当于一个空的 Map。所以，我们可以认为，这里的 EmptyCoroutineContext 传了也相当于没有传，它的目的只是为了让 context 参数不为空而已。<strong>这其实也体现出了 Kotlin 的空安全思维，Kotlin 官方用 EmptyCoroutineContext 替代了 null</strong>。</p>
+<p>接着，请留意上面代码的注释 1，这行代码会调用 newCoroutineContext(context)，将传入的 context 参数重新包装一下，然后返回。让我们看看它具体的逻辑：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段5</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">actual</span> <span class="function"><span class="keyword">fun</span> CoroutineScope.<span class="title">newCoroutineContext</span><span class="params">(context: <span class="type">CoroutineContext</span>)</span></span>: CoroutineContext &#123;</span><br><span class="line">    <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">val</span> combined = coroutineContext.foldCopiesForChildCoroutine() + context</span><br><span class="line">    <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">val</span> debug = <span class="keyword">if</span> (DEBUG) combined + CoroutineId(COROUTINE_ID.incrementAndGet()) <span class="keyword">else</span> combined</span><br><span class="line">    <span class="comment">// 3</span></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">if</span> (combined !== Dispatchers.Default &amp;&amp; combined[ContinuationInterceptor] == <span class="literal">null</span>)</span><br><span class="line">        debug + Dispatchers.Default <span class="keyword">else</span> debug</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码一共有三个注释，我们来分析一下：</p>
+<ul>
+<li>注释 1，由于 newCoroutineContext() 是 CoroutineScope 的扩展函数，因此，我们可以直接访问 CoroutineScope 的 coroutineContext 对象，它其实就是 CoroutineScope 对应的上下文。foldCopiesForChildCoroutine() 的作用，其实就是将 CoroutineScope 当中的所有上下文元素都拷贝出来，然后跟传入的 context 参数进行合并。<strong>这行代码，可以让子协程继承父协程的上下文元素</strong>。</li>
+<li>注释 2，它的作用是在调试模式下，为我们的协程对象增加唯一的 ID。我们在代码段 3 的输出结果中看到的“@coroutine#1”，其中的数字“1”就是在这个阶段生成的。</li>
+<li>注释 3，如果合并过后的 combined 当中没有 CoroutineDispatcher，那么，就会默认使用 Dispatchers.Default。</li>
+</ul>
+<p>看到这里，你也许会有一个疑问，为什么协程默认的线程池是 Dispatchers.Default，而不是 Main 呢？答案其实也很简单，因为 Kotlin 协程是支持多平台的，<strong>Main 线程只在 UI 编程平台才有可用</strong>。因此，当我们的协程没有指定 Dispatcher 的时候，就只能使用 Dispatchers.Default 了。毕竟，协程是无法脱离线程执行的。</p>
+<p>那么现在，代码段 3 当中的协程执行在 Dispatchers.Default 的原因也就找到了：由于我们定义的 scope 没有指定 Dispatcher，同时 launch 的参数也没有传入 Dispatcher，最终在 newCoroutineContext() 的时候，会被默认指定为 Default 线程池。</p>
+<p>好，有了前面的基础以后，接下来，我们就可以开始 intercepted() 的逻辑了。</p>
+<h2 id="CoroutineDispatcher-拦截器"><a href="#CoroutineDispatcher-拦截器" class="headerlink" title="CoroutineDispatcher 拦截器"></a>CoroutineDispatcher 拦截器</h2><p>让我们回到课程开头提到过的 startCoroutineCancellable() 方法的源代码，其中的 createCoroutineUnintercepted() 方法，我们在上节课已经分析过了，它的返回值类型就是Continuation。而 <strong>intercepted() 方法，其实就是 Continuation 的扩展函数</strong>。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段6</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> <span class="params">(<span class="keyword">suspend</span> ()</span></span> -&gt; T).startCoroutineCancellable(completion: Continuation&lt;T&gt;): <span class="built_in">Unit</span> = runSafely(completion) &#123;</span><br><span class="line">    <span class="comment">//                                        注意这里</span></span><br><span class="line">    <span class="comment">//                                           ↓</span></span><br><span class="line">    createCoroutineUnintercepted(completion).intercepted().resumeCancellableWith(Result.success(<span class="built_in">Unit</span>))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">actual</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> Continuation<span class="type">&lt;T&gt;</span>.<span class="title">intercepted</span><span class="params">()</span></span>: Continuation&lt;T&gt; =</span><br><span class="line">    (<span class="keyword">this</span> <span class="keyword">as</span>? ContinuationImpl)?.intercepted() ?: <span class="keyword">this</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">ContinuationImpl</span>(</span><br><span class="line">    completion: Continuation&lt;Any?&gt;?,</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> _context: CoroutineContext?</span><br><span class="line">) : BaseContinuationImpl(completion) &#123;</span><br><span class="line">    <span class="keyword">constructor</span>(completion: Continuation&lt;Any?&gt;?) : <span class="keyword">this</span>(completion, completion?.context)</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Transient</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> intercepted: Continuation&lt;Any?&gt;? = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="title">intercepted</span><span class="params">()</span></span>: Continuation&lt;Any?&gt; =</span><br><span class="line">        intercepted</span><br><span class="line">            ?: (context[ContinuationInterceptor]?.interceptContinuation(<span class="keyword">this</span>) ?: <span class="keyword">this</span>)</span><br><span class="line">                .also &#123; intercepted = it &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从上面的代码中，我们可以看到，startCoroutineCancellable() 当中的 intercepted() 最终会调用 BaseContinuationImpl 的 intercepted() 方法。</p>
+<p>这里，请你留意代码中我标记出的注释，intercepted() 方法首先会判断它的成员变量 <strong>intercepted 是否为空</strong>，如果为空，就会调用 context[ContinuationInterceptor]，获取上下文当中的 Dispatcher 对象。以代码段 3 当中的逻辑为例，这时候的 Dispatcher 肯定是 Default 线程池。</p>
+<p>然后，如果我们继续跟进 interceptContinuation(this) 方法的话，会发现程序最终会调用 CoroutineDispatcher 的 interceptContinuation() 方法。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段7</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">CoroutineDispatcher</span> :</span><br><span class="line">    <span class="type">AbstractCoroutineContextElement</span>(ContinuationInterceptor), ContinuationInterceptor &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> <span class="title">interceptContinuation</span><span class="params">(continuation: <span class="type">Continuation</span>&lt;<span class="type">T</span>&gt;)</span></span>: Continuation&lt;T&gt; =</span><br><span class="line">        DispatchedContinuation(<span class="keyword">this</span>, continuation)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>同样留意下这里的注释 1，interceptContinuation() 直接返回了一个 DispatchedContinuation 对象，并且将 this、continuation 作为参数传了进去。这里的 this，其实就是 Dispatchers.Default。</p>
+<p>所以，如果我们把 startCoroutineCancellable() 改写一下，它实际上会变成下面这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段8</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> <span class="params">(<span class="keyword">suspend</span> ()</span></span> -&gt; T).startCoroutineCancellable(completion: Continuation&lt;T&gt;): <span class="built_in">Unit</span> = runSafely(completion) &#123;</span><br><span class="line">    createCoroutineUnintercepted(completion).intercepted().resumeCancellableWith(Result.success(<span class="built_in">Unit</span>))</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 等价</span></span><br><span class="line"><span class="comment">//  ↓</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> <span class="params">(<span class="keyword">suspend</span> ()</span></span> -&gt; T).startCoroutineCancellable(completion: Continuation&lt;T&gt;): <span class="built_in">Unit</span> = runSafely(completion) &#123;</span><br><span class="line">    <span class="comment">// 1</span></span><br><span class="line">    <span class="keyword">val</span> continuation = createCoroutineUnintercepted(completion)</span><br><span class="line">    <span class="comment">// 2</span></span><br><span class="line">    <span class="keyword">val</span> dispatchedContinuation = continuation.intercepted()</span><br><span class="line">    <span class="comment">// 3</span></span><br><span class="line">    dispatchedContinuation.resumeCancellableWith(Result.success(<span class="built_in">Unit</span>))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上面的代码中，注释 1，2 我们都已经分析完了，现在只剩下注释 3 了。这里的 resumeCancellableWith()，其实就是真正将协程任务分发到线程上的逻辑。让我们继续跟进分析源代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段9</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">class</span> <span class="title class_">DispatchedContinuation</span>&lt;<span class="type">in T</span>&gt;(</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">val</span> dispatcher: CoroutineDispatcher,</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">val</span> continuation: Continuation&lt;T&gt;</span><br><span class="line">) : DispatchedTask&lt;T&gt;(MODE_UNINITIALIZED), CoroutineStackFrame, Continuation&lt;T&gt; <span class="keyword">by</span> continuation &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="title">resumeCancellableWith</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">        result: <span class="type">Result</span>&lt;<span class="type">T</span>&gt;,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="keyword">noinline</span> onCancellation: ((<span class="type">cause</span>: <span class="type">Throwable</span>) -&gt; <span class="type">Unit</span>)?</span></span></span><br><span class="line"><span class="params"><span class="function">    )</span></span> &#123;</span><br><span class="line">        <span class="comment">// 省略，留到后面分析</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>也就是，DispatchedContinuation 是实现了 Continuation 接口，同时，它使用了“类委托”的语法，将接口的具体实现委托给了它的成员属性 continuation。通过之前代码段 7 的分析，我们知道它的成员属性 <strong>dispatcher 对应的就是 Dispatcher.Default</strong>，而<strong>成员属性 continuation 对应的则是 launch 当中传入的 SuspendLambda 实现类。</strong></p>
+<p>另外，DispatchedContinuation 还继承自 DispatchedTask，我们来看看 DispatchedTask 到底是什么。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">DispatchedTask</span>&lt;<span class="type">in T</span>&gt;(</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">public</span> <span class="keyword">var</span> resumeMode: <span class="built_in">Int</span></span><br><span class="line">) : SchedulerTask() &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">actual</span> <span class="keyword">typealias</span> SchedulerTask = Task</span><br><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Task</span>(</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">var</span> submissionTime: <span class="built_in">Long</span>,</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">var</span> taskContext: TaskContext</span><br><span class="line">) : Runnable &#123;</span><br><span class="line">    <span class="keyword">constructor</span>() : <span class="keyword">this</span>(<span class="number">0</span>, NonBlockingContext)</span><br><span class="line">    <span class="keyword">inline</span> <span class="keyword">val</span> mode: <span class="built_in">Int</span> <span class="keyword">get</span>() = taskContext.taskMode <span class="comment">// TASK_XXX</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，DispatchedContinuation 继承自 DispatchedTask，而它则是 SchedulerTask 的子类，SchedulerTask 是 Task 的类型别名，而 Task 实现了 Runnable 接口。因此，<strong>DispatchedContinuation 不仅是一个 Continuation，同时还是一个 Runnable</strong>。</p>
+<p>那么，既然它是 Runnable，也就意味着它可以被分发到 Java 的线程当中去执行了。所以接下来，我们就来看看 resumeCancellableWith() 当中具体的逻辑：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段9</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">class</span> <span class="title class_">DispatchedContinuation</span>&lt;<span class="type">in T</span>&gt;(</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">val</span> dispatcher: CoroutineDispatcher,</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">val</span> continuation: Continuation&lt;T&gt;</span><br><span class="line">) : DispatchedTask&lt;T&gt;(MODE_UNINITIALIZED), CoroutineStackFrame, Continuation&lt;T&gt; <span class="keyword">by</span> continuation &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">inline</span> <span class="function"><span class="keyword">fun</span> <span class="title">resumeCancellableWith</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">        result: <span class="type">Result</span>&lt;<span class="type">T</span>&gt;,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="keyword">noinline</span> onCancellation: ((<span class="type">cause</span>: <span class="type">Throwable</span>) -&gt; <span class="type">Unit</span>)?</span></span></span><br><span class="line"><span class="params"><span class="function">    )</span></span> &#123;</span><br><span class="line">        <span class="keyword">val</span> state = result.toState(onCancellation)</span><br><span class="line">        <span class="comment">// 1</span></span><br><span class="line">        <span class="keyword">if</span> (dispatcher.isDispatchNeeded(context)) &#123;</span><br><span class="line">            _state = state</span><br><span class="line">            resumeMode = MODE_CANCELLABLE</span><br><span class="line">            <span class="comment">// 2</span></span><br><span class="line">            dispatcher.dispatch(context, <span class="keyword">this</span>)</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 3</span></span><br><span class="line">            executeUnconfined(state, MODE_CANCELLABLE) &#123;</span><br><span class="line">                <span class="keyword">if</span> (!resumeCancelled(state)) &#123;</span><br><span class="line">                    resumeUndispatchedWith(result)</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">CoroutineDispatcher</span> :</span><br><span class="line">    <span class="type">AbstractCoroutineContextElement</span>(ContinuationInterceptor), ContinuationInterceptor &#123;</span><br><span class="line">    <span class="comment">// 默认是true</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">open</span> <span class="function"><span class="keyword">fun</span> <span class="title">isDispatchNeeded</span><span class="params">(context: <span class="type">CoroutineContext</span>)</span></span>: <span class="built_in">Boolean</span> = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">abstract</span> <span class="function"><span class="keyword">fun</span> <span class="title">dispatch</span><span class="params">(context: <span class="type">CoroutineContext</span>, block: <span class="type">Runnable</span>)</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">object</span> Unconfined : CoroutineDispatcher() &#123;</span><br><span class="line">    <span class="comment">// 只有Unconfined会重写成false</span></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">isDispatchNeeded</span><span class="params">(context: <span class="type">CoroutineContext</span>)</span></span>: <span class="built_in">Boolean</span> = <span class="literal">false</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码里也有三个注释，我们来分析一下：</p>
+<ul>
+<li>注释 1，dispatcher.isDispatchNeeded()，通过查看 CoroutineDispatcher 的源代码，我们发现它的返回值始终都是 true。在它的子类当中，只有 Dispatchers.Unconfined 会将其重写成 false。这也就意味着，除了 Unconfined 以外，其他的 Dispatcher 都会返回 true。对于我们代码段 3 当中的代码而言，我们的 Dispatcher 是默认的 Default，所以，代码将会进入注释 2 对应的分支。</li>
+<li>注释 2，dispatcher.dispatch(context, this)，这里其实就相当于将代码的执行流程分发到 Default 线程池。dispatch() 的第二个参数要求是 Runnable，这里我们传入的是 this，这是因为 DispatchedContinuation 本身就间接实现了 Runnable 接口。</li>
+<li>注释 3，executeUnconfined{}，它其实就对应着 Dispather 是 Unconfined 的情况，这时候，协程的执行不会被分发到别的线程，而是直接在当前线程执行。</li>
+</ul>
+<p>接下来，让我们继续沿着注释 2 进行分析，这里的 dispatcher.dispatch() 其实就相当于调用了 Dispatchers.Default.dispatch()。让我们看看它的逻辑：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">actual</span> <span class="keyword">object</span> Dispatchers &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@JvmStatic</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">actual</span> <span class="keyword">val</span> Default: CoroutineDispatcher = DefaultScheduler</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">object</span> DefaultScheduler : SchedulerCoroutineDispatcher(</span><br><span class="line">    CORE_POOL_SIZE, MAX_POOL_SIZE,</span><br><span class="line">    IDLE_WORKER_KEEP_ALIVE_NS, DEFAULT_SCHEDULER_NAME</span><br><span class="line">) &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么，从上面的代码中，我们可以看到，<strong>Dispatchers.Default 本质上是一个单例对象 DefaultScheduler</strong>，它是 SchedulerCoroutineDispatcher 的子类。</p>
+<p>我们也来看看 SchedulerCoroutineDispatcher 的源代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">open</span> <span class="keyword">class</span> <span class="title class_">SchedulerCoroutineDispatcher</span>(</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> corePoolSize: <span class="built_in">Int</span> = CORE_POOL_SIZE,</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> maxPoolSize: <span class="built_in">Int</span> = MAX_POOL_SIZE,</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> idleWorkerKeepAliveNs: <span class="built_in">Long</span> = IDLE_WORKER_KEEP_ALIVE_NS,</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">val</span> schedulerName: String = <span class="string">&quot;CoroutineScheduler&quot;</span>,</span><br><span class="line">) : ExecutorCoroutineDispatcher() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">var</span> coroutineScheduler = createScheduler()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">dispatch</span><span class="params">(context: <span class="type">CoroutineContext</span>, block: <span class="type">Runnable</span>)</span></span>: <span class="built_in">Unit</span> = coroutineScheduler.dispatch(block)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据以上代码，我们可以看到 Dispatchers.Default.dispatch() 最终会调用 SchedulerCoroutineDispatcher 的 dispatch() 方法，而它实际上调用的是 coroutineScheduler.dispatch()。</p>
+<p>这里，我们同样再来看看 CoroutineScheduler 的源代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">class</span> <span class="title class_">CoroutineScheduler</span>(</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">val</span> corePoolSize: <span class="built_in">Int</span>,</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">val</span> maxPoolSize: <span class="built_in">Int</span>,</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">val</span> idleWorkerKeepAliveNs: <span class="built_in">Long</span> = IDLE_WORKER_KEEP_ALIVE_NS,</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">val</span> schedulerName: String = DEFAULT_SCHEDULER_NAME</span><br><span class="line">) : Executor, Closeable &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">execute</span><span class="params">(command: <span class="type">Runnable</span>)</span></span> = dispatch(command)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">fun</span> <span class="title">dispatch</span><span class="params">(block: <span class="type">Runnable</span>, taskContext: <span class="type">TaskContext</span> = NonBlockingContext, tailDispatch: <span class="type">Boolean</span> = <span class="literal">false</span>)</span></span> &#123;</span><br><span class="line">        trackTask() </span><br><span class="line">        <span class="comment">// 1</span></span><br><span class="line">        <span class="keyword">val</span> task = createTask(block, taskContext)</span><br><span class="line">        <span class="comment">// 2</span></span><br><span class="line">        <span class="keyword">val</span> currentWorker = currentWorker()</span><br><span class="line">        <span class="comment">// 3</span></span><br><span class="line">        <span class="keyword">val</span> notAdded = currentWorker.submitToLocalQueue(task, tailDispatch)</span><br><span class="line">        <span class="keyword">if</span> (notAdded != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (!addToGlobalQueue(notAdded)) &#123;</span><br><span class="line"></span><br><span class="line">                <span class="keyword">throw</span> RejectedExecutionException(<span class="string">&quot;<span class="variable">$schedulerName</span> was terminated&quot;</span>)</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">val</span> skipUnpark = tailDispatch &amp;&amp; currentWorker != <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (task.mode == TASK_NON_BLOCKING) &#123;</span><br><span class="line">            <span class="keyword">if</span> (skipUnpark) <span class="keyword">return</span></span><br><span class="line">            signalCpuWork()</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line"></span><br><span class="line">            signalBlockingWork(skipUnpark = skipUnpark)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">currentWorker</span><span class="params">()</span></span>: Worker? = (Thread.currentThread() <span class="keyword">as</span>? Worker)?.takeIf &#123; it.scheduler == <span class="keyword">this</span> &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 内部类 Worker</span></span><br><span class="line">    <span class="keyword">internal</span> <span class="keyword">inner</span> <span class="keyword">class</span> <span class="title class_">Worker</span> <span class="keyword">private</span> <span class="keyword">constructor</span>() : Thread() &#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>你发现了吗？CoroutineScheduler 其实是 Java 并发包下的 Executor 的子类，它的 execute() 方法也被转发到了 dispatch()。</p>
+<p>上面的代码里也有三个注释，我们分别来看看：</p>
+<ul>
+<li>注释 1，将传入的 Runnable 类型的 block（也就是 DispatchedContinuation），包装成 Task。</li>
+<li>注释 2，currentWorker()，拿到当前执行的线程。这里的 Worker 其实是一个内部类，它本质上仍然是 Java 的 Thread。</li>
+<li>注释 3，currentWorker.submitToLocalQueue()，将当前的 Task 添加到 Worker 线程的本地队列，等待执行。</li>
+</ul>
+<p>那么接下来，我们就来分析下 Worker 是如何执行 Task 的。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">inner</span> <span class="keyword">class</span> <span class="title class_">Worker</span> <span class="keyword">private</span> <span class="keyword">constructor</span>() : Thread() &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">run</span><span class="params">()</span></span> = runWorker()</span><br><span class="line"></span><br><span class="line">    <span class="meta">@JvmField</span></span><br><span class="line">    <span class="keyword">var</span> mayHaveLocalTasks = <span class="literal">false</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">runWorker</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="keyword">var</span> rescanned = <span class="literal">false</span></span><br><span class="line">        <span class="keyword">while</span> (!isTerminated &amp;&amp; state != WorkerState.TERMINATED) &#123;</span><br><span class="line">            <span class="comment">// 1</span></span><br><span class="line">            <span class="keyword">val</span> task = findTask(mayHaveLocalTasks)</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (task != <span class="literal">null</span>) &#123;</span><br><span class="line">                rescanned = <span class="literal">false</span></span><br><span class="line">                minDelayUntilStealableTaskNs = <span class="number">0L</span></span><br><span class="line">                <span class="comment">// 2</span></span><br><span class="line">                executeTask(task)</span><br><span class="line">                <span class="keyword">continue</span></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                mayHaveLocalTasks = <span class="literal">false</span></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (minDelayUntilStealableTaskNs != <span class="number">0L</span>) &#123;</span><br><span class="line">                <span class="keyword">if</span> (!rescanned) &#123;</span><br><span class="line">                    rescanned = <span class="literal">true</span></span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    rescanned = <span class="literal">false</span></span><br><span class="line">                    tryReleaseCpu(WorkerState.PARKING)</span><br><span class="line">                    interrupted()</span><br><span class="line">                    LockSupport.parkNanos(minDelayUntilStealableTaskNs)</span><br><span class="line">                    minDelayUntilStealableTaskNs = <span class="number">0L</span></span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">continue</span></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            tryPark()</span><br><span class="line">        &#125;</span><br><span class="line">        tryReleaseCpu(WorkerState.TERMINATED)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实际上，Worker 会重写 Thread 的 run() 方法，然后把执行流程交给 runWorker()，以上代码里有两个关键的地方，我也用注释标记了。</p>
+<ul>
+<li>注释 1，在 while 循环当中，会一直尝试从 Worker 的本地队列取 Task 出来，如果存在需要执行的 Task，就会进入下一步。</li>
+<li>注释 2，executeTask(task)，其实就是执行对应的 Task。</li>
+</ul>
+<p>而接下来的逻辑，就是<strong>最关键的部分</strong>了：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">inner</span> <span class="keyword">class</span> <span class="title class_">Worker</span> <span class="keyword">private</span> <span class="keyword">constructor</span>() : Thread() &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="function"><span class="keyword">fun</span> <span class="title">executeTask</span><span class="params">(task: <span class="type">Task</span>)</span></span> &#123;</span><br><span class="line">        <span class="keyword">val</span> taskMode = task.mode</span><br><span class="line">        idleReset(taskMode)</span><br><span class="line">        beforeTask(taskMode)</span><br><span class="line">        <span class="comment">// 1</span></span><br><span class="line">        runSafely(task)</span><br><span class="line">        afterTask(taskMode)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">runSafely</span><span class="params">(task: <span class="type">Task</span>)</span></span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 2</span></span><br><span class="line">        task.run()</span><br><span class="line">    &#125; <span class="keyword">catch</span> (e: Throwable) &#123;</span><br><span class="line">        <span class="keyword">val</span> thread = Thread.currentThread()</span><br><span class="line">        thread.uncaughtExceptionHandler.uncaughtException(thread, e)</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        unTrackTask()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">Task</span>(</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">var</span> submissionTime: <span class="built_in">Long</span>,</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">var</span> taskContext: TaskContext</span><br><span class="line">) : Runnable &#123;</span><br><span class="line">    <span class="keyword">constructor</span>() : <span class="keyword">this</span>(<span class="number">0</span>, NonBlockingContext)</span><br><span class="line">    <span class="keyword">inline</span> <span class="keyword">val</span> mode: <span class="built_in">Int</span> <span class="keyword">get</span>() = taskContext.taskMode <span class="comment">// TASK_XXX</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 Worker 的 executeTask() 方法当中，会调用 runSafely() 方法，而在这个方法当中，最终会调用 task.run()。前面我们就提到过 <strong>Task 本质上就是 Runnable，而 Runnable.run() 其实就代表了我们的协程任务真正执行了！</strong></p>
+<p>那么，task.run() 具体执行的代码是什么呢？其实它是执行的 **DispatchedTask.run()**。这里的 DispatchedTask 实际上是 DispatchedContinuation 的父类。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">internal</span> <span class="keyword">class</span> <span class="title class_">DispatchedContinuation</span>&lt;<span class="type">in T</span>&gt;(</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">val</span> dispatcher: CoroutineDispatcher,</span><br><span class="line">    <span class="meta">@JvmField</span> <span class="keyword">val</span> continuation: Continuation&lt;T&gt;</span><br><span class="line">) : DispatchedTask&lt;T&gt;(MODE_UNINITIALIZED), CoroutineStackFrame, Continuation&lt;T&gt; <span class="keyword">by</span> continuation &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">override</span> <span class="function"><span class="keyword">fun</span> <span class="title">run</span><span class="params">()</span></span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">val</span> taskContext = <span class="keyword">this</span>.taskContext</span><br><span class="line">        <span class="keyword">var</span> fatalException: Throwable? = <span class="literal">null</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">val</span> delegate = delegate <span class="keyword">as</span> DispatchedContinuation&lt;T&gt;</span><br><span class="line">            <span class="keyword">val</span> continuation = delegate.continuation</span><br><span class="line">            withContinuationContext(continuation, delegate.countOrElement) &#123;</span><br><span class="line">                <span class="keyword">val</span> context = continuation.context</span><br><span class="line">                <span class="keyword">val</span> state = takeState() </span><br><span class="line">                <span class="keyword">val</span> exception = getExceptionalResult(state)</span><br><span class="line"></span><br><span class="line">                <span class="keyword">val</span> job = <span class="keyword">if</span> (exception == <span class="literal">null</span> &amp;&amp; resumeMode.isCancellableMode) context[Job] <span class="keyword">else</span> <span class="literal">null</span></span><br><span class="line">                <span class="keyword">if</span> (job != <span class="literal">null</span> &amp;&amp; !job.isActive) &#123;</span><br><span class="line">                    <span class="comment">// 1</span></span><br><span class="line">                    <span class="keyword">val</span> cause = job.getCancellationException()</span><br><span class="line">                    cancelCompletedResult(state, cause)</span><br><span class="line">                    continuation.resumeWithStackTrace(cause)</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">if</span> (exception != <span class="literal">null</span>) &#123;</span><br><span class="line">                        <span class="comment">// 2</span></span><br><span class="line">                        continuation.resumeWithException(exception)</span><br><span class="line">                    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                        <span class="comment">// 3</span></span><br><span class="line">                        continuation.resume(getSuccessfulResult(state))</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (e: Throwable) &#123;</span><br><span class="line"></span><br><span class="line">            fatalException = e</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">val</span> result = runCatching &#123; taskContext.afterTask() &#125;</span><br><span class="line">            handleFatalException(fatalException, result.exceptionOrNull())</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的代码有三个关键的注释，我们一起来分析：</p>
+<ul>
+<li>注释 1，在协程代码执行之前，它首先会判断当前协程是否已经取消。如果已经取消的话，就会调用 continuation.resumeWithStackTrace(cause) 将具体的原因传出去。</li>
+<li>注释 2，判断协程是否发生了异常，如果已经发生了异常，则需要调用 continuation.resumeWithException(exception) 将异常传递出去。</li>
+<li>注释 3，如果一切正常，则会调用 continuation.resume(getSuccessfulResult(state))，这时候，协程才会正式启动，并且执行 launch 当中传入的 Lambda 表达式。</li>
+</ul>
+<p>最后，按照惯例，我还是制作了一个视频，来向你展示整个 Dispather 的代码执行流程。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>这节课，我们围绕着 launch，着重分析了它的 Dispatchers 执行流程。Dispatchers 是协程框架中与线程交互的关键，这里面主要涉及以下几个步骤：</p>
+<ul>
+<li>第一步，createCoroutineUnintercepted(completion) 创建了协程的 Continuation 实例，紧接着就会调用它的 intercepted() 方法，将其封装成 DispatchedContinuation 对象。</li>
+<li>第二步，DispatchedContinuation 会持有 CoroutineDispatcher、以及前面创建的 Continuation 对象。课程中的 CoroutineDispatcher 实际上就是 Default 线程池。</li>
+<li>第三步，执行 DispatchedContinuation 的 resumeCancellableWith() 方法，这时候，就会执行 dispatcher.dispatch()，这就会将协程的 Continuation 封装成 Task 添加到 Worker 的本地任务队列，等待执行。这里的 Worker 本质上就是 Java 的 Thread。<strong>在这一步，协程就已经完成了线程的切换</strong>。</li>
+<li>第四步，Worker 的 run() 方法会调用 runWork()，它会从本地的任务队列当中取出 Task，并且调用 task.run()。而它实际上调用的是 DispatchedContinuation 的 run() 方法，在这里，会调用 continuation.resume()，它将执行原本 launch 当中生成的 SuspendLambda 子类。这时候，<strong>launch 协程体当中的代码，就在线程上执行了。</strong></li>
+</ul>
+<h2 id="思考题"><a href="#思考题" class="headerlink" title="思考题"></a>思考题</h2><p>经过这节课的学习以后，请问你是否对协程的本质有了更深入的认识？请讲讲你的心得体会吧！</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://devsu.top">Carl Su</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://devsu.top/posts/c0627888/">https://devsu.top/posts/c0627888/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://devsu.top" target="_blank">码行</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Kotlin/">Kotlin</a></div><div class="post-share"><div class="social-share" data-image="https://pic.rmb.bdstatic.com/18ec2a58fd6a2bac0c819d31ee46e2a3.jpeg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/4c362f78/" title="Kotlin编程第一课--(源码篇)加餐五  深入理解协程基础元素"><img class="cover" src="https://img.tt98.com/d/file/pic/2018060523545937/5b15f4a26c32b.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Kotlin编程第一课--(源码篇)加餐五  深入理解协程基础元素</div></div><div class="info-2"><div class="info-item-1">在上一讲当中，我们深入研究了 Kotlin 挂起函数的原理，实际更多的是在了解协程的“基础层”。而接下来，我们将会开始研究协程启动的原理，探索协程的“中间层”。 在第 26 讲里，我曾提到过，Kotlin 的协程框架其实就是协程基础元素组合出来的框架。如果我们想要弄懂 Kotlin 协程，首先就要将它的“基础层”理解透彻。 所以今天，我还是决定来一次加餐，带你系统深入地认识一下 Kotlin 协程当中的基础元素。等你对协程的基础层有了深入认识以后，下节课研究协程启动原理就会轻松一些了。 协程基础元素通过第 26 讲我们现在已经知道，Kotlin 协程的基础元素大致有这些：Continuation、SafeContinuation、CoroutineContext、CombinedContext、CancellationException、intrinsics。   其中的 CoroutineContext、CancellationException 我都已经介绍过了，另外的 CombinedContext，其实就是 CoroutineContext 的一个实现类，而...</div></div></div></a><a class="pagination-related" href="/posts/4f3df7f8/" title="Kotlin编程第一课--(源码篇)30  CoroutineScope是如何管理协程的？"><img class="cover" src="https://s2.loli.net/2023/03/14/se3pdS2JL7aIHPg.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Kotlin编程第一课--(源码篇)30  CoroutineScope是如何管理协程的？</div></div><div class="info-2"><div class="info-item-1">通过前面课程的学习，我们知道 CoroutineScope 是实现协程结构化并发的关键。使用 CoroutineScope，我们可以批量管理同一个作用域下面所有的协程。那么，今天这节课，我们就来研究一下 CoroutineScope 是如何管理协程的。 CoroutineScope VS 结构化并发在前面的课程中，我们学习过 CoroutineScope 的用法。由于 launch、async 被定义成了 CoroutineScope 的扩展函数，这就意味着：在调用 launch 之前，我们必须先获取 CoroutineScope。 // 代码段1public fun CoroutineScope.launch(    context: CoroutineContext = EmptyCoroutineContext,    start: CoroutineStart = CoroutineStart.DEFAULT,    block: suspend CoroutineScope.() -&gt; Unit): Job &#123;&#125;public fun...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/85d82fa8/" title="Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？"><img class="cover" src="https://static001.geekbang.org/resource/image/b6/1c/b65feyy0bdc4764c6564a95912d7851c.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-06</div><div class="info-item-2">Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？</div></div><div class="info-2"><div class="info-item-1">Kotlin 的扩展（Extension），主要分为两种语法：第一个是扩展函数，第二个是扩展属性。从语法上看，扩展看起来就像是我们从类的外部为它扩展了新的成员。 这在实际编程当中是非常有用的功能。我们可以来想象一个场景：我们想修改 JDK 当中的 String，想在它的基础上增加一个方法“lastElement()”来获取末尾元素，如果使用 Java，我们是无法通过常规手段实现的，因为我们没办法修改 JDK 的源代码。任何第三方提供的 SDK，我们都无权修改。 不过，借助 Kotlin 的扩展函数，我们就完全可以在语义层面，来为第三方 SDK 的类扩展新的成员方法和成员属性。不管是为 JDK 的 String 增加新的成员方法，还是为 Android SDK 的 View 增加新成员属性，我们都可以实现。 Kotlin 的这个“扩展”功能看起来很神奇，它会不会很难学？其实不然，它的语法非常简洁。今天这节课，我们就一起来学习下 Kotlin...</div></div></div></a><a class="pagination-related" href="/posts/be9f17d6/" title="Kotlin编程第一课(目录)"><img class="cover" src="https://img2.baidu.com/it/u=3956021957,3313212296&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-10</div><div class="info-item-2">Kotlin编程第一课(目录)</div></div><div class="info-2"><div class="info-item-1">基础篇Kotlin编程第一课–(基础篇)01  Kotlin基础语法：正式开启学习之旅Kotlin编程第一课–(基础篇)02  面向对象：理解Kotlin设计者的良苦用心Kotlin编程第一课–(基础篇)03  Kotlin原理：编译器在幕后干了哪些“好事”？Kotlin编程第一课–(基础篇)04 | 实战：构建一个Kotlin版本的四则运算计算器Kotlin编程第一课–(基础篇)05  object关键字：你到底有多少种用法？Kotlin编程第一课–(基础篇)06  扩展：你的能力边界到底在哪里？Kotlin编程第一课–(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？Kotlin编程第一课–(基础篇)08  实战：用Kotlin写一个英语词频统计程序Kotlin编程第一课–(基础篇)加餐一  初识Kotlin函数式编程Kotlin编程第一课–(基础篇)09  委托：你为何总是被低估？Kotlin编程第一课–(基础篇)10  泛型：逆变or协变，傻傻分不清？Kotlin编程第一课–(基础篇)11 ...</div></div></div></a><a class="pagination-related" href="/posts/83a7144c/" title="2023-01-17-Kotlin协程 -  结构化并发"><img class="cover" src="https://s2.loli.net/2023/03/14/xEyFgn24zZPXe15.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-01-17</div><div class="info-item-2">2023-01-17-Kotlin协程 -  结构化并发</div></div><div class="info-2"><div class="info-item-1">CoroutineScope定义协程必须指定其 CoroutineScope，它会跟踪所有协程，同样它还可以取消由它所启动的所有协程。 常用的相关API有：  GlobalScope，生命周期是process级别的，及时Activity或Fragment已经被销毁，协程仍然在执行。 MainScope，在Activity中使用，可以在onDestroy()中取消协程。 viewModelScope，只能在ViewModel中使用，绑定ViewModel的生命周期。 lifecycleScope，只能在Activity、Fragment中使用，会绑定Activity和Fragment的生命周期  </div></div></div></a><a class="pagination-related" href="/posts/a20c9e06/" title="Kotlin协程"><img class="cover" src="https://s2.loli.net/2023/03/14/3MHPBy1Q4GncRlF.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-09</div><div class="info-item-2">Kotlin协程</div></div><div class="info-2"><div class="info-item-1">Kotlin协程协程的作用域构建器coroutineScope与runBlocking runBlocking是常规函数，而coroutineScope是挂起函数。 它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途  </div></div></div></a><a class="pagination-related" href="/posts/68bf7d20/" title="Kotlin函数"><img class="cover" src="https://img1.baidu.com/it/u=1546227440,2897989905&fm=253&fmt=auto&app=138&f=JPEG?w=889&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin函数</div></div><div class="info-2"><div class="info-item-1">函数类型作为返回类型fun main() &#123;	  println(show(&quot;Demo&quot;))      val lambdaFunction = showMethod(&quot;Jack&quot;) //注意lambdaFunction 这里的类型为(String,Int) -&gt; String    println(lambdaFunction(&quot;Carl&quot;,20))&#125;//普通函数fun show(name:String): String &#123;    return &quot;name is $name&quot;&#125;//返回类型为函数fun showMethod(name: String): (String,Int) -&gt; String &#123;    println(&quot;name is $name&quot;)    return &#123; name: String, age: Int -&gt;       ...</div></div></div></a><a class="pagination-related" href="/posts/8c331668/" title="Kotlin内置函数apply、let、run、with、also等区别"><img class="cover" src="https://s2.loli.net/2023/03/14/OpxWcuy2ktMzoQD.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin内置函数apply、let、run、with、also等区别</div></div><div class="info-2"><div class="info-item-1">Applyapply函数可看作一个配置函数，可以传入一个接收者，然后调用一系列函数来配置它以便使用，如果提供lambda给apply函数执行，它会返回配置好的接受者 val file1 = File(&quot;/User/geowin/hello.txt&quot;)file1.apply &#123; // this: File   setWritable(true)   setReadable(true)   setExecutable(false)&#125;  可以看到，调用一个个函数类配置接受者时，变量名就省略了，这是因为，在lambda表达式中，apply能让每个配置函数都作用于接受者，这种行为有时又叫做相关作用域,因为lambda表达式里的所有函数调用都是针对接收者的，或者说，它们是针对接受者的隐式调用. letlet函数能使某个变量作用于lambda表达式里，让it关键字能引用它。let与apply比较，let会把接受者传给lambda，而apply什么都不传，匿名函数执行完，apply会返回当前接受者，而let会返回lambda的最后一行。 fun...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Valine</span><span id="switch-btn"></span><span class="second-comment">Disqus</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div><div><div id="disqus_thread"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Dispatchers"><span class="toc-number">1.</span> <span class="toc-text">Dispatchers</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CoroutineDispatcher-%E6%8B%A6%E6%88%AA%E5%99%A8"><span class="toc-number">2.</span> <span class="toc-text">CoroutineDispatcher 拦截器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">3.</span> <span class="toc-text">小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%9D%E8%80%83%E9%A2%98"><span class="toc-number">4.</span> <span class="toc-text">思考题</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2025 By Carl Su</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 6.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">学无止境</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !true) {
+    if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const disqusReset = conf => {
+    window.DISQUS && window.DISQUS.reset({
+      reload: true,
+      config: conf
+    })
+  }
+
+  const loadDisqus = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyDisqus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    window.disqus_identifier = isShuoshuo ? path : '/posts/c0627888/'
+    window.disqus_url = isShuoshuo ? location.origin + path : 'https://devsu.top/posts/c0627888/'
+
+    const disqus_config = function () {
+      this.page.url = disqus_url
+      this.page.identifier = disqus_identifier
+      this.page.title = 'Kotlin编程第一课--(源码篇)29  Dispatchers是如何工作的？'
+    }
+
+    if (window.DISQUS) disqusReset(disqus_config)
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://.disqus.com/embed.js'
+      script.setAttribute('data-timestamp', +new Date())
+      document.head.appendChild(script)
+    }
+
+    btf.addGlobalFn('themeChange', () => disqusReset(disqus_config), 'disqus')
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqus-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=&api_key=&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Disqus'
+      ? window.shuoshuoComment = { loadComment: loadDisqus }
+      : window.loadOtherComment = loadDisqus
+    return
+  }
+
+  if ('Valine' === 'Disqus' || !true) {
+    if (true) btf.loadComment(document.getElementById('disqus_thread'), loadDisqus)
+    else {
+      loadDisqus()
+      GLOBAL_CONFIG_SITE.pageType === 'post' && getCount()
+    }
+  } else {
+    window.loadOtherComment = loadDisqus
+  }
+})()</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

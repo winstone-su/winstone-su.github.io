@@ -1,0 +1,442 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Kotlin编程第一课--(协程篇)15  挂起函数：Kotlin协程的核心 | 码行</title><meta name="author" content="Carl Su"><meta name="copyright" content="Carl Su"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="这节课，我们来学习协程的挂起函数。 挂起函数，是 Kotlin 协程当中最基础、最重要的知识点。如果对协程的挂起函数没有足够的认识，我们后续的学习将会困难重重。如果不理解挂起函数，我们将无法理解协程的非阻塞；如果不了解挂起函数，我们将无法掌握 Channel、Flow 等 API；如果不理解挂起函数，我们写出来的代码也会漏洞百出，就更别提优化软件架构了。 相反，如果能将挂起函数理解透彻，我们后面的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin编程第一课--(协程篇)15  挂起函数：Kotlin协程的核心">
+<meta property="og:url" content="https://devsu.top/posts/96509131/index.html">
+<meta property="og:site_name" content="码行">
+<meta property="og:description" content="这节课，我们来学习协程的挂起函数。 挂起函数，是 Kotlin 协程当中最基础、最重要的知识点。如果对协程的挂起函数没有足够的认识，我们后续的学习将会困难重重。如果不理解挂起函数，我们将无法理解协程的非阻塞；如果不了解挂起函数，我们将无法掌握 Channel、Flow 等 API；如果不理解挂起函数，我们写出来的代码也会漏洞百出，就更别提优化软件架构了。 相反，如果能将挂起函数理解透彻，我们后面的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://img1.baidu.com/it/u=967252381,3859621452&fm=253&fmt=auto&app=120&f=JPEG?w=1280&h=800">
+<meta property="article:published_time" content="2022-05-23T01:51:38.000Z">
+<meta property="article:modified_time" content="2025-03-07T02:49:14.890Z">
+<meta property="article:author" content="Carl Su">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://img1.baidu.com/it/u=967252381,3859621452&fm=253&fmt=auto&app=120&f=JPEG?w=1280&h=800"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Kotlin编程第一课--(协程篇)15  挂起函数：Kotlin协程的核心",
+  "url": "https://devsu.top/posts/96509131/",
+  "image": "https://img1.baidu.com/it/u=967252381,3859621452&fm=253&fmt=auto&app=120&f=JPEG?w=1280&h=800",
+  "datePublished": "2022-05-23T01:51:38.000Z",
+  "dateModified": "2025-03-07T02:49:14.890Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Carl Su",
+      "url": "https://devsu.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png"><link rel="canonical" href="https://devsu.top/posts/96509131/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const hour = new Date().getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (theme === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else theme === 'light' ? activateLightMode() : activateDarkMode()
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6243425e2ecb037931274c4ca1db3132";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Carl Su","link":"链接: ","source":"来源: 码行","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Kotlin编程第一课--(协程篇)15  挂起函数：Kotlin协程的核心',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">193</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">41</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://img1.baidu.com/it/u=967252381,3859621452&amp;fm=253&amp;fmt=auto&amp;app=120&amp;f=JPEG?w=1280&amp;h=800);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png" alt="Logo"><span class="site-name">码行</span></a><a class="nav-page-title" href="/"><span class="site-name">Kotlin编程第一课--(协程篇)15  挂起函数：Kotlin协程的核心</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Kotlin编程第一课--(协程篇)15  挂起函数：Kotlin协程的核心</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-05-23T01:51:38.000Z" title="发表于 2022-05-23 09:51:38">2022-05-23</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-07T02:49:14.890Z" title="更新于 2025-03-07 10:49:14">2025-03-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/">Android</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/">Kotlin</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/Kotlin%E7%BC%96%E7%A8%8B%E7%AC%AC%E4%B8%80%E8%AF%BE/">Kotlin编程第一课</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">4.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>15分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>这节课，我们来学习协程的挂起函数。</p>
+<p>挂起函数，是 Kotlin 协程当中最基础、最重要的知识点。如果对协程的挂起函数没有足够的认识，我们后续的学习将会困难重重。如果不理解挂起函数，我们将无法理解协程的非阻塞；如果不了解挂起函数，我们将无法掌握 Channel、Flow 等 API；如果不理解挂起函数，我们写出来的代码也会漏洞百出，就更别提优化软件架构了。</p>
+<p>相反，如果能将挂起函数理解透彻，我们后面的学习也会更加轻松一些。所以这节课，我会从应用和原理两个角度，来带你理解挂起函数，包括如何使用挂起函数来优化异步任务，以及挂起函数的 CPS 当中的 Continuation 到底是什么。通过对这两个维度的学习，你在更轻易地掌握挂起函数应用场景的同时，对它的底层原理也会有一定认识。</p>
+<p>那么接下来，你一定要打起精神，我们一起来攻克这个关键的知识点！</p>
+<h2 id="挂起函数：Kotlin-协程的优势"><a href="#挂起函数：Kotlin-协程的优势" class="headerlink" title="挂起函数：Kotlin 协程的优势"></a>挂起函数：Kotlin 协程的优势</h2><p>通过前面课程的学习，我们已经知道了：协程就像是轻量级的线程一样。用线程能实现的功能，我们借助 launch 和 async 也同样可以做到。</p>
+<p>不过你可能会好奇，如果只是把 thread{} 替换成 launch{}，那协程比起线程也没什么特殊的优势吧？仅<strong>仅只是因为“轻量”“非阻塞”，我们就应该放弃线程，拥抱协程吗？</strong></p>
+<p>其实，Kotlin 协程最大的优势，就在于它的挂起函数。虽然很多编程语言都有协程的特性，但目前为止，只有 Kotlin 独树一帜，引入了“挂起函数”的概念。另外尽管有些语言的协程底层，也存在“挂起恢复”的概念，但是将这一概念直接暴露给开发者，直接用于修饰一个函数的，Kotlin 算是做了一种创新。</p>
+<p>那么，挂起函数到底有什么神奇的呢？我们先来看一段简单的 Java 代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段1</span></span><br><span class="line"></span><br><span class="line">getUserInfo(new CallBack() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> void onSuccess(String response) &#123;</span><br><span class="line">        <span class="keyword">if</span> (response != <span class="literal">null</span>) &#123;</span><br><span class="line">            System.<span class="keyword">out</span>.println(response);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>在这段代码中，我们发起了一个异步请求，从服务端查询用户的信息，通过 CallBack 返回 response。这样的代码看起来没什么问题，平时我们写代码的时候也经常写类似的代码。不过实际的商业项目不可能这么简单，有的时候，我们可能需要连续执行几个异步任务，比如说，查询用户信息 –&gt; 查找该用户的好友列表 –&gt; 拿到好友列表后，查找该好友的动态。</p>
+<p>这样一来，我们的代码就难免会往下面这个方向发展：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段2</span></span><br><span class="line"></span><br><span class="line">getUserInfo(<span class="keyword">new</span> <span class="title class_">CallBack</span>() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onSuccess</span><span class="params">(String user)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (user != <span class="literal">null</span>) &#123;</span><br><span class="line">            System.out.println(user);</span><br><span class="line">            getFriendList(user, <span class="keyword">new</span> <span class="title class_">CallBack</span>() &#123;</span><br><span class="line">                <span class="meta">@Override</span></span><br><span class="line">                <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onSuccess</span><span class="params">(String friendList)</span> &#123;</span><br><span class="line">                    <span class="keyword">if</span> (friendList != <span class="literal">null</span>) &#123;</span><br><span class="line">                        System.out.println(friendList);</span><br><span class="line">                        getFeedList(friendList, <span class="keyword">new</span> <span class="title class_">CallBack</span>() &#123;</span><br><span class="line">                            <span class="meta">@Override</span></span><br><span class="line">                            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onSuccess</span><span class="params">(String feed)</span> &#123;</span><br><span class="line">                                <span class="keyword">if</span> (feed != <span class="literal">null</span>) &#123;</span><br><span class="line">                                    System.out.println(feed);</span><br><span class="line">                                &#125;</span><br><span class="line">                            &#125;</span><br><span class="line">                        &#125;);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>只要你参与过大型软件的开发，不管你用的是什么编程语言，你大概率都见到过类似上面的代码模式：<strong>回调地狱</strong>。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段3</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> user = getUserInfo()</span><br><span class="line"><span class="keyword">val</span> friendList = getFriendList(user)</span><br><span class="line"><span class="keyword">val</span> feedList = getFeedList(friendList)</span><br></pre></td></tr></table></figure>
+
+<p>你看，是不是简洁到了极致？这就是 Kotlin 协程的魅力：<strong>以同步的方式完成异步任务</strong>。</p>
+<p>注意，以上代码之所以能写成类似同步的方式，关键还是在于 getUserInfo()、getFriendList()、getFeedList() 这三个请求函数的定义。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段4</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// delay(1000L)用于模拟网络请求</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//挂起函数</span></span><br><span class="line"><span class="comment">// ↓</span></span><br><span class="line"><span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">getUserInfo</span><span class="params">()</span></span>: String &#123;</span><br><span class="line">    withContext(Dispatchers.IO) &#123;</span><br><span class="line">        delay(<span class="number">1000L</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;BoyCoder&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//挂起函数</span></span><br><span class="line"><span class="comment">// ↓</span></span><br><span class="line"><span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">getFriendList</span><span class="params">(user: <span class="type">String</span>)</span></span>: String &#123;</span><br><span class="line">    withContext(Dispatchers.IO) &#123;</span><br><span class="line">        delay(<span class="number">1000L</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;Tom, Jack&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//挂起函数</span></span><br><span class="line"><span class="comment">// ↓</span></span><br><span class="line"><span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">getFeedList</span><span class="params">(list: <span class="type">String</span>)</span></span>: String &#123;</span><br><span class="line">    withContext(Dispatchers.IO) &#123;</span><br><span class="line">        delay(<span class="number">1000L</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;&#123;FeedList..&#125;&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从以上代码中，我们可以看到，<strong>所谓的挂起函数，其实就是比普通的函数多了一个 suspend 关键字而已</strong>。如果去掉这个 suspend 关键字，所有的函数都会变成普通函数。</p>
+<p><code>代码中的 withContext(Dispatchers.IO)，作用是控制协程执行的线程池，具体细节我们会在第 17 讲中介绍。</code></p>
+<p>既然如此，那么这个 suspend 关键字的作用是啥呢？挂起函数到底特别在哪呢？</p>
+<p>实际上，挂起函数最神奇的地方，就在于它的挂起和恢复功能。从字面上看，suspend 这个词就是“挂起”的意思，而它既然能被<strong>挂起</strong>，自然就还可以被<strong>恢复</strong>。它们两个一般是成对出现的。</p>
+<p><code>还记得我们在讲协程思维模型的时候提到的“非阻塞”概念吗？这主要就归功于 Kotlin 协程的挂起函数的能力。</code></p>
+<p>不过，我单纯用文字告诉你 Kotlin 协程支持挂起和恢复，你一定没有什么概念，我做了一个小动画，描述了挂起函数整体的执行流程，同时也展示了其背后更多的细节。需要注意的是，动画当中出现的“闪烁”，模拟的是请求网络。你一定要多看几遍，确保没有遗漏其中的细节。</p>
+<p>不过，我单纯用文字告诉你 Kotlin 协程支持挂起和恢复，你一定没有什么概念，我做了一个小动画，描述了挂起函数整体的执行流程，同时也展示了其背后更多的细节。需要注意的是，动画当中出现的“闪烁”，模拟的是请求网络。<strong>你一定要多看几遍，确保没有遗漏其中的细节。</strong></p>
+<iframe  src="http://rpheez113.hn-bkt.clouddn.com/course/kotlin/kotlin-first-lesson/image/202302071615595.mp4"  scrolling="no"  border="0"  frameborder="no"  framespacing="0"  allowfullscreen="true"  height=600  width=800>  </iframe>
+
+<p>然后，我也再给你重点解释下其中的关键点：</p>
+<ul>
+<li>在 IntelliJ 当中，挂起函数会有一个特殊的箭头标记，这样就便于我们分辨出当前调用的函数是否是普通函数。调用挂起函数的位置，我们叫做是<strong>挂起点</strong>。</li>
+<li>另外，表面上看起来是同步的代码，实际上也涉及到了线程切换，一行代码，切换了两个线程。<ul>
+<li>比如“val user &#x3D; getUserInfo()”，其中“&#x3D;”左边的代码运行在主线程，而“&#x3D;”右边的代码运行在 IO 线程。</li>
+<li>每一次从主线程到 IO 线程，都是一次协程挂起。</li>
+<li>每一次从 IO 线程到主线程，都是一次协程恢复。</li>
+</ul>
+</li>
+<li>挂起和恢复，这是挂起函数<strong>特有的能力</strong>，普通函数是不具备的。</li>
+<li>挂起，只是将程序执行流程转移到了其他线程，主线程不会被阻塞。如果以上代码运行在 Android 系统，我们的 App 仍然可以响应用户的操作，主线程并不繁忙。相信现在，你对协程思维模型又会有更加深刻的体会了。</li>
+</ul>
+<p>好，挂起函数的执行流程我们已经很清楚了。借助挂起函数，我们可以用同步的方式来写异步代码，对比起前面“回调地狱”式的代码，挂起函数写出来的代码可读性更好、扩展性更好、维护性更好，并且更难出错。</p>
+<p>这个时候，你也许会感慨：挂起函数真的是太神奇了！简直就跟魔法一样！<strong>那么，Kotlin 协程到底是如何做到一行代码切换两个线程的呢？</strong></p>
+<p>其实，Kotlin 协程当中并不存在什么“魔法”。这一切的细节，都藏在了挂起函数的 <strong>suspend</strong> 关键字里。</p>
+<h2 id="深入理解-suspend"><a href="#深入理解-suspend" class="headerlink" title="深入理解 suspend"></a>深入理解 suspend</h2><p>到目前为止，我们已经知道了：suspend，是 Kotlin 当中的一个关键字，它主要的作用是用于定义“挂起函数”。不过如果你有仔细留意上节课当中的一段代码，你就会发现，同样的一个函数，加上 suspend 修饰以后，它的<strong>函数类型</strong>就会发生改变。</p>
+<p>我们来回忆一下上节课的那段代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段5</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">func1</span><span class="params">(num: <span class="type">Int</span>)</span></span>: <span class="built_in">Double</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> num.toDouble()</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">func1与func3唯一的区别</span></span><br><span class="line"><span class="comment">   ↓                         */</span></span><br><span class="line"><span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">func3</span><span class="params">(num: <span class="type">Int</span>)</span></span>: <span class="built_in">Double</span> &#123;</span><br><span class="line">    delay(<span class="number">100L</span>)</span><br><span class="line">    <span class="keyword">return</span> num.toDouble()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> f1: (<span class="built_in">Int</span>) -&gt; <span class="built_in">Double</span> = ::func1</span><br><span class="line"><span class="keyword">val</span> f2: <span class="keyword">suspend</span> (<span class="built_in">Int</span>) -&gt; <span class="built_in">Double</span> = ::func3</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> f3: (<span class="built_in">Int</span>) -&gt; <span class="built_in">Double</span> = ::func3 <span class="comment">// 报错</span></span><br><span class="line"><span class="keyword">val</span> f4: <span class="keyword">suspend</span> (<span class="built_in">Int</span>) -&gt; <span class="built_in">Double</span> = ::func1 <span class="comment">// 报错</span></span><br></pre></td></tr></table></figure>
+
+<p>可见，同样是 Int 作为参数，Double 作为返回值，有没有 suspend 修饰，它们两者的函数类型是不一样的。“suspend (Int) -&gt; Double”与“(Int) -&gt; Double”并不能互相赋值。</p>
+<p>在讲高阶函数的时候，我提到过 Kotlin 的函数类型，其实只跟参数、返回值、接收者相关，不过现在又加了一条：还跟 suspend 相关。</p>
+<p><code>补充：如果你接触过Compose，你会发现其中的 @Composable 跟 suspend 一样，也可以改变一个函数的类型，不过这个并不是我们要了解的重点，这里只是帮助你建立一个知识连接，如果你将来遇到了 Compose，你就可以快速理解了。</code></p>
+<p><strong>那么，suspend 修饰的函数，到底会变成什么类型？</strong>如果你将挂起函数与前面“回调地狱的代码”放在一起对比，再结合我们第 3 讲学过的 Kotlin 原理，应该就会找到一些头绪了：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/08/68/08c49bd12047359fc8cea409fc6a2568.png?wh=1442x811" alt="img"></p>
+<p>其实，<strong>挂起函数的本质，就是 Callback</strong>。</p>
+<p>别忘了，我们还有 Kotlin 编译器这个“幕后的翻译官”啊！虽然我们写出来的挂起函数并没有任何 Callback 的逻辑，但是，当 Kotlin 编译器检测到 suspend 关键字修饰的函数以后，就会自动将挂起函数转换成带有 CallBack 的函数。</p>
+<p>如果我们将上面的挂起函数反编译成 Java，结果会是这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段6</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//                              Continuation 等价于 CallBack</span></span><br><span class="line"><span class="comment">//                                         ↓         </span></span><br><span class="line"><span class="keyword">public</span> static <span class="keyword">final</span> Object getUserInfo(Continuation $completion) &#123;</span><br><span class="line">  ...</span><br><span class="line">  <span class="keyword">return</span> <span class="string">&quot;BoyCoder&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>从反编译的结果来看，挂起函数确实变成了一个带有 CallBack 的函数，只是这个 CallBack 换了个名字，叫做 Continuation。我们来看看 Continuation 在 Kotlin 中的定义：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段7</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">Continuation</span>&lt;<span class="type">in T</span>&gt; &#123;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//      相当于 CallBack的onSuccess   结果   </span></span><br><span class="line"><span class="comment">//                 ↓                 ↓</span></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">fun</span> <span class="title">resumeWith</span><span class="params">(result: <span class="type">Result</span>&lt;<span class="type">T</span>&gt;)</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">interface</span> <span class="title class_">CallBack</span> &#123;</span><br><span class="line">    void onSuccess(String response);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>根据以上定义我们其实能发现，<strong>Continuation 本质上也就是一个带有泛型参数的 CallBack</strong>，只是它的名字看起来有点吓人而已。这个“从挂起函数转换成 CallBack 函数”的过程，被叫做是 CPS 转换（Continuation-Passing-Style Transformation）。</p>
+<p>看，Kotlin 官方要将 CallBack 命名为 Continuation 的原因也出来了：Continuation 道出了它的实现原理。当然，为了理解挂起函数，我们用 CallBack 会更加简明易懂。</p>
+<p>下面我用动画来演示一下挂起函数在 CPS 转换过程中，函数签名的变化：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/37/92/3732f7a3473e82c5a5d109a18d87f992.gif?wh=720x405" alt="img"></p>
+<p><code>注意：挂起函数 CPS 转换后的内部逻辑，其实要远比演示的复杂，这个我们到源码篇再深究，我们暂时只关注它函数签名的变化。</code></p>
+<p>你能看到，在上面 CPS 转换的过程中，函数的类型发生了变化：“suspend ()-&gt;String” 变成了 “(Continuation)-&gt; Any?”。</p>
+<p>而这就意味着，如果你在 Java 中访问一个 Kotlin 挂起函数 getUserInfo()，会看到 Java 里的 getUserInfo() 的类型是“(Continuation)-&gt; Object”（即接收 Continuation 为参数，返回值是 Object）。</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/5b/90/5b81e4a51acaafa1ce56f7a888037790.png?wh=792x286" alt="img"></p>
+<p>到这里，我们就只剩下最后一个问题需要搞清楚了，那就是：Continuation 到底是什么？如果你查词典和维基百科，可能会一头雾水，因为这个词太抽象了。</p>
+<p>让我结合前面的代码案例，用更加通俗的语言解释给你听。</p>
+<p>首先，我们只需要把握住 Continuation 的词源 Continue 即可。Continue 是“继续”的意思，Continuation 则是“接下来要做的事情”。放到程序中，Continuation 就代表了，“程序继续运行下去需要执行的代码”，“接下来要执行的代码”，或者是“剩下的代码”。</p>
+<p>就以上面的代码为例，当程序运行 getUserInfo() 这个挂起函数的时候，它的“Continuation”则是下图红框的代码：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/06/yb/060c08db5f586ed8e189cfa26eaa6yyb.png?wh=960x376" alt="img"></p>
+<p>这样理解了 Continuation 以后，CPS 也就容易理解了，<strong>它其实就是将程序接下来要执行的代码进行传递的一种模式</strong>。</p>
+<p>而 CPS 转换，就是<strong>将原本的同步挂起函数转换成 CallBack 异步代码的过程</strong>。这个转换是编译器在背后做的，我们程序员对此并无感知。</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/03/22/03d156ec6a31d650c6634f486dc06222.gif?wh=720x405" alt="img"></p>
+<p>根据这个动图，可以看到当程序执行到 getUserInfo() 的时候，剩下的未执行代码都被一起打包了起来，以 Continuation 的形式，传递给了 getUserInfo() 的 Callback 回调当中。当然，这种方式其实只是大致模拟了挂起函数的 CPS 转换过程，实际细节要远比这个复杂。但这对于现阶段的学习来说，已经完全够用了。</p>
+<p>以上就是 Kotlin 挂起函数的核心原理，它的挂起和恢复，其实也是通过 CPS 转换来实现的。在后面学习源码篇的时候，我们还会继续跟 Continuation 继续打交道。现在我们看着 CPS 的过程好像很简单，等到深入底层的时候，你会发现 Continuation 是多么的复杂和精妙。</p>
+<p>这里，我们再来看看之前的协程思维模型：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/c6/1b/c6e735653c09f05ea94f5478d5e0d61b.gif?wh=1080x492" alt="img"></p>
+<p>所以，现在我们可以理出一条线索了：<strong>协程之所以是非阻塞，是因为它支持“挂起和恢复”；而挂起和恢复的能力，主要是源自于“挂起函数”；而挂起函数是由 CPS 实现的，其中的 Continuation，本质上就是 Callback</strong>。</p>
+<p>读完上面的这段话，也许你会忍不住好奇：<strong>协程跟挂起函数之间是什么关系？</strong></p>
+<h2 id="协程与挂起函数"><a href="#协程与挂起函数" class="headerlink" title="协程与挂起函数"></a>协程与挂起函数</h2><p>你可能觉得，既然协程和挂起函数都是支持挂起和恢复的，那它们两个是不是同一个东西呢？</p>
+<p>答案当然是否定的。</p>
+<p>关于协程和挂起函数的关系，我们暂时还不适合深入源码层面去做探讨。不过，从我们目前已有的信息，就可以直接推断出，它们之间肯定是有着千丝万缕的联系的。让我们来看个简单的例子：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段8</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> &#123;</span><br><span class="line">    getUserInfo() <span class="comment">// 报错</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">getUserInfo</span><span class="params">()</span></span>: String &#123;</span><br><span class="line">    withContext(Dispatchers.IO) &#123;</span><br><span class="line">        delay(<span class="number">1000L</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;BoyCoder&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在上面的代码中，我们直接在 main 函数当中调用了 getUserInfo() 这个挂起函数，这时候，我们发现 IDE 会报错，报错的具体内容是这样的：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/68/aa/68010f8b8bd5de8d58dd8576828d92aa.png?wh=945x247" alt="img"></p>
+<p>这个报错信息的意思是：<strong>挂起函数，只能在协程当中被调用，或者是被其他挂起函数调用</strong>。这个意思也很好理解，对于这样的要求，我们很容易就能写出下面的代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段9</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 在协程中调用getUserInfo()</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">main</span><span class="params">()</span></span> = runBlocking &#123;</span><br><span class="line">    <span class="keyword">val</span> user = getUserInfo()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 在另一个挂起函数中调用getUserInfo()</span></span><br><span class="line"><span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">anotherSuspendFunc</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> user = getUserInfo()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码写到这里，很多人都会满足于这样的结果。但实际上，以上两种方式，它们之间是可以继续深入并且挖掘出共性的。</p>
+<p>让我们回过头来看看 runBlocking 的函数签名：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段10</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">actual</span> <span class="function"><span class="keyword">fun</span> <span class="type">&lt;T&gt;</span> <span class="title">runBlocking</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    context: <span class="type">CoroutineContext</span>, </span></span></span><br><span class="line"><span class="params"><span class="function">    block: <span class="type">suspend</span> <span class="type">CoroutineScope</span>.() -&gt; <span class="type">T</span></span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span>: T &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们重点关注它的第二个参数 block 的类型“suspend CoroutineScope.() -&gt; T”，看到其中的 suspend 关键字了吗？<strong>原来 block 也是一个挂起函数的类型！</strong>那么，在 block 当中可以调用挂起函数，就一点也不奇怪了！</p>
+<p>所以说，虽然“协程和挂起函数”都可以调用“挂起函数”，但是协程的 Lambda，也是挂起函数。所以，它们本质上都是因为“挂起函数可以调用挂起函数”。</p>
+<p>也就是说，站在目前的阶段来看，我们可以认为：<strong>挂起和恢复，是协程的一种底层能力；而挂起函数，是这种底层能力的一种表现形式，通过暴露出来的 suspend 关键字，我们开发者可以在上层，非常方便地使用这种底层能力。</strong></p>
+<p><strong>小结</strong></p>
+<p>这节课，我们主要学习了 Kotlin 协程当中的最核心的特性：<strong>挂起函数</strong>。</p>
+<p>挂起函数可以极大地简化异步编程，让我们能够<strong>以同步的方式写异步代码</strong>。相比“回调地狱”式的代码，挂起函数写出来的代码<strong>可读性更好、扩展性更好、维护性更好，也更难出错</strong>。而除此之外，你也需要牢记以下这些核心要点，来更好地掌握挂起函数。</p>
+<ul>
+<li>要定义挂起函数，我们只需在普通函数的基础上，增加一个 <strong>suspend 关键字</strong>。suspend 这个关键字，是会改变函数类型的，“suspend (Int) -&gt; Double”与“(Int) -&gt; Double”并不是同一个类型。</li>
+<li>挂起函数，由于它拥有挂起和恢复的能力，因此对于同一行代码来说，“&#x3D;”左右两边的代码分别可以执行在不同的线程之上。而这一切，都是因为 Kotlin 编译器这个幕后的翻译官在起作用。</li>
+<li><strong>挂起函数的本质，就是 Callback</strong>。只是说，Kotlin 底层用了一个更加高大上的名字，叫 Continuation。而 Kotlin 编译器将 suspend 翻译成 Continuation 的过程，则是 CPS 转换。这里的 Continuation 是代表了，“程序继续运行下去需要执行的代码”，“接下来要执行的代码”，或者是 “剩下的代码”。</li>
+</ul>
+<p>最后，我们还探索了协程与挂起函数之间的关系。我们发现：<strong>挂起函数，只能在协程当中被调用，或者是被其他挂起函数调用。</strong>但协程中的 block，本质上仍然是挂起函数。</p>
+<p>所以，我们可以认为：挂起和恢复是协程的一种底层能力；而挂起函数则是一种上层的表现形式。</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/19/bd/19591ff06ebc553ca6fa695a3914bdbd.jpg?wh=2000x1279" alt="img"></p>
+<p><strong>思考题</strong></p>
+<p>前面我们提到“挂起函数只能在协程当中被调用，或者是被其他挂起函数调用”，而本质上，还是因为“挂起函数可以调用挂起函数”。那么，你能找出更加底层的证据吗？</p>
+<p>换个方式理解就是：凭什么挂起函数可以调用挂起函数，而普通函数不能调用挂起函数？它的底层逻辑到底什么？</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">// 代码段11</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">normalFunc</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> user = getUserInfo() <span class="comment">// 报错</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">suspend</span> <span class="function"><span class="keyword">fun</span> <span class="title">anotherSuspendFunc</span><span class="params">()</span></span> &#123;</span><br><span class="line">    <span class="keyword">val</span> user = getUserInfo() <span class="comment">// 通过</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://devsu.top">Carl Su</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://devsu.top/posts/96509131/">https://devsu.top/posts/96509131/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://devsu.top" target="_blank">码行</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Kotlin/">Kotlin</a></div><div class="post-share"><div class="social-share" data-image="https://img1.baidu.com/it/u=967252381,3859621452&amp;fm=253&amp;fmt=auto&amp;app=120&amp;f=JPEG?w=1280&amp;h=800" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/608fa63f/" title="Kotlin编程第一课--(协程篇)14  如何启动协程？"><img class="cover" src="https://img2.baidu.com/it/u=3681720337,4173316745&amp;fm=253&amp;fmt=auto&amp;app=138&amp;f=JPEG?w=889&amp;h=500" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Kotlin编程第一课--(协程篇)14  如何启动协程？</div></div><div class="info-2"><div class="info-item-1">从今天开始，咱们正式进入协程 API 的学习，一起来攻克 Kotlin 当中最关键的部分。这节课呢，我会给你介绍下如何启动协程，主要包括协程的调试技巧、启动协程的三种方式。这些都是学习协程最基本的概念，也是后续学习更多高阶概念的基础。 注意，在这节课当中，我会使用协程 API 编写大量的案例。我也希望你能够打开 IDE，跟着我一起来运行对应的代码。通过这样的方式，你一定会有更多的收获。 好，接下来，让我们直接开始学习吧！ 协程调试想要学好 Kotlin 协程，掌握它的调试技巧很重要。一般来说，我们可以通过两种手段来进行调试：设置 VM 参数、断点调试。 协程 VM 参数我们先来看第一种。具体的做法呢，其实很简单，我们只需要将 VM 参数设置成“-Dkotlinx.coroutines.debug”。  完成这个设置后，当我们在 log 当中打印“Thread.currentThread().name”的时候，如果当前代码是运行在协程当中的，那么它就会带上协程的相关信息。具体我们可以看个代码的例子： // 不必关心代码逻辑，关心输出结果即可fun main() &#123;   ...</div></div></div></a><a class="pagination-related" href="/posts/5b46e6ea/" title="Kotlin编程第一课--(协程篇)16  Job：协程也有生命周期吗？"><img class="cover" src="https://img1.baidu.com/it/u=1052255644,1248205582&amp;fm=253&amp;fmt=auto&amp;app=120&amp;f=JPEG?w=1280&amp;h=800" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Kotlin编程第一课--(协程篇)16  Job：协程也有生命周期吗？</div></div><div class="info-2"><div class="info-item-1">今天我们来学习 Kotlin 协程的 Job。 Job 其实就是协程的句柄。从某种程度上讲，当我们用 launch 和 async 创建一个协程以后，同时也会创建一个对应的 Job 对象。另外，Job 也是我们理解协程生命周期、结构化并发的关键知识点。通过 Job 暴露的 API，我们还可以让不同的协程之间互相配合，从而实现更加复杂的功能。 虽然前面已经解释过，Job 就是协程的句柄，但你可能还是不清楚它到底是什么，因为句柄本身就是一个比较“虚”的概念。所以在这节课中，我们会从使用的角度入手，来看看 Job 到底能干什么。在充分理解了 Job 的用法以后，我们再来结合它的源代码进一步分析，这样对 Job 也会有一个更加清晰的认知。 Job 生命周期在上节课我们学习 launch、async 的时候，我们知道它们两个返回值类型分别是 Job 和 Deferred。 // 代码段1public interface Deferred&lt;out T&gt; : Job &#123;    public suspend fun await(): T&#125;  而如果你去看...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/85d82fa8/" title="Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？"><img class="cover" src="https://static001.geekbang.org/resource/image/b6/1c/b65feyy0bdc4764c6564a95912d7851c.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-06</div><div class="info-item-2">Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？</div></div><div class="info-2"><div class="info-item-1">Kotlin 的扩展（Extension），主要分为两种语法：第一个是扩展函数，第二个是扩展属性。从语法上看，扩展看起来就像是我们从类的外部为它扩展了新的成员。 这在实际编程当中是非常有用的功能。我们可以来想象一个场景：我们想修改 JDK 当中的 String，想在它的基础上增加一个方法“lastElement()”来获取末尾元素，如果使用 Java，我们是无法通过常规手段实现的，因为我们没办法修改 JDK 的源代码。任何第三方提供的 SDK，我们都无权修改。 不过，借助 Kotlin 的扩展函数，我们就完全可以在语义层面，来为第三方 SDK 的类扩展新的成员方法和成员属性。不管是为 JDK 的 String 增加新的成员方法，还是为 Android SDK 的 View 增加新成员属性，我们都可以实现。 Kotlin 的这个“扩展”功能看起来很神奇，它会不会很难学？其实不然，它的语法非常简洁。今天这节课，我们就一起来学习下 Kotlin...</div></div></div></a><a class="pagination-related" href="/posts/be9f17d6/" title="Kotlin编程第一课(目录)"><img class="cover" src="https://img2.baidu.com/it/u=3956021957,3313212296&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-10</div><div class="info-item-2">Kotlin编程第一课(目录)</div></div><div class="info-2"><div class="info-item-1">基础篇Kotlin编程第一课–(基础篇)01  Kotlin基础语法：正式开启学习之旅Kotlin编程第一课–(基础篇)02  面向对象：理解Kotlin设计者的良苦用心Kotlin编程第一课–(基础篇)03  Kotlin原理：编译器在幕后干了哪些“好事”？Kotlin编程第一课–(基础篇)04 | 实战：构建一个Kotlin版本的四则运算计算器Kotlin编程第一课–(基础篇)05  object关键字：你到底有多少种用法？Kotlin编程第一课–(基础篇)06  扩展：你的能力边界到底在哪里？Kotlin编程第一课–(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？Kotlin编程第一课–(基础篇)08  实战：用Kotlin写一个英语词频统计程序Kotlin编程第一课–(基础篇)加餐一  初识Kotlin函数式编程Kotlin编程第一课–(基础篇)09  委托：你为何总是被低估？Kotlin编程第一课–(基础篇)10  泛型：逆变or协变，傻傻分不清？Kotlin编程第一课–(基础篇)11 ...</div></div></div></a><a class="pagination-related" href="/posts/83a7144c/" title="2023-01-17-Kotlin协程 -  结构化并发"><img class="cover" src="https://s2.loli.net/2023/03/14/xEyFgn24zZPXe15.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-01-17</div><div class="info-item-2">2023-01-17-Kotlin协程 -  结构化并发</div></div><div class="info-2"><div class="info-item-1">CoroutineScope定义协程必须指定其 CoroutineScope，它会跟踪所有协程，同样它还可以取消由它所启动的所有协程。 常用的相关API有：  GlobalScope，生命周期是process级别的，及时Activity或Fragment已经被销毁，协程仍然在执行。 MainScope，在Activity中使用，可以在onDestroy()中取消协程。 viewModelScope，只能在ViewModel中使用，绑定ViewModel的生命周期。 lifecycleScope，只能在Activity、Fragment中使用，会绑定Activity和Fragment的生命周期  </div></div></div></a><a class="pagination-related" href="/posts/a20c9e06/" title="Kotlin协程"><img class="cover" src="https://s2.loli.net/2023/03/14/3MHPBy1Q4GncRlF.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-09</div><div class="info-item-2">Kotlin协程</div></div><div class="info-2"><div class="info-item-1">Kotlin协程协程的作用域构建器coroutineScope与runBlocking runBlocking是常规函数，而coroutineScope是挂起函数。 它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途  </div></div></div></a><a class="pagination-related" href="/posts/68bf7d20/" title="Kotlin函数"><img class="cover" src="https://img1.baidu.com/it/u=1546227440,2897989905&fm=253&fmt=auto&app=138&f=JPEG?w=889&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin函数</div></div><div class="info-2"><div class="info-item-1">函数类型作为返回类型fun main() &#123;	  println(show(&quot;Demo&quot;))      val lambdaFunction = showMethod(&quot;Jack&quot;) //注意lambdaFunction 这里的类型为(String,Int) -&gt; String    println(lambdaFunction(&quot;Carl&quot;,20))&#125;//普通函数fun show(name:String): String &#123;    return &quot;name is $name&quot;&#125;//返回类型为函数fun showMethod(name: String): (String,Int) -&gt; String &#123;    println(&quot;name is $name&quot;)    return &#123; name: String, age: Int -&gt;       ...</div></div></div></a><a class="pagination-related" href="/posts/8c331668/" title="Kotlin内置函数apply、let、run、with、also等区别"><img class="cover" src="https://s2.loli.net/2023/03/14/OpxWcuy2ktMzoQD.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin内置函数apply、let、run、with、also等区别</div></div><div class="info-2"><div class="info-item-1">Applyapply函数可看作一个配置函数，可以传入一个接收者，然后调用一系列函数来配置它以便使用，如果提供lambda给apply函数执行，它会返回配置好的接受者 val file1 = File(&quot;/User/geowin/hello.txt&quot;)file1.apply &#123; // this: File   setWritable(true)   setReadable(true)   setExecutable(false)&#125;  可以看到，调用一个个函数类配置接受者时，变量名就省略了，这是因为，在lambda表达式中，apply能让每个配置函数都作用于接受者，这种行为有时又叫做相关作用域,因为lambda表达式里的所有函数调用都是针对接收者的，或者说，它们是针对接受者的隐式调用. letlet函数能使某个变量作用于lambda表达式里，让it关键字能引用它。let与apply比较，let会把接受者传给lambda，而apply什么都不传，匿名函数执行完，apply会返回当前接受者，而let会返回lambda的最后一行。 fun...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Valine</span><span id="switch-btn"></span><span class="second-comment">Disqus</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div><div><div id="disqus_thread"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8C%82%E8%B5%B7%E5%87%BD%E6%95%B0%EF%BC%9AKotlin-%E5%8D%8F%E7%A8%8B%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="toc-number">1.</span> <span class="toc-text">挂起函数：Kotlin 协程的优势</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3-suspend"><span class="toc-number">2.</span> <span class="toc-text">深入理解 suspend</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%8F%E7%A8%8B%E4%B8%8E%E6%8C%82%E8%B5%B7%E5%87%BD%E6%95%B0"><span class="toc-number">3.</span> <span class="toc-text">协程与挂起函数</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2025 By Carl Su</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 6.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">学无止境</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !true) {
+    if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const disqusReset = conf => {
+    window.DISQUS && window.DISQUS.reset({
+      reload: true,
+      config: conf
+    })
+  }
+
+  const loadDisqus = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyDisqus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    window.disqus_identifier = isShuoshuo ? path : '/posts/96509131/'
+    window.disqus_url = isShuoshuo ? location.origin + path : 'https://devsu.top/posts/96509131/'
+
+    const disqus_config = function () {
+      this.page.url = disqus_url
+      this.page.identifier = disqus_identifier
+      this.page.title = 'Kotlin编程第一课--(协程篇)15  挂起函数：Kotlin协程的核心'
+    }
+
+    if (window.DISQUS) disqusReset(disqus_config)
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://.disqus.com/embed.js'
+      script.setAttribute('data-timestamp', +new Date())
+      document.head.appendChild(script)
+    }
+
+    btf.addGlobalFn('themeChange', () => disqusReset(disqus_config), 'disqus')
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqus-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=&api_key=&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Disqus'
+      ? window.shuoshuoComment = { loadComment: loadDisqus }
+      : window.loadOtherComment = loadDisqus
+    return
+  }
+
+  if ('Valine' === 'Disqus' || !true) {
+    if (true) btf.loadComment(document.getElementById('disqus_thread'), loadDisqus)
+    else {
+      loadDisqus()
+      GLOBAL_CONFIG_SITE.pageType === 'post' && getCount()
+    }
+  } else {
+    window.loadOtherComment = loadDisqus
+  }
+})()</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

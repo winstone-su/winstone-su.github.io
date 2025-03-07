@@ -1,0 +1,565 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Kotlin编程第一课--(基础篇)01  Kotlin基础语法：正式开启学习之旅 | 码行</title><meta name="author" content="Carl Su"><meta name="copyright" content="Carl Su"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="从今天开始，我们就正式踏上 Kotlin 语言学习与实践的旅途了。这节课，我想先带你来学习下 Kotlin 的基础语法，包括变量、基础类型、函数和流程控制。这些基础语法是程序最基本的元素。 不过，如果你有使用 Java 的经验，可能会觉得今天的内容有点多余，毕竟 Kotlin 和 Java 的基础语法是比较相似的，它们都是基于 JVM 的语言。但其实不然，Kotlin 作为一门新的语言，它包含了许">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kotlin编程第一课--(基础篇)01  Kotlin基础语法：正式开启学习之旅">
+<meta property="og:url" content="https://devsu.top/posts/3dc00e96/index.html">
+<meta property="og:site_name" content="码行">
+<meta property="og:description" content="从今天开始，我们就正式踏上 Kotlin 语言学习与实践的旅途了。这节课，我想先带你来学习下 Kotlin 的基础语法，包括变量、基础类型、函数和流程控制。这些基础语法是程序最基本的元素。 不过，如果你有使用 Java 的经验，可能会觉得今天的内容有点多余，毕竟 Kotlin 和 Java 的基础语法是比较相似的，它们都是基于 JVM 的语言。但其实不然，Kotlin 作为一门新的语言，它包含了许">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s2.loli.net/2023/03/14/RoblDg7T2xq4aJu.jpg">
+<meta property="article:published_time" content="2022-05-01T03:26:44.000Z">
+<meta property="article:modified_time" content="2025-03-07T02:49:14.884Z">
+<meta property="article:author" content="Carl Su">
+<meta property="article:tag" content="Kotlin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s2.loli.net/2023/03/14/RoblDg7T2xq4aJu.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Kotlin编程第一课--(基础篇)01  Kotlin基础语法：正式开启学习之旅",
+  "url": "https://devsu.top/posts/3dc00e96/",
+  "image": "https://s2.loli.net/2023/03/14/RoblDg7T2xq4aJu.jpg",
+  "datePublished": "2022-05-01T03:26:44.000Z",
+  "dateModified": "2025-03-07T02:49:14.884Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Carl Su",
+      "url": "https://devsu.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png"><link rel="canonical" href="https://devsu.top/posts/3dc00e96/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const hour = new Date().getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (theme === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else theme === 'light' ? activateLightMode() : activateDarkMode()
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6243425e2ecb037931274c4ca1db3132";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Carl Su","link":"链接: ","source":"来源: 码行","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Kotlin编程第一课--(基础篇)01  Kotlin基础语法：正式开启学习之旅',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">193</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">41</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header" style="background-image: url(https://s2.loli.net/2023/03/14/RoblDg7T2xq4aJu.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png" alt="Logo"><span class="site-name">码行</span></a><a class="nav-page-title" href="/"><span class="site-name">Kotlin编程第一课--(基础篇)01  Kotlin基础语法：正式开启学习之旅</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Kotlin编程第一课--(基础篇)01  Kotlin基础语法：正式开启学习之旅</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-05-01T03:26:44.000Z" title="发表于 2022-05-01 11:26:44">2022-05-01</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-07T02:49:14.884Z" title="更新于 2025-03-07 10:49:14">2025-03-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/">Android</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/">Kotlin</a><i class="fas fa-angle-right post-meta-separator"></i><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/Kotlin/Kotlin%E7%BC%96%E7%A8%8B%E7%AC%AC%E4%B8%80%E8%AF%BE/">Kotlin编程第一课</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>23分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>从今天开始，我们就正式踏上 Kotlin 语言学习与实践的旅途了。这节课，我想先带你来学习下 Kotlin 的基础语法，包括变量、基础类型、函数和流程控制。这些基础语法是程序最基本的元素。</p>
+<p>不过，如果你有使用 Java 的经验，可能会觉得今天的内容有点多余，毕竟 Kotlin 和 Java 的基础语法是比较相似的，它们都是基于 JVM 的语言。但其实不然，Kotlin 作为一门新的语言，它包含了许多新的特性，由此也决定着 Kotlin 的代码风格。<strong>如果你不够了解 Kotlin 的这些新特性，你会发现自己只是换了种方式在写 Java 而已。</strong></p>
+<p>并且，在具备 Java 语言的知识基础上，这节课的内容也可以帮你快速将已有的经验迁移过来。这样的话，针对相似的语法，你可以直接建立 Kotlin 与 Java 的对应关系，进而加深理解。当然，即使你没有其他编程经验也没关系，从头学即可，Kotlin 的语法足够简洁，也非常适合作为第一门计算机语言来学习。</p>
+<p>并且，在具备 Java 语言的知识基础上，这节课的内容也可以帮你快速将已有的经验迁移过来。这样的话，针对相似的语法，你可以直接建立 Kotlin 与 Java 的对应关系，进而加深理解。当然，即使你没有其他编程经验也没关系，从头学即可，Kotlin 的语法足够简洁，也非常适合作为第一门计算机语言来学习。</p>
+<p>在课程中，我会用最通俗易懂的语言，来给你解释 Kotlin 的基础知识，并且会结合一些 Java 和 Kotlin 的代码案例，来帮助你直观地体会两种语言的异同点。而针对新的语法，我也会详细解释它存在的意义，以及都填补了 Java 的哪些短板，让你可以对 Kotlin 新语法的使用场景做到心中基本有数。</p>
+<h2 id="开发环境"><a href="#开发环境" class="headerlink" title="开发环境"></a>开发环境</h2><p>在正式开始学习基础语法之前，我们还需要配置一下 Kotlin 语言的环境，因为直接从代码开始学能给我们带来最直观的体验。</p>
+<p>那么要运行 Kotlin 代码，最快的方式，就是使用 Kotlin 官方的<a target="_blank" rel="noopener" href="https://play.kotlinlang.org/">PlayGround</a>。通过这个在线工具，我们可以非常方便地运行 Kotlin 代码片段。当然，这种方式用来临时测试一小段代码是没有问题的，但对于复杂的工程就有些力不从心了。</p>
+<p>另一种方式，也是我个人比较推荐的方式，那就是安装IntelliJ IDEA。它是 Kotlin 官方提供的集成开发工具，也是世界上最好的 IDE 之一，如果你用过 Android Studio，你一定会对它很熟悉，因为 Android Studio 就是由 IntelliJ IDEA 改造的。</p>
+<p>如果你的电脑没有 Java 环境，在安装完最新版的 IntelliJ IDEA 以后，通过“File -&gt; Project Structure -&gt; SDKs”，然后点击“加号按钮”就可以选择第三方提供的 OpenJDK 1.8 版本进行下载了。<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/04/a7/04cf1b899574ceff2ecd099e41af1fa7.gif?wh=1000x770" alt="img"></p>
+<p>当然，这里我更推荐你可以自己手动从Oracle 官网下载 JDK 1.6、1.7、1.8、11 这几个版本，然后再安装、配置 Java 多版本环境。这在实际工作中也是必备的。</p>
+<p>需要注意的是，IntelliJ IDEA 分为 Ultimate 付费版和 Community 免费版，对于我们的 Kotlin 学习来说，免费版完全够用。</p>
+<p>这样，在配置好了开发环境之后，我们就可以试着一边敲代码，一边体会、思考和学习 Kotlin 语言中这些最基础的语法知识了。那么下面我们就来看下，在 Kotlin 语言中是如何定义变量的吧。</p>
+<h2 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h2><p>在 Java&#x2F;C 当中，如果我们要声明变量，我们必须要声明它的类型，后面跟着变量的名称和对应的值，然后以分号结尾。就像这样：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="type">Integer</span> <span class="variable">price</span> <span class="operator">=</span> <span class="number">100</span>;</span><br></pre></td></tr></table></figure>
+
+<p>而 Kotlin 则不一样，我们要使用“<strong>val</strong>”或者是“<strong>var</strong>”这样的关键字作为开头，后面跟“变量名称”，接着是“变量类型”和“赋值语句”，最后是分号结尾。就像这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">关键字     变量类型</span></span><br><span class="line"><span class="comment"> ↓          ↓           */</span></span><br><span class="line"><span class="keyword">var</span> price: <span class="built_in">Int</span> = <span class="number">100</span>;   <span class="comment">/*</span></span><br><span class="line"><span class="comment">     ↑            ↑</span></span><br><span class="line"><span class="comment">   变量名        变量值   */</span></span><br></pre></td></tr></table></figure>
+
+<p>不过，像 Java 那样每写一行代码就写一个分号，其实也挺麻烦的。所以为了省事，在 Kotlin 里面，我们一般会把代码末尾的分号省略，就像这样：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">var</span> price: <span class="built_in">Int</span> = <span class="number">100</span></span><br></pre></td></tr></table></figure>
+
+<p>另外，由于 Kotlin 支持<strong>类型推导</strong>，大部分情况下，我们的变量类型可以省略不写，就像这样</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">var</span> price = <span class="number">100</span> <span class="comment">// 默认推导类型为： Int</span></span><br></pre></td></tr></table></figure>
+
+<p>还有一点我们要注意，就是在 Kotlin 当中，我们应该尽可能避免使用 var，<strong>尽可能多地去使用 val</strong>。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">var</span> price = <span class="number">100</span></span><br><span class="line">price = <span class="number">101</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> i = <span class="number">0</span></span><br><span class="line">i = <span class="number">1</span> <span class="comment">// 编译器报错</span></span><br></pre></td></tr></table></figure>
+
+<p>原因其实很简单：</p>
+<ul>
+<li>val 声明的变量，我们叫做<strong>不可变变量</strong>，它的值在初始化以后就无法再次被修改，它相当于 Java 里面的 final 变量。</li>
+<li>var 声明的变量，我们叫做<strong>可变变量</strong>，它对应 Java 里的普通变量。</li>
+</ul>
+<h2 id="基础类型"><a href="#基础类型" class="headerlink" title="基础类型"></a>基础类型</h2><p>了解了变量类型如何声明之后，我们再来看下 Kotlin 中的基础类型。</p>
+<p>基础类型，包括我们常见的数字类型、布尔类型、字符类型，以及前面这些类型组成的数组。这些类型是我们经常会遇到的概念，因此我们把它统一归为“基础类型”。</p>
+<h2 id="一切都是对象"><a href="#一切都是对象" class="headerlink" title="一切都是对象"></a>一切都是对象</h2><p>在 Java 里面，基础类型分为原始类型（Primitive Types）和包装类型（Wrapper Type）。比如，整型会有对应的 int 和 Integer，前者是原始类型，后者是包装类型。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">int i = <span class="number">0</span>; <span class="comment">// 原始类型</span></span><br><span class="line">Integer j = <span class="number">1</span>; <span class="comment">// 包装类型</span></span><br></pre></td></tr></table></figure>
+
+<p>Java 之所以要这样做，是因为原始类型的开销小、性能高，但它不是对象，无法很好地融入到面向对象的系统中。而包装类型的开销大、性能相对较差，但它是对象，可以很好地发挥面向对象的特性。在 JDK 源码当中，我们可以看到 Integer 作为包装类型，它是有成员变量以及成员方法的，这就是它作为对象的优势。</p>
+<p>然而，在 Kotlin 语言体系当中，是没有原始类型这个概念的。这也就意味着，<strong>在 Kotlin 里，一切都是对象</strong>。</p>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/yy/3b/yyd95b04616943878351867c4d1e063b.jpg?wh=2000x1077" alt="img" style="zoom:50%;" />
+
+<p>实际上，从某种程度上讲，Java 的类型系统并不是完全面向对象的，因为它存在原始类型，而原始类型并不属于对象。而 Kotlin 则不一样，它从语言设计的层面上就规避了这个问题，类型系统则是完全面向对象的。</p>
+<p>我们看一段代码，来更直观地感受 Kotlin 的独特之处：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">val</span> i: <span class="built_in">Double</span> = <span class="number">1.</span>toDouble()</span><br></pre></td></tr></table></figure>
+
+<p>可以发现，由于在 Kotlin 中，整型数字“1”被看作是对象了，所以我们可以调用它的成员方法 toDouble()，而这样的代码在 Java 中是无法实现的。</p>
+<h2 id="空安全"><a href="#空安全" class="headerlink" title="空安全"></a>空安全</h2><p>既然 Kotlin 中的一切都是对象，那么对象就有可能为空。也许你会想到写这样的代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">val</span> i: <span class="built_in">Double</span> = <span class="literal">null</span> <span class="comment">// 编译器报错</span></span><br></pre></td></tr></table></figure>
+
+<p>可事实上，以上的代码并不能通过 Kotlin 编译。这是因为 Kotlin 强制要求开发<strong>者在定义变量的时候，指定这个变量是否可能为 null</strong>。对于可能为 null 的变量，我们需要在声明的时候，在变量类型后面加一个问号“?”：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">val</span> i: <span class="built_in">Double</span> = <span class="literal">null</span> <span class="comment">// 编译器报错</span></span><br><span class="line"><span class="keyword">val</span> j: <span class="built_in">Double</span>? = <span class="literal">null</span> <span class="comment">// 编译通过</span></span><br></pre></td></tr></table></figure>
+
+<p>并且由于 Kotlin 对可能为空的变量类型做了强制区分，这就意味着，“可能为空的变量”无法直接赋值给“不可为空的变量”，当然，反向赋值是没有问题的。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">var</span> i: <span class="built_in">Double</span> = <span class="number">1.0</span></span><br><span class="line"><span class="keyword">var</span> j: <span class="built_in">Double</span>? = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line">i = j  <span class="comment">// 编译器报错</span></span><br><span class="line">j = i  <span class="comment">// 编译通过</span></span><br></pre></td></tr></table></figure>
+
+<p>Kotlin 这么设计的原因也很简单，如果我们将“可能为空的变量”直接赋值给了“不可为空的变量”，这会跟它自身的定义产生冲突。而如果我们实在有这样的需求，也不难实现，只要做个判断即可：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">var</span> i: <span class="built_in">Double</span> = <span class="number">1.0</span></span><br><span class="line"><span class="keyword">val</span> j: <span class="built_in">Double</span>? = <span class="literal">null</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (j != <span class="literal">null</span>) &#123;</span><br><span class="line">    i = j  <span class="comment">// 编译通过</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>好，在了解了 Kotlin 和 Java 这两种语言的主要区别后，下面就让我们来全面认识下 Kotlin 的基础类型。</p>
+<h2 id="数字类型"><a href="#数字类型" class="headerlink" title="数字类型"></a>数字类型</h2><p>首先，在数字类型上，Kotlin 和 Java 几乎是一致的，包括它们对数字“字面量”的定义方式。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">val</span> int = <span class="number">1</span></span><br><span class="line"><span class="keyword">val</span> long = <span class="number">1234567L</span></span><br><span class="line"><span class="keyword">val</span> double = <span class="number">13.14</span></span><br><span class="line"><span class="keyword">val</span> float = <span class="number">13.14F</span></span><br><span class="line"><span class="keyword">val</span> hexadecimal = <span class="number">0xAF</span></span><br><span class="line"><span class="keyword">val</span> binary = <span class="number">0b01010101</span></span><br></pre></td></tr></table></figure>
+
+<p>这里我也来给你具体介绍下：</p>
+<ul>
+<li>整数默认会被推导为“Int”类型；</li>
+<li>Long 类型，我们则需要使用“L”后缀；</li>
+<li>小数默认会被推导为“Double”，我们不需要使用“D”后缀；</li>
+<li>Float 类型，我们需要使用“F”后缀；</li>
+<li>使用“0x”，来代表十六进制字面量；</li>
+<li>使用“0b”，来代表二进制字面量。</li>
+</ul>
+<p>但是，对于数字类型的转换，Kotlin 与 Java 的转换行为是不一样的。<strong>Java 可以隐式转换数字类型，而 Kotlin 更推崇显式转换。</strong></p>
+<p>举个简单的例子，在 Java 和 C 当中，我们经常直接把 int 类型赋值给 long 类型，编译器会自动为我们做类型转换，如下所示：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">int i = <span class="number">100</span>;</span><br><span class="line">long j = i;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码按照 Java 的编程思维方式来看，的确好像是 OK 的。但是你要注意，虽然 Java 编译器不会报错，可它仍然可能会带来问题，因为它们本质上不是一个类型，int、long、float、double 这些类型之间的互相转换是存在精度问题的。尤其是当这样的代码掺杂在复杂的逻辑中时，在碰到一些边界条件的情况下，即使出现了 Bug 也不容易排查出来。</p>
+<p>所以，同样的代码，在 Kotlin 当中是行不通的：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> i = <span class="number">100</span></span><br><span class="line"><span class="keyword">val</span> j: <span class="built_in">Long</span> = i <span class="comment">// 编译器报错</span></span><br></pre></td></tr></table></figure>
+
+<p>在 Kotlin 里，这样的隐式转换被抛弃了。正确的做法应该是显式调用 Int 类型的 toLong() 函数：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> i = <span class="number">100</span></span><br><span class="line"><span class="keyword">val</span> j: <span class="built_in">Long</span> = i.toLong() <span class="comment">// 编译通过</span></span><br></pre></td></tr></table></figure>
+
+<p>其实，如果我们仔细翻看 Kotlin 的源代码，会发现更多类似的函数，比如 toByte()、toShort()、toInt()、toLong()、toFloat()、toDouble()、toChar() 等等。Kotlin 这样设计的优势也是显而易见的，<strong>我们代码的可读性更强了，将来也更容易维护了。</strong></p>
+<h2 id="布尔类型"><a href="#布尔类型" class="headerlink" title="布尔类型"></a>布尔类型</h2><p>然后我们再来了解下 Kotlin 中布尔类型的变量，它只有两种值，分别是 <strong>true和false</strong>。布尔类型支持一些逻辑操作，比如说：</p>
+<ul>
+<li>“&amp;”代表“与运算”；</li>
+<li>“|”代表“或运算”；</li>
+<li>“!”代表“非运算”；</li>
+<li>“&amp;&amp;”和“||”分别代表它们对应的“短路逻辑运算”。</li>
+</ul>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> i = <span class="number">1</span></span><br><span class="line"><span class="keyword">val</span> j = <span class="number">2</span></span><br><span class="line"><span class="keyword">val</span> k = <span class="number">3</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> isTrue: <span class="built_in">Boolean</span> = i &lt; j &amp;&amp; j &lt; k</span><br></pre></td></tr></table></figure>
+
+<h2 id="字符：Char"><a href="#字符：Char" class="headerlink" title="字符：Char"></a>字符：Char</h2><p>Char 用于代表单个的字符，比如’A’、’B’、’C’，字符应该用单引号括起来。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> c: <span class="built_in">Char</span> = <span class="string">&#x27;A&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果你有 Java 或 C 的使用经验，也许会写出这样的代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> c: <span class="built_in">Char</span> = <span class="string">&#x27;A&#x27;</span></span><br><span class="line"><span class="keyword">val</span> i: <span class="built_in">Int</span> = c <span class="comment">// 编译器报错</span></span><br></pre></td></tr></table></figure>
+
+<p>这个问题其实跟前面 Java 的数字类型隐式转换的问题类似，所以针对这种情况，我们应该调用对应的函数来做类型转换。这一点我们一定要牢记在心。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> c: <span class="built_in">Char</span> = <span class="string">&#x27;A&#x27;</span></span><br><span class="line"><span class="keyword">val</span> i: <span class="built_in">Int</span> = c.toInt() <span class="comment">// 编译通过</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="字符串：String"><a href="#字符串：String" class="headerlink" title="字符串：String"></a>字符串：String</h2><p>字符串（String），顾名思义，就是一连串的字符。和 Java 一样，Kotlin 中的字符串也是不可变的。在大部分情况下，我们会使用双引号来表示字符串的字面量，这一点跟 Java 也是一样的。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> s = <span class="string">&quot;Hello Kotlin!&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>不过与此同时，Kotlin 还为我们提供了非常简洁的<strong>字符串模板</strong>：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> name = <span class="string">&quot;Kotlin&quot;</span></span><br><span class="line">print(<span class="string">&quot;Hello <span class="variable">$name</span>!&quot;</span>)</span><br><span class="line"><span class="comment">/*            ↑</span></span><br><span class="line"><span class="comment">    直接在字符串中访问变量</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="comment">// 输出结果：</span></span><br><span class="line">Hello Kotlin!</span><br></pre></td></tr></table></figure>
+
+<p>这样的特性，在 Java 当中是没有的，这是 Kotlin 提供的新特性。虽然说这个字符串模板功能，我们用 Java 也同样可以实现，但它远没有 Kotlin 这么简洁。在 Java 当中，我们必须使用两个“+”进行拼接，比如说(“Hello” + name + “!”)。这样一来，在字符串格式更复杂的情况下，代码就会很臃肿。</p>
+<p>当然，如果我们需要在字符串当中引用更加复杂的变量，则需要使用花括号将变量括起来：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> array = arrayOf(<span class="string">&quot;Java&quot;</span>, <span class="string">&quot;Kotlin&quot;</span>)</span><br><span class="line">print(<span class="string">&quot;Hello <span class="subst">$&#123;array.get(<span class="number">1</span>)&#125;</span>!&quot;</span>)</span><br><span class="line"><span class="comment">/*            ↑</span></span><br><span class="line"><span class="comment">      复杂的变量，使用$&#123;&#125;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="comment">// 输出结果：</span></span><br><span class="line">Hello Kotlin!</span><br></pre></td></tr></table></figure>
+
+<p>另外，Kotlin 还新增了一个<strong>原始字符串</strong>，是用三个引号来表示的。它可以用于存放复杂的多行文本，并且它定义的时候是什么格式，最终打印也会是对应的格式。所以当我们需要复杂文本的时候，就不需要像 Java 那样写一堆的加号和换行符了。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> s = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">       当我们的字符串有复杂的格式时</span></span><br><span class="line"><span class="string">       原始字符串非常的方便</span></span><br><span class="line"><span class="string">       因为它可以做到所见即所得。 &quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">print(s)</span><br></pre></td></tr></table></figure>
+
+<h3 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h3><p>最后，我们再来看看 Kotlin 中数组的一些改变。</p>
+<p>在 Kotlin 当中，我们一般会使用 <strong>arrayOf()</strong> 来创建数组，括号当中可以用于传递数组元素进行初始化，同时，Kotlin 编译器也会根据传入的参数进行类型推导。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> arrayInt = arrayOf(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line"><span class="keyword">val</span> arrayString = arrayOf(<span class="string">&quot;apple&quot;</span>, <span class="string">&quot;pear&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>比如说，针对这里的 arrayInt，由于我们赋值的时候传入了整数，所以它的类型会被推导为整型数组；对于 arrayString，它的类型会被推导为字符串数组。</p>
+<p>而你应该也知道，在 Java 当中，数组和其他集合的操作是不一样的。举个例子，如果要获取数组的长度，Java 中应该使用“array.length”；但如果是获取 List 的大小，那么 Java 中则应该使用“list.size”。这主要是因为数组不属于 Java 集合。</p>
+<p>不过，Kotlin 在这个问题的处理上并不一样。<strong>虽然 Kotlin 的数组仍然不属于集合，但它的一些操作是跟集合统一的</strong>。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> array = arrayOf(<span class="string">&quot;apple&quot;</span>, <span class="string">&quot;pear&quot;</span>)</span><br><span class="line">println(<span class="string">&quot;Size is <span class="subst">$&#123;array.size&#125;</span>&quot;</span>)</span><br><span class="line">println(<span class="string">&quot;First element is <span class="subst">$&#123;array[<span class="number">0</span>]&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 输出结果：</span></span><br><span class="line">Size <span class="keyword">is</span> <span class="number">2</span></span><br><span class="line">First element <span class="keyword">is</span> apple</span><br></pre></td></tr></table></figure>
+
+<p>就比如说，以上代码中，我们直接使用 array.size 就能拿到数组的长度。</p>
+<h2 id="函数声明"><a href="#函数声明" class="headerlink" title="函数声明"></a>函数声明</h2><p>好，了解了 Kotlin 中变量和基础类型的相关概念之后，我们再来看看它的函数是如何定义的。</p>
+<p>在 Kotlin 当中，函数的声明与 Java 不太一样，让我们看一段简单的 Kotlin 代码：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">关键字    函数名          参数类型   返回值类型</span></span><br><span class="line"><span class="comment"> ↓        ↓                ↓       ↓      */</span></span><br><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">helloFunction</span><span class="params">(name: <span class="type">String</span>)</span></span>: String &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;Hello <span class="variable">$name</span> !&quot;</span></span><br><span class="line">&#125;<span class="comment">/*   ↑</span></span><br><span class="line"><span class="comment">   花括号内为：函数体</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+
+<p>可以看到，在这段代码中：</p>
+<ul>
+<li>使用了 <strong>fun 关键字</strong>来定义函数；</li>
+<li><strong>函数名称</strong>，使用的是驼峰命名法（大部分情况下）；</li>
+<li><strong>函数参数</strong>，是以 (name: String) 这样的形式传递的，这代表了参数类型为 String 类型；</li>
+<li><strong>返回值类型</strong>，紧跟在参数的后面；</li>
+<li>最后是最后是花括号内的函数体，它代表了整个函数的逻辑。，它代表了整个函数的逻辑。</li>
+</ul>
+<p>另外你可以再注意一个地方，前面代码中的 helloFunction 函数，它的函数体实际上只有一行代码。那么针对这种情况，我们其实就可以省略函数体的花括号，直接使用“&#x3D;”来连接，将其变成一种类似变量赋值的函数形式：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">helloFunction</span><span class="params">(name: <span class="type">String</span>)</span></span>: String = <span class="string">&quot;Hello <span class="variable">$name</span> !&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这种写法，我们称之为<strong>单一表达式函数</strong>。需要注意的是，在这种情况下，表达式当中的“return”是需要去掉的。</p>
+<p>另外，由于 Kotlin 支持类型推导，我们在使用单一表达式形式的时候，返回值的类型也可以省略：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">helloFunction</span><span class="params">(name: <span class="type">String</span>)</span></span> = <span class="string">&quot;Hello <span class="variable">$name</span> !&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>看到这里，你一定能体会到 Kotlin 的魅力。它的语法非常得简洁，并且是符合人类的阅读直觉的，我们读这样的代码，就跟读自然语言一样轻松。</p>
+<p>然而，Kotlin 的优势不仅仅体现在函数声明上，在函数调用的地方，它也有很多独到之处。</p>
+<h2 id="函数调用"><a href="#函数调用" class="headerlink" title="函数调用"></a>函数调用</h2><p>以我们前面定义的函数为例子，如果我们想要调用它，代码的风格和 Java 基本一致：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">helloFunction(<span class="string">&quot;Kotlin&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>让我们看一个更具体的使用场景：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">createUser</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    name: <span class="type">String</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    age: <span class="type">Int</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    gender: <span class="type">Int</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    friendCount: <span class="type">Int</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    feedCount: <span class="type">Int</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    likeCount: <span class="type">Long</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    commentCount: <span class="type">Int</span></span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span> &#123;</span><br><span class="line">    <span class="comment">//..</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是一个包含了很多参数的函数，在 Kotlin 当中，针对参数较多的函数，我们一般会以<strong>纵向的方式排列</strong>，这样的代码更符合我们从上到下的阅读习惯，省去从左往右翻的麻烦。</p>
+<p>但是，如果我们像 Java 那样调用 createUser，代码就会非常难以阅读：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">createUser(<span class="string">&quot;Tom&quot;</span>, <span class="number">30</span>, <span class="number">1</span>, <span class="number">78</span>, <span class="number">2093</span>, <span class="number">10937</span>, <span class="number">3285</span>)</span><br></pre></td></tr></table></figure>
+
+<p>这里代码中的第一个参数，我们知道肯定是 name，但是到了后面那一堆的数字，就会让人迷惑了。这样的代码不仅难懂，同时还不好维护。</p>
+<p>但如果我们这样写呢？</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">createUser(</span><br><span class="line">    name = <span class="string">&quot;Tom&quot;</span>,</span><br><span class="line">    age = <span class="number">30</span>,</span><br><span class="line">    gender = <span class="number">1</span>,</span><br><span class="line">    friendCount = <span class="number">78</span>,</span><br><span class="line">    feedCount = <span class="number">2093</span>,</span><br><span class="line">    likeCount = <span class="number">10937</span>,</span><br><span class="line">    commentCount = <span class="number">3285</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，在这段代码中，我们把函数的形参加了进来，形参和实参用“&#x3D;”连接，建立了两者的对应关系。对比前面 Java 风格的写法，这样的代码可读性更强了。如果将来你想修改 likeCount 这个参数，也可以轻松做到。这其实就体现出了 Kotlin 命名参数的<strong>可读性</strong>与<strong>易维护性</strong>两个优势。</p>
+<p>而除了命名参数这个特性，Kotlin 还支持<strong>参数默认值</strong>，这个特性在参数较多的情况下同样有很大的优势：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">createUser</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    name: <span class="type">String</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    age: <span class="type">Int</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    gender: <span class="type">Int</span> = <span class="number">1</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    friendCount: <span class="type">Int</span> = <span class="number">0</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    feedCount: <span class="type">Int</span> = <span class="number">0</span>,</span></span></span><br><span class="line"><span class="params"><span class="function">    likeCount: <span class="type">Long</span> = <span class="number">0</span>L,</span></span></span><br><span class="line"><span class="params"><span class="function">    commentCount: <span class="type">Int</span> = <span class="number">0</span></span></span></span><br><span class="line"><span class="params"><span class="function">)</span></span> &#123;</span><br><span class="line">    <span class="comment">//..</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以看到，gender、friendCount、feedCount、likeCount、commentCount 这几个参数都被赋予了默认值。这样做的好处就在于，我们在调用的时候可以省很多事情。比如说，下面这段代码就只需要传 3 个参数，剩余的 4 个参数没有传，但是 Kotlin 编译器会自动帮我们填上默认值。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">createUser(</span><br><span class="line">    name = <span class="string">&quot;Tom&quot;</span>,</span><br><span class="line">    age = <span class="number">30</span>,</span><br><span class="line">    commentCount = <span class="number">3285</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>对于无默认值的参数，编译器会强制要求我们在调用处传参；对于有默认值的参数，则可传可不传。Kotlin 这样的特性，在一些场景下就可以极大地提升我们的开发效率。</p>
+<p>而如果是在 Java 当中要实现类似的事情，我们就必须手动定义“3 个参数的 createUser 函数”，或者是使用 Builder 设计模式。</p>
+<h2 id="流程控制"><a href="#流程控制" class="headerlink" title="流程控制"></a>流程控制</h2><p>在 Kotlin 当中，流程控制主要有 if、when、for、 while，这些语句可以控制代码的执行流程。它们也是体现代码逻辑的关键。下面我们就来一一学习下。</p>
+<h3 id="if"><a href="#if" class="headerlink" title="if"></a>if</h3><p>if 语句，在程序当中主要是用于逻辑判断。Kotlin 当中的 if 与 Java 当中的基本一致：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> i = <span class="number">1</span></span><br><span class="line"><span class="keyword">if</span> (i &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    print(<span class="string">&quot;Big&quot;</span>)</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    print(<span class="string">&quot;Small&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">输出结果：</span><br><span class="line">Big</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，由于 i 大于 0，所以程序会输出“Big”，这很好理解。不过 Kotlin 的 if，并不是程序语句（Statement）那么简单，它还可以作为<strong>表达式</strong>（Expression）来使用。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> i = <span class="number">1</span></span><br><span class="line"><span class="keyword">val</span> message = <span class="keyword">if</span> (i &gt; <span class="number">0</span>) <span class="string">&quot;Big&quot;</span> <span class="keyword">else</span> <span class="string">&quot;Small&quot;</span></span><br><span class="line"></span><br><span class="line">print(message)</span><br><span class="line"></span><br><span class="line">输出结果：</span><br><span class="line">Big</span><br></pre></td></tr></table></figure>
+
+<p>以上的代码其实跟之前的代码差不多，它们做的是同一件事。不同的是，我们把 if 当作表达式在用，将 if 判断的结果，赋值给了一个变量。同时，Kotlin 编译会根据 if 表达式的结果自动推导出变量“message”的类型为“String”。这种方式就使得 Kotlin 的代码更加简洁。</p>
+<p>而类似的逻辑，如果要用 Java 来实现的话，我们就必须先在 if 外面定义一个变量 message，然后分别在两个分支内对 message 赋值：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line">int i = <span class="number">1</span></span><br><span class="line">String message = <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="keyword">if</span> (i &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    message = <span class="string">&quot;Big&quot;</span></span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    message = <span class="string">&quot;Small&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">print(message)</span><br></pre></td></tr></table></figure>
+
+<p>这样两相对比下，我们会发现 Java 的实现方式明显丑陋一些：<strong>不仅代码行数更多，逻辑也松散了</strong>。</p>
+<p>另外，由于 Kotlin 当中明确规定了类型分为“可空类型”“不可空类型”，因此，我们会经常遇到可空的变量，并且要判断它们是否为空。我们直接来看个例子：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">getLength</span><span class="params">(text: <span class="type">String</span>?)</span></span>: <span class="built_in">Int</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">if</span> (text != <span class="literal">null</span>) text.length <span class="keyword">else</span> <span class="number">0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在这个例子当中，我们把 if 当作表达式，如果 text 不为空，我们就算出它的长度；如果它为空，长度就取 0。</p>
+<p>但是，如果你实际使用 Kotlin 写过代码，你会发现：在 Kotlin 中，类似这样的判断逻辑出现得非常频繁，如果每次都要写一个完整的 if else 分支，其实也很麻烦。</p>
+<p>为此，Kotlin 针对这种情况就提供了一种简写，叫做 <strong>Elvis 表达式</strong>。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">fun</span> <span class="title">getLength</span><span class="params">(text: <span class="type">String</span>?)</span></span>: <span class="built_in">Int</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> text?.length ?: <span class="number">0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，通过 Elvis 表达式，我们就再也不必写“if (xxx !&#x3D; null) xxx else xxx”这样的赋值代码了。它在提高代码可读性的同时，还能提高我们的编码效率。</p>
+<h2 id="when"><a href="#when" class="headerlink" title="when"></a>when</h2><p>when 语句，在程序当中主要也是用于逻辑判断的。当我们的代码逻辑只有两个分支的时候，我们一般会使用 if&#x2F;else，而在大于两个逻辑分支的情况下，我们使用 when。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> i: <span class="built_in">Int</span> = <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">when</span>(i) &#123;</span><br><span class="line">    <span class="number">1</span> -&gt; print(<span class="string">&quot;一&quot;</span>)</span><br><span class="line">    <span class="number">2</span> -&gt; print(<span class="string">&quot;二&quot;</span>)</span><br><span class="line">    <span class="keyword">else</span> -&gt; print(<span class="string">&quot;i 不是一也不是二&quot;</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">输出结果：</span><br><span class="line">一</span><br></pre></td></tr></table></figure>
+
+<p>when 语句有点像 Java 里的 switch case 语句，不过 Kotlin 的 when 更加强大，它同时也可以<strong>作为表达式，为变量赋值</strong>，如下所示：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> i: <span class="built_in">Int</span> = <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> message = <span class="keyword">when</span>(i) &#123;</span><br><span class="line">    <span class="number">1</span> -&gt; <span class="string">&quot;一&quot;</span></span><br><span class="line">    <span class="number">2</span> -&gt; <span class="string">&quot;二&quot;</span></span><br><span class="line">    <span class="keyword">else</span> -&gt; <span class="string">&quot;i 不是一也不是二&quot;</span> <span class="comment">// 如果去掉这行，会报错</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">print(message)</span><br></pre></td></tr></table></figure>
+
+<p>另外，与 switch 不一样的是，when 表达式要求它里面的逻辑分支必须是完整的。举个例子，以上的代码，如果去掉 else 分支，编译器将报错，原因是：i 的值不仅仅只有 1 和 2，这两个分支并没有覆盖所有的情况，所以会报错。</p>
+<h2 id="循环迭代：while-与-for"><a href="#循环迭代：while-与-for" class="headerlink" title="循环迭代：while 与 for"></a>循环迭代：while 与 for</h2><p>首先 while 循环，我们一般是用于重复执行某些代码，它在使用上和 Java 也没有什么区别：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> i = <span class="number">0</span></span><br><span class="line"><span class="keyword">while</span> (i &lt;= <span class="number">2</span>) &#123;</span><br><span class="line">    println(i)</span><br><span class="line">    i++</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> j = <span class="number">0</span></span><br><span class="line"><span class="keyword">do</span> &#123;</span><br><span class="line">    println(j)</span><br><span class="line">    j++</span><br><span class="line">&#125; <span class="keyword">while</span> (j &lt;= <span class="number">2</span>)</span><br><span class="line"></span><br><span class="line">输出结果：</span><br><span class="line"><span class="number">0</span></span><br><span class="line"><span class="number">1</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">0</span></span><br><span class="line"><span class="number">1</span></span><br><span class="line"><span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<p>但是对于 for 语句，Kotlin 和 Java 的用法就明显不一样了。</p>
+<p>在 Java 当中，for 也会经常被用于循环，经常被用来替代 while。不过，<strong>Kotlin 的 for 语句更多的是用于“迭代”</strong>。比如，以下代码就代表了迭代 array 这个数组里的所有元素，程序会依次打印出：“1、2、3”。</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> array = arrayOf(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>)</span><br><span class="line"><span class="keyword">for</span> (i <span class="keyword">in</span> array) &#123;</span><br><span class="line">    println(i)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而除了迭代数组和集合以外，Kotlin 还支持迭代一个“区间”。</p>
+<p>首先，要定义一个区间，我们可以使用“..”来连接数值区间的两端，比如“1..3”就代表从 1 到 3 的闭区间，左闭右闭：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">val</span> oneToThree = <span class="number">1.</span><span class="number">.3</span> <span class="comment">// 代表 [1, 3]</span></span><br></pre></td></tr></table></figure>
+
+<p>接着，我们就可以使用 for 语句，来对这个闭区间范围进行迭代：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> (i <span class="keyword">in</span> oneToThree) &#123;</span><br><span class="line">    println(i)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">输出结果：</span><br><span class="line"><span class="number">1</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">3</span></span><br></pre></td></tr></table></figure>
+
+<p>甚至，我们还可以<strong>逆序迭代</strong>一个区间，比如：</p>
+<figure class="highlight kotlin"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> (i <span class="keyword">in</span> <span class="number">6</span> downTo <span class="number">0</span> step <span class="number">2</span>) &#123;</span><br><span class="line">    println(i)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">输出结果：</span><br><span class="line"><span class="number">6</span></span><br><span class="line"><span class="number">4</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>以上代码的含义就是逆序迭代一个区间，从 6 到 0，每次迭代的步长是 2，这意味着 6 迭代过后，到 4、2，最后到 0。<strong>需要特别注意的是</strong>，逆序区间我们不能使用“6..0”来定义，如果用这样的方式来定义的话，代码将无法正常运行。</p>
+<p>好了，那么到目前为止，Kotlin 的变量、基础类型、函数、流程控制，我们就都已经介绍完了。掌握好这些知识点，我们就已经可以写出简单的程序了。当然，我们的 Kotlin 学习之路才刚刚开始，在下节课，我会带你来学习 Kotlin 面向对象相关的知识点。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>学完了这节课，现在我们知道虽然 Kotlin 和 Java 的语法很像，但在一些细节之处，Kotlin 总会有一些新的东西。如果你仔细琢磨这些不同点，你会发现它正是大部分程序员所需要的。举个例子，作为开发者，我们都讨厌写冗余的代码，喜欢简洁易懂的代码。那么在今天学完了基础语法之后，我们可以来看看 Kotlin 在这方面都做了哪些改进：</p>
+<ul>
+<li>支持类型推导；</li>
+<li>代码末尾不需要分号；</li>
+<li>字符串模板；</li>
+<li>原始字符串，支持复杂文本格式；</li>
+<li>单一表达式函数，简洁且符合直觉；</li>
+<li>函数参数支持默认值，替代 Builder 模式的同时，可读性还很强；</li>
+<li>if 和 when 可以作为表达式。</li>
+</ul>
+<p>同时，JetBrains 也非常清楚开发者在什么情况下容易出错，所以，它在语言层面也做了很多改进：</p>
+<ul>
+<li>强制区分“可为空变量类型”和“不可为空变量类型”，规避空指针异常；</li>
+<li>推崇不可变性（val），对于没有修改需求的变量，IDE 会智能提示开发者将“var”改为“val”</li>
+<li>基础类型不支持隐式类型转换，这能避免很多隐藏的问题；</li>
+<li>数组访问行为与集合统一，不会出现 array.length、list.size 这种恼人的情况；</li>
+<li>函数调用支持命名参数，提高可读性，在后续维护代码的时候不易出错；</li>
+<li>when 表达式，强制要求逻辑分支完整，让你写出来的逻辑永远不会有漏洞。</li>
+</ul>
+<img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://static001.geekbang.org/resource/image/32/67/32ab3d37cd7f9650f4cba17736305c67.jpg?wh=1920x1983" alt="img" style="zoom: 33%;" />
+
+<p>这些都是 Kotlin 的<strong>闪光点</strong>，也是它最珍贵的地方。</p>
+<p>这一切，都得益于 Kotlin 的发明者 JetBrains。作为最负盛名的 IDE 创造者，JetBrains 能深刻捕捉到开发者的需求。它知道开发者喜欢什么、讨厌什么，它甚至知道开发者容易犯什么样的错误，从而在语言设计的层面规避错误。站在这个角度看，JetBrains 能够创造出炙手可热的 Kotlin 语言，就一点都不奇怪了。</p>
+<p>以上这么多的“闪光点”还仅仅只是局限于我们这节课的内容，如果放眼全局，这样的例子更是数不胜数。<strong>Kotlin 对比 Java 的提升，如果独立去看其中的某一个点，都不足以让一个开发者心动。不过，一旦这样的改善积少成多，Kotlin 的优势就会显得尤为明显</strong>。这也是很多程序员表示“Kotlin 用过了就回不去”的原因。</p>
+<h2 id="思考题"><a href="#思考题" class="headerlink" title="思考题"></a>思考题</h2><p>虽然 Kotlin 在语法层面摒弃了“原始类型”，但有时候为了性能考虑，我们确实需要用“原始类型”。这时候我们应该怎么办？</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://devsu.top">Carl Su</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://devsu.top/posts/3dc00e96/">https://devsu.top/posts/3dc00e96/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://devsu.top" target="_blank">码行</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Kotlin/">Kotlin</a></div><div class="post-share"><div class="social-share" data-image="https://s2.loli.net/2023/03/14/RoblDg7T2xq4aJu.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/c3221099/" title="Android发布开源库到JitPack"><img class="cover" src="https://s2.loli.net/2023/03/16/t5fbvM3xgWNQskA.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Android发布开源库到JitPack</div></div><div class="info-2"><div class="info-item-1">最近在整合项目资料的时候，注意到项目中很多可以通用的module，每次新建项目都需要把这些module依赖进来，如果module发生了改变，那么所有的项目都需要手动更改代码，因此尝试把通用的组件提取出来，放到JitPack上，当然还有阿里云Maven，和MavenCentral，这个我们下篇在介绍。 创建项目在Android Studio中创建一个名为JitShare的项目  点击Finish完成工程创建。 新建Module与依赖File --&gt; New --&gt; New Module  输入Module name,点击Finish。 创建好module的工程目录结构如下  可以看到app和share是不同的图标，app是可运行模块，share是可依赖模块。 下一步是配置app模块依赖share模块。在开始依赖之前，我们先看appmodule的build.gradle。  下面来添加share模块的依赖. 点击这个图标，或者使用快捷键Ctrl + Alt + Shift + S  在弹框中，按照下图所示操作(Dependencies –&gt; app –&gt; +...</div></div></div></a><a class="pagination-related" href="/posts/25decd61/" title="Kotlin编程第一课--(基础篇)02  面向对象：理解Kotlin设计者的良苦用心"><img class="cover" src="https://s2.loli.net/2023/03/14/wnk3h98IxAcYX5L.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Kotlin编程第一课--(基础篇)02  面向对象：理解Kotlin设计者的良苦用心</div></div><div class="info-2"><div class="info-item-1">这节课，我们来学习 Kotlin 的面向对象编程：类、接口、继承、嵌套，以及 Kotlin 独有的数据类和密封类。 面向对象（Object Oriented）是软件开发方法，也是计算机界应用最广的一种编程范式。它是把程序的“数据”和“方法”作为一个整体来看待，将其抽象成了一个具体的模型，从而更贴近事物的自然运行模式。它的特点是简单易懂，符合人类的思维模式。 在“面向对象”的概念上，虽然 Kotlin 和 Java 之间有一定的语法差异，但底层的思想是没有变的。比如 Java 和 Kotlin 当中，都有类、接口、继承、嵌套、枚举的概念，唯一区别就在于这些概念在两种语言中的具体语法不同。我们需要做的，仅仅只是为我们脑海里已经熟知的概念，再增加一种语法规则而已。 而如果你没有 Java 基础也没关系，今天这节课要学习的内容，几乎是所有编程语言都需要掌握的概念。在掌握了 Kotlin 面向对象的编程思想后，如果你再去学习其他编程语言，你也照样可以快速迁移这些知识点。 当然，Kotlin 作为一门新的语言，它也创造了一些新的东西，比如数据类、密封类、密封接口等。这些 Kotlin...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/posts/85d82fa8/" title="Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？"><img class="cover" src="https://static001.geekbang.org/resource/image/b6/1c/b65feyy0bdc4764c6564a95912d7851c.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-05-06</div><div class="info-item-2">Kotlin编程第一课--(基础篇)06  扩展：你的能力边界到底在哪里？</div></div><div class="info-2"><div class="info-item-1">Kotlin 的扩展（Extension），主要分为两种语法：第一个是扩展函数，第二个是扩展属性。从语法上看，扩展看起来就像是我们从类的外部为它扩展了新的成员。 这在实际编程当中是非常有用的功能。我们可以来想象一个场景：我们想修改 JDK 当中的 String，想在它的基础上增加一个方法“lastElement()”来获取末尾元素，如果使用 Java，我们是无法通过常规手段实现的，因为我们没办法修改 JDK 的源代码。任何第三方提供的 SDK，我们都无权修改。 不过，借助 Kotlin 的扩展函数，我们就完全可以在语义层面，来为第三方 SDK 的类扩展新的成员方法和成员属性。不管是为 JDK 的 String 增加新的成员方法，还是为 Android SDK 的 View 增加新成员属性，我们都可以实现。 Kotlin 的这个“扩展”功能看起来很神奇，它会不会很难学？其实不然，它的语法非常简洁。今天这节课，我们就一起来学习下 Kotlin...</div></div></div></a><a class="pagination-related" href="/posts/be9f17d6/" title="Kotlin编程第一课(目录)"><img class="cover" src="https://img2.baidu.com/it/u=3956021957,3313212296&fm=253&fmt=auto&app=138&f=JPEG?w=800&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-07-10</div><div class="info-item-2">Kotlin编程第一课(目录)</div></div><div class="info-2"><div class="info-item-1">基础篇Kotlin编程第一课–(基础篇)01  Kotlin基础语法：正式开启学习之旅Kotlin编程第一课–(基础篇)02  面向对象：理解Kotlin设计者的良苦用心Kotlin编程第一课–(基础篇)03  Kotlin原理：编译器在幕后干了哪些“好事”？Kotlin编程第一课–(基础篇)04 | 实战：构建一个Kotlin版本的四则运算计算器Kotlin编程第一课–(基础篇)05  object关键字：你到底有多少种用法？Kotlin编程第一课–(基础篇)06  扩展：你的能力边界到底在哪里？Kotlin编程第一课–(基础篇)07  高阶函数：为什么说函数是Kotlin的“一等公民”？Kotlin编程第一课–(基础篇)08  实战：用Kotlin写一个英语词频统计程序Kotlin编程第一课–(基础篇)加餐一  初识Kotlin函数式编程Kotlin编程第一课–(基础篇)09  委托：你为何总是被低估？Kotlin编程第一课–(基础篇)10  泛型：逆变or协变，傻傻分不清？Kotlin编程第一课–(基础篇)11 ...</div></div></div></a><a class="pagination-related" href="/posts/83a7144c/" title="2023-01-17-Kotlin协程 -  结构化并发"><img class="cover" src="https://s2.loli.net/2023/03/14/xEyFgn24zZPXe15.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-01-17</div><div class="info-item-2">2023-01-17-Kotlin协程 -  结构化并发</div></div><div class="info-2"><div class="info-item-1">CoroutineScope定义协程必须指定其 CoroutineScope，它会跟踪所有协程，同样它还可以取消由它所启动的所有协程。 常用的相关API有：  GlobalScope，生命周期是process级别的，及时Activity或Fragment已经被销毁，协程仍然在执行。 MainScope，在Activity中使用，可以在onDestroy()中取消协程。 viewModelScope，只能在ViewModel中使用，绑定ViewModel的生命周期。 lifecycleScope，只能在Activity、Fragment中使用，会绑定Activity和Fragment的生命周期  </div></div></div></a><a class="pagination-related" href="/posts/a20c9e06/" title="Kotlin协程"><img class="cover" src="https://s2.loli.net/2023/03/14/3MHPBy1Q4GncRlF.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2023-02-09</div><div class="info-item-2">Kotlin协程</div></div><div class="info-2"><div class="info-item-1">Kotlin协程协程的作用域构建器coroutineScope与runBlocking runBlocking是常规函数，而coroutineScope是挂起函数。 它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途  </div></div></div></a><a class="pagination-related" href="/posts/68bf7d20/" title="Kotlin函数"><img class="cover" src="https://img1.baidu.com/it/u=1546227440,2897989905&fm=253&fmt=auto&app=138&f=JPEG?w=889&h=500" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin函数</div></div><div class="info-2"><div class="info-item-1">函数类型作为返回类型fun main() &#123;	  println(show(&quot;Demo&quot;))      val lambdaFunction = showMethod(&quot;Jack&quot;) //注意lambdaFunction 这里的类型为(String,Int) -&gt; String    println(lambdaFunction(&quot;Carl&quot;,20))&#125;//普通函数fun show(name:String): String &#123;    return &quot;name is $name&quot;&#125;//返回类型为函数fun showMethod(name: String): (String,Int) -&gt; String &#123;    println(&quot;name is $name&quot;)    return &#123; name: String, age: Int -&gt;       ...</div></div></div></a><a class="pagination-related" href="/posts/8c331668/" title="Kotlin内置函数apply、let、run、with、also等区别"><img class="cover" src="https://s2.loli.net/2023/03/14/OpxWcuy2ktMzoQD.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2022-08-05</div><div class="info-item-2">Kotlin内置函数apply、let、run、with、also等区别</div></div><div class="info-2"><div class="info-item-1">Applyapply函数可看作一个配置函数，可以传入一个接收者，然后调用一系列函数来配置它以便使用，如果提供lambda给apply函数执行，它会返回配置好的接受者 val file1 = File(&quot;/User/geowin/hello.txt&quot;)file1.apply &#123; // this: File   setWritable(true)   setReadable(true)   setExecutable(false)&#125;  可以看到，调用一个个函数类配置接受者时，变量名就省略了，这是因为，在lambda表达式中，apply能让每个配置函数都作用于接受者，这种行为有时又叫做相关作用域,因为lambda表达式里的所有函数调用都是针对接收者的，或者说，它们是针对接受者的隐式调用. letlet函数能使某个变量作用于lambda表达式里，让it关键字能引用它。let与apply比较，let会把接受者传给lambda，而apply什么都不传，匿名函数执行完，apply会返回当前接受者，而let会返回lambda的最后一行。 fun...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Valine</span><span id="switch-btn"></span><span class="second-comment">Disqus</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div><div><div id="disqus_thread"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83"><span class="toc-number">1.</span> <span class="toc-text">开发环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%98%E9%87%8F"><span class="toc-number">2.</span> <span class="toc-text">变量</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E7%B1%BB%E5%9E%8B"><span class="toc-number">3.</span> <span class="toc-text">基础类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E5%88%87%E9%83%BD%E6%98%AF%E5%AF%B9%E8%B1%A1"><span class="toc-number">4.</span> <span class="toc-text">一切都是对象</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A9%BA%E5%AE%89%E5%85%A8"><span class="toc-number">5.</span> <span class="toc-text">空安全</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%95%B0%E5%AD%97%E7%B1%BB%E5%9E%8B"><span class="toc-number">6.</span> <span class="toc-text">数字类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%83%E5%B0%94%E7%B1%BB%E5%9E%8B"><span class="toc-number">7.</span> <span class="toc-text">布尔类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%EF%BC%9AChar"><span class="toc-number">8.</span> <span class="toc-text">字符：Char</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AD%97%E7%AC%A6%E4%B8%B2%EF%BC%9AString"><span class="toc-number">9.</span> <span class="toc-text">字符串：String</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E7%BB%84"><span class="toc-number">9.1.</span> <span class="toc-text">数组</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E5%A3%B0%E6%98%8E"><span class="toc-number">10.</span> <span class="toc-text">函数声明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8"><span class="toc-number">11.</span> <span class="toc-text">函数调用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B%E6%8E%A7%E5%88%B6"><span class="toc-number">12.</span> <span class="toc-text">流程控制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#if"><span class="toc-number">12.1.</span> <span class="toc-text">if</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#when"><span class="toc-number">13.</span> <span class="toc-text">when</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BE%AA%E7%8E%AF%E8%BF%AD%E4%BB%A3%EF%BC%9Awhile-%E4%B8%8E-for"><span class="toc-number">14.</span> <span class="toc-text">循环迭代：while 与 for</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B0%8F%E7%BB%93"><span class="toc-number">15.</span> <span class="toc-text">小结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%9D%E8%80%83%E9%A2%98"><span class="toc-number">16.</span> <span class="toc-text">思考题</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2025 By Carl Su</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 6.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">学无止境</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !true) {
+    if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const disqusReset = conf => {
+    window.DISQUS && window.DISQUS.reset({
+      reload: true,
+      config: conf
+    })
+  }
+
+  const loadDisqus = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyDisqus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    window.disqus_identifier = isShuoshuo ? path : '/posts/3dc00e96/'
+    window.disqus_url = isShuoshuo ? location.origin + path : 'https://devsu.top/posts/3dc00e96/'
+
+    const disqus_config = function () {
+      this.page.url = disqus_url
+      this.page.identifier = disqus_identifier
+      this.page.title = 'Kotlin编程第一课--(基础篇)01  Kotlin基础语法：正式开启学习之旅'
+    }
+
+    if (window.DISQUS) disqusReset(disqus_config)
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://.disqus.com/embed.js'
+      script.setAttribute('data-timestamp', +new Date())
+      document.head.appendChild(script)
+    }
+
+    btf.addGlobalFn('themeChange', () => disqusReset(disqus_config), 'disqus')
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqus-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=&api_key=&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Disqus'
+      ? window.shuoshuoComment = { loadComment: loadDisqus }
+      : window.loadOtherComment = loadDisqus
+    return
+  }
+
+  if ('Valine' === 'Disqus' || !true) {
+    if (true) btf.loadComment(document.getElementById('disqus_thread'), loadDisqus)
+    else {
+      loadDisqus()
+      GLOBAL_CONFIG_SITE.pageType === 'post' && getCount()
+    }
+  } else {
+    window.loadOtherComment = loadDisqus
+  }
+})()</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

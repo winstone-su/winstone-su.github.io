@@ -1,0 +1,436 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>2023-07-06-Windows下搭建MQTT服务器以及Android测试连接 | 码行</title><meta name="author" content="Carl Su"><meta name="copyright" content="Carl Su"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="MQTT服务器MQTT开源服务器很多，比如:  Mosquitto：Eclipse Mosquitto使用 C 语言实现的 MQTT 服务器 EMQX：使用 Erlang 语言开发的 MQTT 服务器，内置强大的规则引擎，支持许多其他 IoT 协议，比如MQTT-SN、CoAP、LwM2M 等。 Mosca：使用 Node.JS 开发的 MQTT 服务器，简单易用。 VerneMQ：使用 Erla">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2023-07-06-Windows下搭建MQTT服务器以及Android测试连接">
+<meta property="og:url" content="https://devsu.top/posts/2b43af4d/index.html">
+<meta property="og:site_name" content="码行">
+<meta property="og:description" content="MQTT服务器MQTT开源服务器很多，比如:  Mosquitto：Eclipse Mosquitto使用 C 语言实现的 MQTT 服务器 EMQX：使用 Erlang 语言开发的 MQTT 服务器，内置强大的规则引擎，支持许多其他 IoT 协议，比如MQTT-SN、CoAP、LwM2M 等。 Mosca：使用 Node.JS 开发的 MQTT 服务器，简单易用。 VerneMQ：使用 Erla">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png">
+<meta property="article:published_time" content="2023-07-06T06:50:37.000Z">
+<meta property="article:modified_time" content="2025-03-07T02:49:14.876Z">
+<meta property="article:author" content="Carl Su">
+<meta property="article:tag" content="MQTT">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "2023-07-06-Windows下搭建MQTT服务器以及Android测试连接",
+  "url": "https://devsu.top/posts/2b43af4d/",
+  "image": "https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png",
+  "datePublished": "2023-07-06T06:50:37.000Z",
+  "dateModified": "2025-03-07T02:49:14.876Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Carl Su",
+      "url": "https://devsu.top/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png"><link rel="canonical" href="https://devsu.top/posts/2b43af4d/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//hm.baidu.com"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          const hour = new Date().getHours()
+          const isNight = hour <= 6 || hour >= 18
+          if (theme === undefined) isNight ? activateDarkMode() : activateLightMode()
+          else theme === 'light' ? activateLightMode() : activateDarkMode()
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "https://hm.baidu.com/hm.js?6243425e2ecb037931274c4ca1db3132";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+btf.addGlobalFn('pjaxComplete', () => {
+  _hmt.push(['_trackPageview',window.location.pathname])
+}, 'baidu_analytics')
+</script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"简"},
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: Carl Su","link":"链接: ","source":"来源: 码行","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: true,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '2023-07-06-Windows下搭建MQTT服务器以及Android测试连接',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load', preloader.endLoading)
+
+  if (false) {
+    btf.addGlobalFn('pjaxSend', preloader.initLoading, 'preloader_init')
+    btf.addGlobalFn('pjaxComplete', preloader.endLoading, 'preloader_end')
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">193</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">47</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">41</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg fixed" id="page-header"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><img class="site-icon" src="https://s2.loli.net/2023/03/09/whMHdYkrKoIBnSC.png" alt="Logo"><span class="site-name">码行</span></a><a class="nav-page-title" href="/"><span class="site-name">2023-07-06-Windows下搭建MQTT服务器以及Android测试连接</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 清单</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page child" href="/Gallery/"><i class="fa-fw fas fa-images"></i><span> 照片</span></a></li><li><a class="site-page child" href="/movies/"><i class="fa-fw fas fa-video"></i><span> 电影</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">2023-07-06-Windows下搭建MQTT服务器以及Android测试连接</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-07-06T06:50:37.000Z" title="发表于 2023-07-06 14:50:37">2023-07-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-07T02:49:14.876Z" title="更新于 2025-03-07 10:49:14">2025-03-07</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Android/">Android</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">847</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>3分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="MQTT服务器"><a href="#MQTT服务器" class="headerlink" title="MQTT服务器"></a>MQTT服务器</h2><p>MQTT开源服务器很多，比如:</p>
+<ul>
+<li>Mosquitto：Eclipse Mosquitto使用 C 语言实现的 MQTT 服务器</li>
+<li>EMQX：使用 Erlang 语言开发的 MQTT 服务器，内置强大的规则引擎，支持许多其他 IoT 协议，比如MQTT-SN、CoAP、LwM2M 等。</li>
+<li>Mosca：使用 Node.JS 开发的 MQTT 服务器，简单易用。</li>
+<li>VerneMQ：使用 Erlang 开发的 MQTT 服务器。</li>
+</ul>
+<p>更多MQTT的本地服务器和云服务器可以参考<a target="_blank" rel="noopener" href="https://mqtt.org/software/">https://mqtt.org/software/</a></p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/VgueonIrf9YzL3J.png" alt="MQTT Broker"></p>
+<h2 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h2><h3 id="下载EMQX"><a href="#下载EMQX" class="headerlink" title="下载EMQX"></a>下载EMQX</h3><p>这里使用的是<code>EMQX</code>,Windows下建议只是用于本地测试，不建议用于生产。</p>
+<p><strong>下载地址</strong> <a target="_blank" rel="noopener" href="https://www.emqx.io/zh/downloads?os=Windows">https://www.emqx.io/zh/downloads?os=Windows</a></p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/Drpa9tGxXlqOR3k.png" alt="EMQX Download"></p>
+<p>解压后如下：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/Xpg4m3RqlUWHjfh.png" alt="unzip"></p>
+<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><ol>
+<li>打开PowerShell，进入bin目录</li>
+<li>启动 EMQX（两种启动方式：<code>emqx start</code>守护进程模式、<code>emqx console</code>控制台模式）</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">emqx start</span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li>启动成功后，查看节点的运行状态（如返回 pong，则表示运行状态正常）</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">emqx ping</span><br></pre></td></tr></table></figure>
+
+<p>停止服务</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">emqx stop</span><br></pre></td></tr></table></figure>
+
+<p>重启服务</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">emqx restart</span><br></pre></td></tr></table></figure>
+
+<p>效果如下：</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/hiqQX4BfMSWIRe2.png" alt="service"></p>
+<p>EMQX默认提供端口（可以在 <code>/emqx/etc/emqx.conf</code> 文件中修改端口号）：</p>
+<table>
+<thead>
+<tr>
+<th>EMQX端口</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1883</td>
+<td>MQTT TCP 协议端口</td>
+</tr>
+<tr>
+<td>8883</td>
+<td>MQTT&#x2F;TCP SSL 端口</td>
+</tr>
+<tr>
+<td>8083</td>
+<td>MQTT&#x2F;WebSocket 端口</td>
+</tr>
+<tr>
+<td>8084</td>
+<td>MQTT&#x2F;WebSocket with SSL 端口</td>
+</tr>
+<tr>
+<td>18083</td>
+<td>EMQX Dashboard 管理控制台端口</td>
+</tr>
+</tbody></table>
+<h3 id="登录EMQX-Dashboard"><a href="#登录EMQX-Dashboard" class="headerlink" title="登录EMQX Dashboard"></a>登录EMQX Dashboard</h3><blockquote>
+<p>EMQX 启动成功后，可以访问<code>http://127.0.0.1:18083</code> 进入EMQX Dashboard 管理控制台进行设备连接和相关指标监控管理。</p>
+</blockquote>
+<p><strong>初始账号：admin，初始密码：public</strong></p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/1gReT9G5JjqLZrz.png" alt="dashboard"></p>
+<h2 id=""><a href="#" class="headerlink" title=""></a></h2><h2 id="创建客户端认证"><a href="#创建客户端认证" class="headerlink" title="创建客户端认证"></a>创建客户端认证</h2><h3 id="创建数据库"><a href="#创建数据库" class="headerlink" title="创建数据库"></a>创建数据库</h3><p>按照下图步骤，创建客户端认证</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/or9wuP7Dh2tGyLW.png" alt="客户端认证"></p>
+<p>认证方式：选择<code>Password-Based</code></p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/zUbQuV9DAqnrNPX.png" alt="认证方式"></p>
+<p>选择数据库:  并不是用于生产，所以直接用了内置数据库，也可以选择自己喜欢的</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/CDxSMqLQ6KV1Jym.png" alt="choose database"></p>
+<p>加密方式： 直接用默认就可以了</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/olXpQKavHRfPhzu.png" alt="配置参数"></p>
+<h3 id="创建用户"><a href="#创建用户" class="headerlink" title="创建用户"></a>创建用户</h3><p>选择用户管理</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/Apg9nXmUqZCB3JT.png" alt="用户管理"></p>
+<p>添加用户</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/6fM7n1JI9TqyBOv.png" alt="create user"></p>
+<p>我们这里创建一个测试用户 user 密码: 123456</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/Fqbh5C462oQvaR3.png" alt="create user"></p>
+<h2 id="MQTT-fx连接测试"><a href="#MQTT-fx连接测试" class="headerlink" title="MQTT.fx连接测试"></a>MQTT.fx连接测试</h2><p>MQTT.fx 下载地址: <a target="_blank" rel="noopener" href="https://softblade.de/en/welcome/">https://softblade.de/en/welcome/</a></p>
+<h3 id="创建连接"><a href="#创建连接" class="headerlink" title="创建连接"></a>创建连接</h3><p>点击设置图标</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/pDVdnNiUytFPQjC.png" alt="setting"></p>
+<p>输入Broker Address 和 Port，这里可以用127.0.0.1，如果是固定IP的话，也可以使用固定IP，我自己的IP就是<code>192.168.1.8</code></p>
+<p>在<code>User Credentials</code>里面选择<code>Use Username/Password</code> ，输入我们刚才创建的用户<code>user/123456</code>(<strong>不是控制台的用户名密码</strong>)</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/KdVmHglxutTDEzB.png" alt="image-20230706152343008"></p>
+<p>点击<code>Apply</code> -&gt; <code>OK</code></p>
+<p>然后点击主界面的<code>connect</code>,如下表示连接成功</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/ewB92KMR5TNxmLJ.png" alt="mqtt connect"></p>
+<p>我们在Dashboard可以看到总连接数&#x2F;在线连接数发生了变化(不需要刷新网页，会自动刷新)</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/U2OSf9r3Czg61Tl.png" alt="dashboard view"></p>
+<p>再回到MQTT.fx</p>
+<p>我们订阅一个主题: <code>/dev/myproject/topic</code></p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/IoGbyZVK8TXeU1M.png" alt="image-20230706153246346"></p>
+<p>主题数和订阅数也同步发生了变化</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/kVgcxpLwEHdhK5Z.png" alt="image-20230706153311779"></p>
+<p>现在我们利用<code>Publish</code> 发布一条消息，点击<code>Publish</code>按钮</p>
+<p>发布测试消息<code>hello world</code></p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/V5tx2uEZ7F4Hzpa.png" alt="image-20230706153411161"></p>
+<p>然后切换到<code>Subscribe</code>页签，可以看到在界面上已经显示了刚才发布的消息</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/Pb2rdMvEA53S6eL.png" alt="image-20230706153456080"></p>
+<h2 id="Android连接测试"><a href="#Android连接测试" class="headerlink" title="Android连接测试"></a>Android连接测试</h2><p>Demo地址： <a target="_blank" rel="noopener" href="https://github.com/winstone-su/MqttJava">https://github.com/winstone-su/MqttJava</a></p>
+<p>这里我使用的是雷电模拟器，需要注意的是,这里的IP使用的是我本机的IP <code>192.168.1.8</code></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//服务器地址（协议+地址+端口号）</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">String</span> <span class="variable">HOST</span> <span class="operator">=</span> <span class="string">&quot;tcp://192.168.1.8:1883&quot;</span>;</span><br><span class="line"><span class="comment">//用户名</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">String</span> <span class="variable">USERNAME</span> <span class="operator">=</span> <span class="string">&quot;user&quot;</span>;</span><br><span class="line"><span class="comment">//密码</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">String</span> <span class="variable">PASSWORD</span> <span class="operator">=</span> <span class="string">&quot;123456&quot;</span>;</span><br><span class="line"><span class="comment">//发布主题</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">String</span> <span class="variable">PUBLISH_TOPIC</span> <span class="operator">=</span> <span class="string">&quot;/dev/myproject/topic&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>在Android端发布一条消息</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">MyMqttService.publish(<span class="string">&quot;这是一条来自Android的消息&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>在MQTT.fx中收到消息</p>
+<p><img src= "https://s2.loli.net/2023/03/09/dog2qQY83iTIvHM.gif" data-lazy-src="https://s2.loli.net/2023/07/06/zK9H6INQgyXnAJh.png" alt="image-20230706154758540"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://devsu.top">Carl Su</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://devsu.top/posts/2b43af4d/">https://devsu.top/posts/2b43af4d/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://devsu.top" target="_blank">码行</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/MQTT/">MQTT</a></div><div class="post-share"><div class="social-share" data-image="https://s2.loli.net/2023/03/09/QrI9mgJ4XlbEPzN.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/posts/f477121f/" title="2023-07-02-Mac下MonoProxy使用"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">2023-07-02-Mac下MonoProxy使用</div></div><div class="info-2"><div class="info-item-1">Android Studio 使用打开全局代理模式  如果还不行的的话，打开SOCK5  </div></div></div></a><a class="pagination-related" href="/posts/409df144/" title="2023-07-08-Android手动升级AGP"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">2023-07-08-Android手动升级AGP</div></div><div class="info-2"><div class="info-item-1">打开Android Studio工程，有些项目会弹出升级AGP的提示，有些项目又不会。 最近因为升级了工程的某些依赖库，需要将 compileSdk 和targetSdk升级到33，同时工程会报错，显示AGP版本低了，需要升级。 操作方法  在AS里面搜索Upgrade Assistant ![截屏2023-07-08 22.48.45](&#x2F;Users&#x2F;carl&#x2F;Library&#x2F;Application Support&#x2F;typora-user-images&#x2F;截屏2023-07-08 22.48.45.png) </div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="comment-switch"><span class="first-comment">Valine</span><span id="switch-btn"></span><span class="second-comment">Disqus</span></div></div><div class="comment-wrap"><div><div class="vcomment" id="vcomment"></div></div><div><div id="disqus_thread"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#MQTT%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">1.</span> <span class="toc-text">MQTT服务器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-number">2.</span> <span class="toc-text">环境搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BDEMQX"><span class="toc-number">2.1.</span> <span class="toc-text">下载EMQX</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1"><span class="toc-number">2.2.</span> <span class="toc-text">启动服务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%99%BB%E5%BD%95EMQX-Dashboard"><span class="toc-number">2.3.</span> <span class="toc-text">登录EMQX Dashboard</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link"><span class="toc-number">3.</span> <span class="toc-text"></span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%AE%A4%E8%AF%81"><span class="toc-number">4.</span> <span class="toc-text">创建客户端认证</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-number">4.1.</span> <span class="toc-text">创建数据库</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7"><span class="toc-number">4.2.</span> <span class="toc-text">创建用户</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#MQTT-fx%E8%BF%9E%E6%8E%A5%E6%B5%8B%E8%AF%95"><span class="toc-number">5.</span> <span class="toc-text">MQTT.fx连接测试</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E8%BF%9E%E6%8E%A5"><span class="toc-number">5.1.</span> <span class="toc-text">创建连接</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Android%E8%BF%9E%E6%8E%A5%E6%B5%8B%E8%AF%95"><span class="toc-number">6.</span> <span class="toc-text">Android连接测试</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2018 - 2025 By Carl Su</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 6.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div><div class="footer_custom_text">学无止境</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="translateLink" type="button" title="简繁转换">繁</button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const initValine = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyValine = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    const valineConfig = {
+      el: '#vcomment',
+      appId: '',
+      appKey: '',
+      avatar: 'monsterid',
+      serverURLs: '',
+      emojiMaps: "",
+      visitor: false,
+      ...option,
+      path: isShuoshuo ? path : (option && option.path) || window.location.pathname
+    }
+
+    new Valine(valineConfig)
+  }
+
+  const loadValine = async (el, path) => {
+    if (typeof Valine === 'function') {
+      initValine(el, path)
+    } else {
+      await btf.getScript('https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js')
+      initValine(el, path)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Valine'
+      ? window.shuoshuoComment = { loadComment: loadValine }
+      : window.loadOtherComment = loadValine
+    return
+  }
+
+  if ('Valine' === 'Valine' || !true) {
+    if (true) btf.loadComment(document.getElementById('vcomment'),loadValine)
+    else setTimeout(loadValine, 0)
+  } else {
+    window.loadOtherComment = loadValine
+  }
+})()</script><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+
+  const disqusReset = conf => {
+    window.DISQUS && window.DISQUS.reset({
+      reload: true,
+      config: conf
+    })
+  }
+
+  const loadDisqus = (el, path) => {
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyDisqus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+
+    window.disqus_identifier = isShuoshuo ? path : '/posts/2b43af4d/'
+    window.disqus_url = isShuoshuo ? location.origin + path : 'https://devsu.top/posts/2b43af4d/'
+
+    const disqus_config = function () {
+      this.page.url = disqus_url
+      this.page.identifier = disqus_identifier
+      this.page.title = '2023-07-06-Windows下搭建MQTT服务器以及Android测试连接'
+    }
+
+    if (window.DISQUS) disqusReset(disqus_config)
+    else {
+      const script = document.createElement('script')
+      script.src = 'https://.disqus.com/embed.js'
+      script.setAttribute('data-timestamp', +new Date())
+      document.head.appendChild(script)
+    }
+
+    btf.addGlobalFn('themeChange', () => disqusReset(disqus_config), 'disqus')
+  }
+
+  const getCount = async() => {
+    try {
+      const eleGroup = document.querySelector('#post-meta .disqus-comment-count')
+      if (!eleGroup) return
+      const cleanedLinks = eleGroup.href.replace(/#post-comment$/, '')
+
+      const res = await fetch(`https://disqus.com/api/3.0/threads/set.json?forum=&api_key=&thread:link=${cleanedLinks}`,{
+        method: 'GET'
+      })
+      const result = await res.json()
+
+      const count = result.response.length ? result.response[0].posts : 0
+      eleGroup.textContent = count
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  if (isShuoshuo) {
+    'Valine' === 'Disqus'
+      ? window.shuoshuoComment = { loadComment: loadDisqus }
+      : window.loadOtherComment = loadDisqus
+    return
+  }
+
+  if ('Valine' === 'Disqus' || !true) {
+    if (true) btf.loadComment(document.getElementById('disqus_thread'), loadDisqus)
+    else {
+      loadDisqus()
+      GLOBAL_CONFIG_SITE.pageType === 'post' && getCount()
+    }
+  } else {
+    window.loadOtherComment = loadDisqus
+  }
+})()</script></div><script defer="defer" id="fluttering_ribbon" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-fluttering-ribbon.min.js"></script><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/activate-power-mode.min.js"></script><script>POWERMODE.colorful = true;
+POWERMODE.shake = false;
+POWERMODE.mobile = false;
+document.body.addEventListener('input', POWERMODE);
+</script><script id="click-heart" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/click-heart.min.js" async="async" mobile="false"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
